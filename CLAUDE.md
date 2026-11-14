@@ -8,7 +8,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Research and idea evaluation in markdown, plus the app skeleton for the lead idea (Spring Boot + React PWA). Git repo on `main`.
 - Idea to implement: `ideas/crew-health-companion.md`. Every question and task in this repo relates to it unless stated otherwise.
 - Nov 13: challenge Resources tab and Judging & Awards guide publish. Update `challenge.md` and `ideas/viability-checklist.md` (judging criteria are currently assumed from past years).
-- The submission must describe AI tool use. Append a row to `ai-log.md` for every session that changes files.
 
 ## Build and run
 
@@ -42,7 +41,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `ideas/features.md`: every feature of the lead idea in plain words, glossary, build order. Each built feature has a `Status:` line: `Implemented.` when done, otherwise what works and `Missing: …`.
 - `docs/features/<n>-<slug>.md`: one per implemented UI issue, with screenshots of each state from the running app (`docs/features/img/`), the mockup it follows and deviations. Screenshots retaken by `docs/features/<n>-<slug>.shots.mjs` using `tools/cdp.mjs`.
 - `ideas/ui-guidelines.md`: UI and UX rules from the palette canvas. Tokens live in `src/main/frontend/src/ui/theme/` (`tokens.css`, `base.css`); components use tokens and classes, never hex. Run its §8 checklist on every UI change.
-- `ai-log.md`: AI tool use log for the submission.
 - `spaceChallenges.md`: unsourced overview table with mangled journal citations. Don't cite it; trace claims to `research/` instead.
 
 ## Writing research and ideas
