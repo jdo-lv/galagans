@@ -91,3 +91,30 @@ describe('evaluate', () => {
     })
   })
 })
+
+describe('evaluate with the PVT (#17)', () => {
+  const cog01: Rule = {
+    ...base, id: 'COG-01', system: 'Cognition', indicator: 'pvtMedianMs', label: 'PVT median', unit: 'ms',
+    validMin: 130, validMax: 10000, above: 305, status: 'caution',
+  }
+  const DAY = 24 * 60 * 60_000
+  const at = (msBefore: number) => new Date(now.getTime() - msBefore).toISOString()
+
+  it('AC3: no PVT is no data, labelled in-app test', () => {
+    expect(evaluate([cog01], [], now)).toEqual([{ system: 'Cognition', state: 'no-data', source: 'in-app test' }])
+  })
+
+  it('a PVT goes stale after 4 days, not 24 h, and keeps its in-app test label', () => {
+    const fresh = evaluate([cog01], [reading('a', at(4 * DAY), { pvtMedianMs: 312 })], now)[0]
+    const old = evaluate([cog01], [reading('a', at(4 * DAY + 60_000), { pvtMedianMs: 312 })], now)[0]
+
+    expect(fresh).toMatchObject({ state: 'caution', source: 'in-app test' })
+    expect(old).toMatchObject({ state: 'stale', source: 'in-app test' })
+  })
+
+  it('SpO₂ keeps 24 h and the manual label', () => {
+    const [status] = evaluate([spo01], [reading('a', at(DAY + 60_000), { spo2Percent: 92 })], now)
+
+    expect(status).toMatchObject({ state: 'stale', source: 'manual' })
+  })
+})

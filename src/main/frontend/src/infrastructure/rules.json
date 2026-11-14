@@ -32,5 +32,22 @@
     "howDecided": "Rule SPO-02: SpO₂ < 90 % → warning. Earth clinical convention, not a NASA in-flight limit (health-indicators §4).",
     "next": "CMO now and notify ground.",
     "source": "research/health-indicators.md §4"
+  },
+  {
+    "id": "COG-01",
+    "system": "Cognition",
+    "indicator": "pvtMedianMs",
+    "label": "PVT median",
+    "unit": "ms",
+    "validMin": 130,
+    "validMax": 10000,
+    "above": 305,
+    "status": "caution",
+    "tier": "CMO",
+    "what": "Your PVT median is above 305 ms (synthetic baseline 265 ms + 15 %).",
+    "why": "PVT slows early in flight in ISS crews, and nights of 6 h or less of sleep slow it further. Slower attention raises the risk of performance errors.",
+    "howDecided": "Rule COG-01: PVT median > 305 ms → caution. Baseline 265 ms is a synthetic example value (mockup 02); +15 % is a team heuristic, not a NASA limit. No adaptation corridor yet.",
+    "next": "Tell the CMO today and repeat the test tomorrow morning.",
+    "source": "research/health-indicators.md §13; research/long-duration-literature.md [L5]"
   }
 ]

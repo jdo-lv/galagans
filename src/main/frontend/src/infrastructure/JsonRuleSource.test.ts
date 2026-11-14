@@ -9,13 +9,42 @@ const stringFields = ['id', 'system', 'indicator', 'label', 'unit', 'tier', 'wha
 const numberFields = ['validMin', 'validMax']
 
 describe('JsonRuleSource', () => {
-  it('loads the SpO₂ rows', async () => {
+  it('loads the SpO₂ rows and, since #17, COG-01', async () => {
     const rules = await new JsonRuleSource().load()
 
-    expect(rules.map((r) => [r.id, r.below, r.status, r.tier])).toEqual([
+    expect(rules.map((r) => [r.id, r.below ?? r.above, r.status, r.tier])).toEqual([
       ['SPO-01', 94, 'caution', 'CMO'],
       ['SPO-02', 90, 'warning', 'Urgent ground'],
+      ['COG-01', 305, 'caution', 'CMO'],
     ])
+  })
+
+  it('AC1: COG-01 has exactly the issue #17 values', async () => {
+    const cog = (await new JsonRuleSource().load())[2]
+
+    expect(cog).toEqual({
+      id: 'COG-01',
+      system: 'Cognition',
+      indicator: 'pvtMedianMs',
+      label: 'PVT median',
+      unit: 'ms',
+      validMin: 130,
+      validMax: 10000,
+      above: 305,
+      status: 'caution',
+      tier: 'CMO',
+      what: 'Your PVT median is above 305 ms (synthetic baseline 265 ms + 15 %).',
+      why: 'PVT slows early in flight in ISS crews, and nights of 6 h or less of sleep slow it further. Slower attention raises the risk of performance errors.',
+      howDecided:
+        'Rule COG-01: PVT median > 305 ms → caution. Baseline 265 ms is a synthetic example value (mockup 02); +15 % is a team heuristic, not a NASA limit. No adaptation corridor yet.',
+      next: 'Tell the CMO today and repeat the test tomorrow morning.',
+      source: 'research/health-indicators.md §13; research/long-duration-literature.md [L5]',
+    })
+  })
+
+  it('AC2: accepts pvtMedianMs and still rejects an unknown indicator', async () => {
+    await expect(new JsonRuleSource([{ ...valid, indicator: 'pvtMedianMs' }]).load()).resolves.toHaveLength(1)
+    await expect(new JsonRuleSource([{ ...valid, indicator: 'glucose' }]).load()).rejects.toThrow('unknown indicator')
   })
 
   it.each([

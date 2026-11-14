@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Rule } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
 import rules from '../infrastructure/rules.json'
-import { reading, setup, submitSpo2 } from '../test/renderApp'
+import { pvt, reading, setup, submitSpo2 } from '../test/renderApp'
 
 const [SPO01, SPO02] = rules as Rule[]
 const texts = (rule: Rule) => [rule.what, rule.why, rule.howDecided, rule.next]
@@ -11,7 +11,14 @@ const MIN = 60_000
 const HOUR = 60 * MIN
 
 const list = () => screen.getByRole('region', { name: 'Body systems' })
-const row = () => within(list()).getByRole('listitem')
+// The Respiratory row; since #17 Cognition is a rule-backed row too.
+const row = () => {
+  const found = within(list())
+    .getAllByRole('listitem')
+    .find((li) => li.querySelector('.status-system')?.textContent === 'Respiratory')
+  if (!found) throw new Error('no Respiratory row')
+  return found
+}
 
 function expectNoStatusIcon(element: HTMLElement) {
   expect(element.querySelector('svg')).toBeNull()
@@ -28,8 +35,9 @@ describe('SystemStatusList', () => {
   it('AC1: shows Respiratory with no data and no icon when nothing valid is stored', async () => {
     setup().renderApp()
 
-    expect(await within(list()).findByText('No data')).toBeInTheDocument()
-    expect(within(list()).getAllByRole('listitem')).toHaveLength(1)
+    await vi.waitFor(() => expect(row()).toHaveTextContent('No data'))
+    // Respiratory, then Cognition (rule COG-01, #17), both with no data.
+    expect(within(list()).getAllByRole('listitem')).toHaveLength(2)
     expect(row()).toHaveTextContent('Respiratory')
     expectNoStatusIcon(row())
   })
@@ -123,7 +131,7 @@ describe('SystemStatusList', () => {
   it('AC11: only an out-of-range value means no data', async () => {
     setup({ seed: [reading('a', '2026-11-14T09:00:00Z', 120)] }).renderApp()
 
-    expect(await within(list()).findByText('No data')).toBeInTheDocument()
+    await vi.waitFor(() => expect(row()).toHaveTextContent('No data'))
   })
 
   it('AC12: warns offline without calling the gateway', async () => {
@@ -207,7 +215,7 @@ describe('Body systems with placeholders (#4)', () => {
     expect(within(rows[0]).getByText('No data')).toBeInTheDocument()
   })
 
-  it('AC2: SpO₂ 88 warns on Respiratory while the placeholders stay nominal', async () => {
+  it('AC2: SpO₂ 88 warns on Respiratory while the placeholders stay nominal (Cognition has no data since #17)', async () => {
     setup({ placeholders: mockStatuses }).renderApp()
     await submitSpo2(88)
 
@@ -215,11 +223,12 @@ describe('Body systems with placeholders (#4)', () => {
     const [respiratory, ...others] = within(list()).getAllByRole('listitem')
     expectNoExplanation(respiratory)
     expect(others).toHaveLength(9)
-    others.forEach((r) => expect(within(r).getByText('✓ Nominal')).toBeInTheDocument())
+    const [cognition, ...placeholders] = others
+    expect(within(cognition).getByText('No data')).toBeInTheDocument()
+    placeholders.forEach((r) => expect(within(r).getByText('✓ Nominal')).toBeInTheDocument())
   })
 
   it.each([
-    ['Cognition', 'PVT 268 ms · within your baseline'],
     ['Cabin air', 'CO₂ 2.3 mmHg (1-h avg)'],
     ['Sleep', '7.1 h last night'],
     ['Immune', 'no new symptoms'],
@@ -287,7 +296,7 @@ describe('Body systems rows link to the detail (#9)', () => {
     setup({ seed }).renderApp()
     if (submit !== undefined) await submitSpo2(submit)
 
-    await within(list()).findByText(text)
+    await vi.waitFor(() => expect(row()).toHaveTextContent(text))
     expect(within(list()).queryByRole('link')).toBeNull()
   })
 
@@ -297,5 +306,77 @@ describe('Body systems rows link to the detail (#9)', () => {
     const [, ...placeholders] = await within(list()).findAllByRole('listitem')
     expect(placeholders).toHaveLength(9)
     placeholders.forEach((r) => expect(within(r).queryByRole('link')).toBeNull())
+  })
+})
+
+describe('Cognition from the PVT (#17)', () => {
+  const NOW = '2026-11-14T09:30:00Z'
+  const DAY = 24 * 60 * 60_000
+  const ago = (ms: number) => new Date(Date.parse(NOW) - ms).toISOString()
+  const cognition = () => within(list()).getAllByRole('listitem')[1]
+  const show = async (seed: NonNullable<Parameters<typeof setup>[0]>['seed']) => {
+    setup({ now: NOW, placeholders: mockStatuses, seed }).renderApp()
+    await within(list()).findAllByRole('listitem')
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('Cognition'))
+  }
+
+  it('AC4: a PVT of 312 is a caution, second row, linked, and the placeholder is gone', async () => {
+    await show([pvt('p', ago(10 * 60_000), 312)])
+
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CAUTION'))
+    expect(cognition()).toHaveTextContent('PVT median 312 ms · 10 min ago · in-app test')
+    expect(within(cognition()).getByRole('link')).toHaveAttribute('href', '#/systems/Cognition')
+    expect(list()).not.toHaveTextContent('PVT 268 ms · within your baseline')
+  })
+
+  it('AC5: 305 is nominal with no link (above is strict)', async () => {
+    await show([pvt('p', NOW, 305)])
+
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('✓ Nominal'))
+    expect(within(cognition()).queryByRole('link')).toBeNull()
+  })
+
+  it('AC6: 306 is a caution', async () => {
+    await show([pvt('p', NOW, 306)])
+
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CAUTION'))
+  })
+
+  it('AC7: no PVT is no data; the other eight placeholders stay', async () => {
+    await show([])
+
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('No data'))
+    expect(list()).not.toHaveTextContent('PVT 268 ms · within your baseline')
+    const placeholders = within(list()).getAllByRole('listitem').slice(2)
+    expect(placeholders).toHaveLength(8)
+    placeholders.forEach((r) => expect(r).toHaveTextContent('synthetic'))
+  })
+
+  it('AC8: older than 4 days is no recent data, aged, with no link', async () => {
+    await show([pvt('p', ago(4 * DAY + 60_000), 312)])
+
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('No recent data'))
+    expect(cognition()).toHaveTextContent('PVT median 312 ms · data 4 d old · in-app test')
+    expect(within(cognition()).queryByRole('link')).toBeNull()
+  })
+
+  it('AC9: exactly 4 days old still shows its caution', async () => {
+    await show([pvt('p', ago(4 * DAY), 312)])
+
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CAUTION'))
+    expect(cognition()).toHaveTextContent('4 d ago')
+  })
+
+  it('AC10: Respiratory keeps 24 h and the manual label', async () => {
+    await show([reading('s', ago(DAY + 60_000), 92)])
+
+    await vi.waitFor(() => expect(row()).toHaveTextContent('No recent data'))
+    expect(row()).toHaveTextContent('· manual')
+  })
+
+  it.each([15000, 129])('AC11: a PVT of %s only is outside the valid range: no data', async (ms) => {
+    await show([pvt('p', NOW, ms)])
+
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('No data'))
   })
 })

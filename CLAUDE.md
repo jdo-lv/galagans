@@ -67,6 +67,7 @@ Sourced in `README.md` and `ideas/viability-checklist.md`:
 - Thresholds from NASA-STD-3001, clinical guidelines or the astronaut's own in-flight baseline. Earth cut-offs alone misfire in flight. Each flag maps to a documented action.
 - Offline-first, store-and-forward to the flight surgeon, visible comms delay. Escalation: self-care → CMO → private medical conference → urgent ground.
 - NASA display rules: red = warning, yellow = caution, never color alone, quiet when nominal, explain what/why/how decided/what next.
+- Colour only for the 0–5 alert levels (`ideas/alert-levels.md`): the rest of the UI, including health categories, charts, selection and links, uses palette greys and whites.
 - Private by default, role-based views, no leaderboards on health values. Gamify the process (check-ins, exercise minutes), not the values.
 - No emotion inference from face or voice, no diagnosing LLM. On-board rules with optional AI explainer and "decision support" wording.
 - Differentiate from CNES EveryWear, which already flies and logs but doesn't interpret or guide.

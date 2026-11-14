@@ -37,7 +37,7 @@ export interface SystemStatus {
   recordedAt?: string
   /** Free-text sub line, only on placeholders. */
   detail?: string
-  source: 'manual' | 'synthetic'
+  source: 'manual' | 'synthetic' | 'in-app test'
   /** Only for caution and warning. */
   rule?: Rule
 }

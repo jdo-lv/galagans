@@ -13,14 +13,14 @@
 .ag .b{display:flex;gap:6px;margin-top:7px}
 .inc{background:#3D403B;color:#CFCFCF;font-size:11.5px;font-weight:700;border-radius:4px;padding:3px 8px}
 .ch{border:1px solid #868375;color:#DADADA;font-size:11.5px;border-radius:4px;padding:3px 8px}
-.ch.p{background:#7FA6F0;border-color:#7FA6F0;color:#1B1B1B;font-weight:700}
+.ch.p{background:#DADADA;border-color:#DADADA;color:#1B1B1B;font-weight:700}
 .src{font-size:10.5px;color:#CFCFCF}
 </style></head><body>
 <div class="top"><span class="brand"><span class="dot"></span>Crew Health Companion</span>
 <span class="pill">← Body map</span><span class="pill">Crew <b>A1</b></span><span class="pill">Flight day <b>146</b> · 07:24</span><span class="sp"></span>
 <span class="pill">Ground link: one-way delay <b>14 min 40 s</b></span></div>
 
-<div style="position:absolute;left:22px;top:70px;display:flex;align-items:center;gap:14px"><span class="cau" style="font-size:15px;padding:7px 12px">▲ CAUTION</span><span style="font-size:22px;font-weight:700">Cardiovascular · resting heart rate</span></div>
+<div style="position:absolute;left:22px;top:70px;display:flex;align-items:center;gap:14px"><span class="lv l2" style="font-size:15px;padding:6px 12px">↗ WATCH</span><span style="font-size:22px;font-weight:700">Cardiovascular · resting heart rate</span></div>
 
 <div class="panel" style="left:22px;top:114px;width:800px;height:112px;padding:10px 14px">
 <div style="display:flex;gap:18px;align-items:center">
@@ -28,10 +28,10 @@
 <rect x="30" y="38" width="390" height="24" fill="#CFCFCF" opacity=".12"/>
 <text x="0" y="14" fill="#CFCFCF" font-size="10">80</text><text x="0" y="52" fill="#CFCFCF" font-size="10">61</text><text x="0" y="86" fill="#CFCFCF" font-size="10">50</text>
 <text x="34" y="58" fill="#CFCFCF" font-size="10">your baseline 57–65 bpm</text>
-<polyline fill="none" stroke="#7FA6F0" stroke-width="2" points="40,50 70,48 100,52 130,47 160,50 190,49 220,51 250,46 280,44 310,36 340,30 370,27 400,25"/>
-<g fill="#7FA6F0"><circle cx="40" cy="50" r="3"/><circle cx="100" cy="52" r="3"/><circle cx="160" cy="50" r="3"/><circle cx="220" cy="51" r="3"/><circle cx="280" cy="44" r="3"/></g>
-<circle cx="340" cy="30" r="5" fill="#FFC72C"/><circle cx="370" cy="27" r="5" fill="#FFC72C"/><circle cx="400" cy="25" r="6" fill="#FFC72C"/>
-<text x="250" y="16" fill="#FFC72C" font-size="11" font-weight="700">▲ +9 bpm, 3 days running</text>
+<polyline fill="none" stroke="#DADADA" stroke-width="2" points="40,50 70,48 100,52 130,47 160,50 190,49 220,51 250,46 280,44 310,36 340,30 370,27 400,25"/>
+<g fill="#DADADA"><circle cx="40" cy="50" r="3"/><circle cx="100" cy="52" r="3"/><circle cx="160" cy="50" r="3"/><circle cx="220" cy="51" r="3"/><circle cx="280" cy="44" r="3"/></g>
+<g fill="#1B1B1B" stroke="#FFC72C" stroke-width="2"><circle cx="340" cy="30" r="5"/><circle cx="370" cy="27" r="5"/><circle cx="400" cy="25" r="6"/></g>
+<text x="250" y="16" fill="#FFC72C" font-size="11" font-weight="700">↗ +9 bpm, 3 days running</text>
 </svg>
 <div class="sm" style="line-height:1.6">Resting HR, last 14 days · today <b>70 bpm</b> (re-measured)<br>Baseline 61 bpm (pre-flight) · no in-flight shift published<br><span class="mut">Trigger: +8 bpm or more for 3 days. App heuristic, not a NASA rule.</span><br><span class="tag">bracelet · simulated</span> <span class="tag">re-measured</span></div>
 </div></div>
@@ -45,12 +45,12 @@
 <div class="step"><div class="num">2</div><div style="flex:1"><div class="st">2 · What in your own data may contribute?</div>
 <div class="sm mut">Signals rule CV-03 lists as related. The app shows these; it doesn't diagnose.</div>
 <div class="ctr">
-<span>Sleep</span><span class="y">▲ 5.4 h avg, 3 nights (target 7–9 h)</span><span class="src">KSS 7 today</span>
-<span>Fluids</span><span class="y">▲ 1.6 L/day, 3 days (target 2.5 L)</span><span class="src">quick log</span>
+<span>Sleep</span><span class="y">↘ 5.4 h avg, 3 nights (target 7–9 h)</span><span class="src">KSS 7 today</span>
+<span>Fluids</span><span class="y">↘ 1.6 L/day, 3 days (target 2.5 L)</span><span class="src">quick log</span>
 <span>Symptoms</span><span class="y">▲ sore throat, FD 144–146</span><span class="src">check-in</span>
-<span>Temperature</span><span>● 37.3 °C, within your in-flight range</span><span class="src">no fever</span>
-<span>Caffeine</span><span>● last dose 13:10 yesterday</span><span class="src">check-in</span>
-<span>Exercise load</span><span>● as planned (540/600 min/wk)</span><span class="src">routine</span>
+<span>Temperature</span><span>✓ 37.3 °C, within your in-flight range</span><span class="src">no fever</span>
+<span>Caffeine</span><span>✓ last dose 13:10 yesterday</span><span class="src">check-in</span>
+<span>Exercise load</span><span>✓ as planned (540/600 min/wk)</span><span class="src">routine</span>
 </div></div></div>
 
 <div class="step" style="border:0"><div class="num">3</div><div style="flex:1"><div class="st">3 · What now?</div>
@@ -58,7 +58,7 @@
 ☐ Protect tonight's sleep window: lights below 10 lux 1 h before, no caffeine after 14:00 · <span class="mut">sleep</span><br>
 ☐ Log the sore throat again tomorrow; tell the CMO today if a fever starts · <span class="mut">symptoms</span></div>
 <div style="display:flex;align-items:center;gap:14px;margin-top:12px">
-<div style="display:flex;gap:6px"><div class="tier" style="flex:none;padding:7px 10px;border:1px solid #7FA6F0;background:#2A3550;border-radius:6px;font-size:12.5px;font-weight:700">Self-care</div><div style="padding:7px 10px;border:1px solid #868375;border-radius:6px;font-size:12.5px;color:#CFCFCF">CMO</div><div style="padding:7px 10px;border:1px solid #868375;border-radius:6px;font-size:12.5px;color:#CFCFCF">Private med. conf.</div><div style="padding:7px 10px;border:1px solid #868375;border-radius:6px;font-size:12.5px;color:#CFCFCF">Urgent ground</div></div>
+<div style="display:flex;gap:6px"><div class="tier" style="flex:none;padding:7px 10px;border:1px solid #DADADA;background:#DADADA;color:#1B1B1B;border-radius:6px;font-size:12.5px;font-weight:700">Self-care</div><div style="padding:7px 10px;border:1px solid #868375;border-radius:6px;font-size:12.5px;color:#CFCFCF">CMO</div><div style="padding:7px 10px;border:1px solid #868375;border-radius:6px;font-size:12.5px;color:#CFCFCF">Private med. conf.</div><div style="padding:7px 10px;border:1px solid #868375;border-radius:6px;font-size:12.5px;color:#CFCFCF">Urgent ground</div></div>
 <span class="inc" style="font-size:13px;padding:8px 12px">✓ Added to next medical conference</span></div>
 <div class="src" style="margin-top:8px">Sources: resting HR and in-flight shift (research/health-indicators.md §1) · fluids 2.5 L/day (research/countermeasures.md) · sleep hygiene (rule table) · wording is decision support, not diagnosis</div>
 </div></div>
@@ -73,7 +73,7 @@
 <div class="d">From check-and-act · with sleep, fluids, sore throat · readings and sources attached</div></div>
 
 <div class="ag" style="border-color:#CFCFCF"><div style="display:flex;justify-content:space-between"><span class="t">PVT slower than expected (FD 142–143)</span><span class="inc">Included</span></div>
-<div class="d">Caution lasted 2 days · CO₂ above 1-h limit on FD 142</div></div>
+<div class="d">Check lasted 2 days · CO₂ above 1-h limit on FD 142</div></div>
 
 <div class="ag"><div class="t">Sore throat, 3 days</div><div class="d">Suggested: symptom logged on 3 check-ins</div>
 <div class="b"><span class="ch p">Include</span><span class="ch">Not now</span></div></div>

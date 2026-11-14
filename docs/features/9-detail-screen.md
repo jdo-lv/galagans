@@ -35,7 +35,7 @@ The newest point is hollow with no marker. Old data shows its age, never an alar
 The columns stack. The chart keeps 16 px labels by scrolling sideways, and it opens on the newest readings, so the Y-axis labels are scrolled out of view at first.
 ![Caution, phone](img/9-caution-phone.png)
 
-"Detail unavailable" (rules or storage fail to load) can't be triggered from the running app; it's covered by `SystemDetail.test.tsx` (AC35, AC36). Unknown routes (`#/systems/Cognition`, `#/foo`) go back to Home (AC8).
+"Detail unavailable" (rules or storage fail to load) can't be triggered from the running app; it's covered by `SystemDetail.test.tsx` (AC35, AC36). Unknown routes (`#/systems/Sleep`, `#/foo`) go back to Home (AC8). Cognition has its own detail since #17.
 
 ## Mockup and deviations
 

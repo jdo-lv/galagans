@@ -2,8 +2,8 @@
 .stp{display:flex;justify-content:space-between;position:relative;margin:30px 10px 0}
 .stp:before{content:"";position:absolute;left:30px;right:30px;top:13px;height:3px;background:#868375}
 .st{text-align:center;width:150px;position:relative;font-size:13px}
-.st .c{width:28px;height:28px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;background:#52574E;border:2px solid #7FA6F0;font-weight:700}
-.st .c.y{border-color:#7FA6F0;color:#7FA6F0}.st .c.g{border-color:#868375;color:#CFCFCF}
+.st .c{width:28px;height:28px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;background:#52574E;border:2px solid #DADADA;font-weight:700}
+.st .c.y{border-color:#DADADA;border-style:dashed;color:#DADADA}.st .c.g{border-color:#868375;color:#CFCFCF}
 .st small{color:#CFCFCF;font-size:12px}
 table{width:100%;border-collapse:collapse;margin-top:10px}
 th{font-size:12px;letter-spacing:1px;color:#CFCFCF;text-align:left;padding:8px;border-bottom:1px solid #2E2F2C}
@@ -29,12 +29,12 @@ pre{background:#1B1B1B;border-radius:8px;padding:12px;font-size:11.5px;line-heig
 <div class="ph">Packet contents · 15 FHIR resources</div>
 <table>
 <tr><th>ITEM</th><th>STATUS</th><th>VALUE</th><th>SOURCE</th></tr>
-<tr><td>PVT median RT</td><td><span class="cau">▲ CAUTION</span></td><td>312 ms (baseline 265)</td><td><span class="tag">in-app test</span></td></tr>
-<tr><td>Cabin CO₂ 1-h avg</td><td><span class="cau">▲ CAUTION</span></td><td>3.2 mmHg</td><td><span class="tag">EDA replay</span></td></tr>
-<tr><td>Sleep, last 3 nights</td><td><span class="cau">▲ CAUTION</span></td><td>5.6 h avg (&lt; 6 h)</td><td><span class="tag">bracelet · dock FD 141</span> <span class="tag">check-in</span></td></tr>
-<tr><td>Heart rate</td><td><span class="nom">● Nominal</span></td><td>63 bpm</td><td><span class="tag">bracelet · simulated</span></td></tr>
-<tr><td>SpO₂</td><td><span class="nom">● Nominal</span></td><td>97 %</td><td><span class="tag">oximeter · simulated</span></td></tr>
-<tr><td>Blood pressure</td><td><span class="nom">● Nominal</span></td><td>108/70 mmHg</td><td><span class="tag">manual</span></td></tr>
+<tr><td>PVT median RT</td><td><span class="lv l3">▲ CHECK</span></td><td>312 ms (baseline 265)</td><td><span class="tag">in-app test</span></td></tr>
+<tr><td>Cabin CO₂ 1-h avg</td><td><span class="lv l3">▲ CHECK</span></td><td>3.2 mmHg</td><td><span class="tag">EDA replay</span></td></tr>
+<tr><td>Sleep, last 3 nights</td><td><span class="lv l2">↘ WATCH</span></td><td>5.6 h avg (&lt; 6 h)</td><td><span class="tag">bracelet · dock FD 141</span> <span class="tag">check-in</span></td></tr>
+<tr><td>Heart rate</td><td><span class="nom">✓ Nominal</span></td><td>63 bpm</td><td><span class="tag">bracelet · simulated</span></td></tr>
+<tr><td>SpO₂</td><td><span class="nom">✓ Nominal</span></td><td>97 %</td><td><span class="tag">oximeter · simulated</span></td></tr>
+<tr><td>Blood pressure</td><td><span class="nom">✓ Nominal</span></td><td>108/70 mmHg</td><td><span class="tag">manual</span></td></tr>
 <tr><td>Symptoms</td><td>—</td><td>mild headache since FD 141</td><td><span class="tag">check-in</span></td></tr>
 </table>
 </div>
