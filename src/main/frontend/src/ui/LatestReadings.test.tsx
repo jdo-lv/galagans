@@ -12,7 +12,7 @@ import { mockReadings } from '../infrastructure/mockReadings'
 import rules from '../infrastructure/rules.json'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { mockStatuses } from '../infrastructure/mockStatuses'
-import { packetFakes, pvt, setup as setupApp } from '../test/renderApp'
+import { packetFakes, pvt, setup as setupApp, voiceFakes } from '../test/renderApp'
 import { App } from './App'
 import { ServicesProvider } from './ServicesContext'
 
@@ -30,15 +30,19 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
   const ruleSource = new FakeRuleSource(rules as Rule[])
   const synchronizer = new SyncService(repository, gateway, connectivity)
   const readingsReader = new LatestReadingsReader(ruleSource, repository, () => clock.now, mockReadings)
+  const statusReader = new SystemStatusReader(ruleSource, repository, () => clock.now)
+  const routineReader = new RoutineReader(repository, () => clock.now)
+  const recorder = new CheckInRecorder(repository, synchronizer, undefined, () => clock.now)
   const services = {
     repository,
     connectivity,
     synchronizer,
-    recorder: new CheckInRecorder(repository, synchronizer, undefined, () => clock.now),
-    statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now),
+    recorder,
+    statusReader,
     readingsReader,
-    routineReader: new RoutineReader(repository, () => clock.now),
+    routineReader,
     random: () => 0,
+    voiceSession: voiceFakes({ recorder, statusReader, routineReader }).voiceSession,
     ...packetFakes(readingsReader, connectivity, () => clock.now).services,
   }
   return {

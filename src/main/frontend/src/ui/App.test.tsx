@@ -7,7 +7,7 @@ import { RoutineReader } from '../application/RoutineReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
-import { packetFakes } from '../test/renderApp'
+import { packetFakes, voiceFakes } from '../test/renderApp'
 import { App } from './App'
 import { ServicesProvider } from './ServicesContext'
 
@@ -17,15 +17,19 @@ function setup(online: boolean) {
   connectivity.online = online
   const synchronizer = new SyncService(repository, new FakeGateway(), connectivity)
   const readingsReader = new LatestReadingsReader(new FakeRuleSource(), repository)
+  const statusReader = new SystemStatusReader(new FakeRuleSource(), repository)
+  const routineReader = new RoutineReader(repository)
+  const recorder = new CheckInRecorder(repository, synchronizer)
   const services = {
     repository,
     connectivity,
     synchronizer,
-    recorder: new CheckInRecorder(repository, synchronizer),
-    statusReader: new SystemStatusReader(new FakeRuleSource(), repository),
+    recorder,
+    statusReader,
     readingsReader,
-    routineReader: new RoutineReader(repository),
+    routineReader,
     random: () => 0,
+    voiceSession: voiceFakes({ recorder, statusReader, routineReader }).voiceSession,
     ...packetFakes(readingsReader, connectivity).services,
   }
   render(

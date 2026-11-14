@@ -1,4 +1,5 @@
 import { CheckInRecorder, type CheckInRecording } from './application/CheckInRecorder'
+import { HealthBriefing } from './application/HealthBriefing'
 import { LastPacketReader } from './application/LastPacketReader'
 import { LatestReadingsReader } from './application/LatestReadingsReader'
 import { PacketDraftReader } from './application/PacketDraftReader'
@@ -8,6 +9,7 @@ import { RoutineReader } from './application/RoutineReader'
 import { SyncService } from './application/SyncService'
 import type { Synchronizer } from './application/Synchronizer'
 import { SystemStatusReader } from './application/SystemStatusReader'
+import { VoiceSession } from './application/VoiceSession'
 import type { CheckInRepository, ConnectivityMonitor } from './domain/ports'
 import { BrowserConnectivityMonitor } from './infrastructure/BrowserConnectivityMonitor'
 import { HttpCheckInGateway } from './infrastructure/HttpCheckInGateway'
@@ -15,9 +17,13 @@ import { HttpPacketGateway } from './infrastructure/HttpPacketGateway'
 import { IndexedDbCheckInRepository } from './infrastructure/IndexedDbCheckInRepository'
 import { IndexedDbPacketRepository } from './infrastructure/IndexedDbPacketRepository'
 import { JsonRuleSource } from './infrastructure/JsonRuleSource'
+import { LlamaVoiceInterpreter } from './infrastructure/LlamaVoiceInterpreter'
 import { mockReadings } from './infrastructure/mockReadings'
 import { mockRoutine } from './infrastructure/mockRoutine'
 import { mockStatuses } from './infrastructure/mockStatuses'
+import ruleRows from './infrastructure/rules.json'
+import { PiperSpeechOutput } from './infrastructure/PiperSpeechOutput'
+import { WhisperSpeechInput } from './infrastructure/WhisperSpeechInput'
 
 export interface Services {
   recorder: CheckInRecording
@@ -33,6 +39,7 @@ export interface Services {
   lastPacketReader: LastPacketReader
   packetSender: PacketSender
   packetUplink: Synchronizer
+  voiceSession: VoiceSession
 }
 
 /** Composition root: the only place that picks concrete implementations. */
@@ -43,19 +50,33 @@ export function createServices(): Services & { startSync: () => () => void } {
   const readingsReader = new LatestReadingsReader(new JsonRuleSource(), repository, undefined, mockReadings)
   const packets = new IndexedDbPacketRepository()
   const packetUplink = new PacketUplink(packets, new HttpPacketGateway(), connectivity)
+  const recorder = new CheckInRecorder(repository, syncService)
+  const statusReader = new SystemStatusReader(new JsonRuleSource(), repository, undefined, mockStatuses)
+  const routineReader = new RoutineReader(repository, undefined, mockRoutine)
+  // The rows of the Body systems list: rule systems plus placeholders.
+  const bodySystems = [...new Set([...ruleRows.map((r) => r.system), ...mockStatuses.map((p) => p.system)])]
+  const interpreter = new LlamaVoiceInterpreter('/voice/llm', bodySystems)
   return {
     repository,
     connectivity,
     synchronizer: syncService,
-    recorder: new CheckInRecorder(repository, syncService),
-    statusReader: new SystemStatusReader(new JsonRuleSource(), repository, undefined, mockStatuses),
+    recorder,
+    statusReader,
     readingsReader,
-    routineReader: new RoutineReader(repository, undefined, mockRoutine),
+    routineReader,
     random: Math.random,
     packetDraftReader: new PacketDraftReader(readingsReader),
     lastPacketReader: new LastPacketReader(packets),
     packetSender: new PacketSender(readingsReader, packets, packetUplink),
     packetUplink,
+    // The voice host (voice-host/compose.yaml) is reached through the /voice proxy in vite.config.ts.
+    voiceSession: new VoiceSession(
+      new WhisperSpeechInput('/voice/stt'),
+      new PiperSpeechOutput('/voice/tts'),
+      interpreter,
+      recorder,
+      new HealthBriefing(statusReader, routineReader),
+    ),
     startSync: () => {
       const stops = [syncService.start(), packetUplink.start()]
       return () => stops.forEach((stop) => stop())

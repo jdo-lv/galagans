@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import type { VoiceTarget } from '../domain/voice'
 
 const PREFIX = '#/systems/'
 
@@ -7,6 +8,20 @@ export const systemHref = (system: string) => PREFIX + encodeURIComponent(system
 export const PVT_HASH = '#/pvt'
 
 export const PACKET_HREF = '#/packet'
+
+/** The hash of a screen a voice command opens. */
+export function voiceHref(target: VoiceTarget): string {
+  switch (target.screen) {
+    case 'home':
+      return '#/'
+    case 'system':
+      return systemHref(target.system)
+    case 'pvt':
+      return PVT_HASH
+    case 'packet':
+      return PACKET_HREF
+  }
+}
 
 export type Route = { kind: 'home' } | { kind: 'system'; system: string } | { kind: 'pvt' } | { kind: 'packet' } | { kind: 'unknown' }
 

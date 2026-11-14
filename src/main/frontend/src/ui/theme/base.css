@@ -76,7 +76,7 @@ a:hover {
 
 .app-header {
   display: grid;
-  grid-template-columns: var(--target-min) 1fr var(--target-min);
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   min-height: var(--target-min);
 }
@@ -84,6 +84,13 @@ a:hover {
 .brand-mark {
   justify-self: start;
   color: var(--color-ring);
+}
+
+/* Right of the wordmark: voice control, then the theme toggle */
+.header-actions {
+  justify-self: end;
+  display: flex;
+  gap: var(--space-5);
 }
 
 .wordmark {
@@ -378,7 +385,8 @@ ul.tile-grid {
 }
 
 .button-primary:disabled,
-.button-secondary:disabled {
+.button-secondary:disabled,
+.icon-button:disabled {
   opacity: 0.6;
   cursor: default;
 }
@@ -393,6 +401,12 @@ ul.tile-grid {
   display: grid;
   place-items: center;
   cursor: pointer;
+}
+
+/* A toggled-on icon button: inverse fill, like any selected item (ui-guidelines §5) */
+.icon-button[aria-pressed='true'] {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
 }
 
 /* Pills and tags: neutral, never status colours */

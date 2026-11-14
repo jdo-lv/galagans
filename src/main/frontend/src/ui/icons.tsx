@@ -34,6 +34,7 @@ import {
   IconMoodSadDizzy,
   IconMoodSick,
   IconMoodSmile,
+  IconMicrophone,
   IconMoon,
   IconPill,
   IconRadioactive,
@@ -170,3 +171,4 @@ export const StepCurrentIcon = /* @__PURE__ */ decorative(IconArrowRight)
 export const StepPendingIcon = /* @__PURE__ */ decorative(IconDots)
 export const LightThemeIcon = /* @__PURE__ */ decorative(IconSun)
 export const DarkThemeIcon = /* @__PURE__ */ decorative(IconMoon)
+export const VoiceIcon = /* @__PURE__ */ decorative(IconMicrophone)
