@@ -80,6 +80,27 @@ class PacketControllerTest(
         post(ac1BodyWith { it["items"] = emptyList<Any>() }).expectStatus().isOk
     }
 
+    @ParameterizedTest
+    @MethodSource("freeStateAndSource")
+    fun `AC4 accepts state and source values outside the crew app's current set`(body: String) {
+        post(body).expectStatus().isOk
+    }
+
+    @Test
+    fun `AC4 accepts an item with only key, label, unit and state`() {
+        val sleep = mapOf("key" to "sleep", "label" to "Sleep", "unit" to "h", "state" to "no-data")
+
+        post(ac1BodyWith { it.items()[0] = sleep.toMutableMap() }).expectStatus().isOk
+
+        assertEquals(
+            PacketItem(
+                key = "sleep", label = "Sleep", unit = "h", state = "no-data", value = null,
+                text = null, recordedAt = null, source = null, ruleId = null, tier = null,
+            ),
+            inbox.received.single().items[0],
+        )
+    }
+
     companion object {
         @JvmStatic
         fun blankNotes() = listOf(
@@ -87,6 +108,12 @@ class PacketControllerTest(
             named("note null", ac1BodyWith { it["note"] = null }),
             named("note empty", ac1BodyWith { it["note"] = "" }),
             named("note spaces", ac1BodyWith { it["note"] = "   " }),
+        )
+
+        @JvmStatic
+        fun freeStateAndSource() = listOf(
+            named("state unrated", ac1BodyWith { it.items()[0]["state"] = "unrated" }),
+            named("source in-app test", ac1BodyWith { it.items()[0]["source"] = "in-app test" }),
         )
 
         private val mapper = jacksonObjectMapper()
