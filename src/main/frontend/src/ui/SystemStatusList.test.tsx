@@ -232,7 +232,7 @@ describe('Body systems with placeholders (#4)', () => {
     ['Cabin air', 'CO₂ 2.3 mmHg (1-h avg)'],
     ['Sleep', '7.1 h last night'],
     ['Immune', 'no new symptoms'],
-    ['Cardiovascular', 'HR 63 bpm · BP 108/70'],
+    ['Cardiovascular', 'BP 108/70'],
     ['Bone & muscle', 'Exercise 540/600 min/wk'],
     ['Vision (SANS)', 'self-test done Wed · no changes'],
     ['Radiation', '38% of 30-day limit'],

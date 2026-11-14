@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
 import type { Rule } from '../domain/rules'
-import { evaluate } from './evaluate'
+import { fromCheckIn } from '../domain/observation'
+import { evaluate as evaluateObservations } from './evaluate'
 
 const now = new Date('2026-11-14T12:00:00Z')
 
@@ -13,6 +14,8 @@ const hr = (id: string, above: number, status: Rule['status'] = 'caution'): Rule
 })
 
 const reading = (id: string, recordedAt: string, fields: Partial<CheckIn>): CheckIn => ({ id, recordedAt, symptoms: [], ...fields })
+
+const evaluate = (rules: Rule[], checkIns: CheckIn[], at: Date) => evaluateObservations(rules, checkIns.flatMap(fromCheckIn), at)
 
 describe('evaluate', () => {
   it('returns one status per system in table order', () => {
@@ -78,7 +81,7 @@ describe('evaluate', () => {
 
   it('reports no data when no reading is valid', () => {
     expect(evaluate([spo01], [reading('a', '2026-11-14T11:00:00Z', { spo2Percent: 120 })], now)).toEqual([
-      { system: 'Respiratory', state: 'no-data', source: 'manual' },
+      { system: 'Respiratory', state: 'no-data' },
     ])
   })
 
@@ -100,8 +103,8 @@ describe('evaluate with the PVT (#17)', () => {
   const DAY = 24 * 60 * 60_000
   const at = (msBefore: number) => new Date(now.getTime() - msBefore).toISOString()
 
-  it('AC3: no PVT is no data, labelled in-app test', () => {
-    expect(evaluate([cog01], [], now)).toEqual([{ system: 'Cognition', state: 'no-data', source: 'in-app test' }])
+  it('AC3: no PVT is no data, with no source', () => {
+    expect(evaluate([cog01], [], now)).toEqual([{ system: 'Cognition', state: 'no-data' }])
   })
 
   it('a PVT goes stale after 4 days, not 24 h, and keeps its in-app test label', () => {

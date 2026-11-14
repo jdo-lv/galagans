@@ -6,18 +6,30 @@ import { LatestReadingsReader } from '../application/LatestReadingsReader'
 import { PacketDraftReader } from '../application/PacketDraftReader'
 import { PacketSender } from '../application/PacketSender'
 import { PacketUplink } from '../application/PacketUplink'
+import { PersonalHealthGateway } from '../application/PersonalHealthGateway'
+import { CombinedObservationHistory } from '../application/CombinedObservationHistory'
 import { RoutineReader } from '../application/RoutineReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import type { CheckIn } from '../domain/checkIn'
-import type { ConnectivityMonitor } from '../domain/ports'
+import type { Observation } from '../domain/observation'
+import type { CheckInHistory, ConnectivityMonitor } from '../domain/ports'
 import type { ReadingPlaceholder } from '../domain/readings'
 import type { RoutinePlaceholder } from '../domain/routine'
 import type { Placeholder, Rule } from '../domain/rules'
 import ruleRows from '../infrastructure/rules.json'
 import { App } from '../ui/App'
 import { ServicesProvider } from '../ui/ServicesContext'
-import { FakeConnectivity, FakeGateway, FakePacketGateway, FakePacketRepository, FakeRuleSource, FakeRepository } from './fakes'
+import {
+  FakeConnectivity,
+  FakeGateway,
+  FakeObservationRepository,
+  FakePacketGateway,
+  FakePacketRepository,
+  FakeReadingSource,
+  FakeRuleSource,
+  FakeRepository,
+} from './fakes'
 
 export const reading = (id: string, recordedAt: string, spo2Percent?: number): CheckIn => ({
   id,
@@ -52,10 +64,21 @@ export function packetFakes(readingsReader: LatestReadingsReader, connectivity: 
   }
 }
 
+/** The device-reading services (#22) on fakes: the gateway is started, the test emits through `readings`. */
+export function observationFakes(checkIns: CheckInHistory, now: () => Date = () => new Date(), seed: Observation[] = []) {
+  const observations = new FakeObservationRepository()
+  seed.forEach((o) => observations.items.set(o.id, o))
+  const readings = new FakeReadingSource()
+  const healthGateway = new PersonalHealthGateway(readings, observations, now)
+  healthGateway.start()
+  return { observations, readings, healthGateway, history: new CombinedObservationHistory(checkIns, observations) }
+}
+
 /** The whole app on fakes, with a clock the test moves. */
 export function setup({
   now = '2026-11-14T09:30:00Z',
   seed = [] as CheckIn[],
+  observationSeed = [] as Observation[],
   online = true,
   placeholders = [] as Placeholder[],
   rules = ruleRows as Rule[],
@@ -71,14 +94,16 @@ export function setup({
   const gateway = new FakeGateway()
   const ruleSource = new FakeRuleSource(rules)
   const synchronizer = new SyncService(repository, gateway, connectivity)
-  const readingsReader = new LatestReadingsReader(ruleSource, repository, () => clock.now, readingPlaceholders)
+  const device = observationFakes(repository, () => clock.now, observationSeed)
+  const readingsReader = new LatestReadingsReader(ruleSource, device.history, () => clock.now, readingPlaceholders)
   const packet = packetFakes(readingsReader, connectivity, () => clock.now)
   const services = {
     repository,
     connectivity,
     synchronizer,
     recorder: new CheckInRecorder(repository, synchronizer, undefined, () => clock.now),
-    statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now, placeholders),
+    statusReader: new SystemStatusReader(ruleSource, device.history, () => clock.now, placeholders),
+    healthGateway: device.healthGateway,
     readingsReader,
     routineReader: new RoutineReader(repository, () => clock.now, routinePlaceholders),
     random,
@@ -87,6 +112,8 @@ export function setup({
   return {
     clock,
     repository,
+    observations: device.observations,
+    readings: device.readings,
     gateway,
     ruleSource,
     connectivity,

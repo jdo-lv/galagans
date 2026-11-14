@@ -14,11 +14,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Backend tests: `mvn test -DskipFrontend=true`. Full build with frontend: `mvn clean verify` (installs Node 22.13.0 under `target/`, runs `npm ci`, `npm run build` into `src/main/resources/static`, then `npm run test`).
 - Run: `mvn spring-boot:run` serves the built PWA and `/api` on :8080. Frontend dev: `cd src/main/frontend && npm run dev` (:5173, proxies `/api` to :8080).
 - Frontend only: `cd src/main/frontend && npm run test` / `npm run build`.
+- Device broker (demo only, anonymous and unencrypted): `docker run -it --name crew-broker -p 1883:1883 -p 9001:9001 -v "$PWD/tools/mosquitto:/mosquitto/config" eclipse-mosquitto`. The app connects to `VITE_MQTT_URL` (default `ws://localhost:9001`) and works without it.
+- Test publish, with the container's own client: `docker exec crew-broker mosquitto_pub -t crew/a1/oximeter -m '{"id":"<uuid>","t":"<now ISO>","spo2_pct":91,"pulse_bpm":61,"src":"synthetic"}'`.
 
 ## Code architecture
 
 - Backend: Kotlin + Spring Boot WebFlux, package `com.galagans.crewhealth`, one folder per domain with `api` (controller, DTOs), `application` (use cases behind interfaces), `domain` (models, repository ports), `infrastructure` (adapters). Public Spring libraries only, no LeoVegas/hyraco parent or libs.
 - Frontend (`src/main/frontend/src`): `domain` (types, ports), `application` (use cases depending on ports), `infrastructure` (IndexedDB, HTTP, browser adapters), `ui` (React, services via `ServicesContext`), `container.ts` is the only place that picks concrete classes.
+- Device readings: `MqttReadingSource` (infrastructure) feeds `PersonalHealthGateway`, which validates each message and stores FHIR-shaped Observations in their own IndexedDB database. The rules read `ObservationHistory` (check-ins mapped to Observations plus the device ones), and the screens re-read when the gateway stores a reading. Observations don't sync to the ground station yet.
 - Offline-first flow: the check-in is written to IndexedDB as pending, `SyncService` posts pending items to `POST /api/checkins/sync` when online (on start, after each save, on the `online` event) and marks the accepted ids synced. The server upsert is idempotent by client-generated id.
 - Surgeon packet flow (#19): `PacketSender` snapshots the latest readings plus the crew note into a packet queued in its own IndexedDB database (`crew-health-packets`). `PacketUplink` POSTs each queued packet alone to `POST /api/packets`, oldest first, when online (on start, after each send, on the `online` event) and marks it sent; a failed POST stays queued. The timeline is computed on the tablet from `builtAt`, `sentAt` and the packet's stored one-way delay.
 - PWA icons in `public/pwa-*.png` are the brand ring on `#CFCFCF`. Fonts (Inter, DM Mono) are bundled via `@fontsource` and precached, so the app looks the same offline.

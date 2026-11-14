@@ -98,6 +98,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **Why:** the rest of the app sees only one format, and swapping a fake device for a real one later only changes the connector.
 - **How (48 h):** one connector for MQTT JSON, one for manual entry, and one real Bluetooth heart-rate byte decoder (used by the bracelet) to show it's genuine. Nice-to-have: a "dock import" connector for the bracelet's batch file. Full standards stay on a slide.
 - **Needs:** F8's message format.
+- **Status:** oximeter JSON over MQTT (`crew/a1/oximeter`, issue #22) and manual entry reach one FHIR-shaped `Observation` store; a SpO₂ reading turns the Respiratory status and the SpO₂ / Heart rate tiles live, offline, with its source label. Missing: GATT byte decoders (oximeter `0x2A5E`, heart rate `0x2A37`), environment node, dosimeter, dock import, FHIR `Device` and `Patient` references.
 
 #### F10. Real data replay · Must
 - **What:** the simulator replays **real** NASA data: ISS cabin CO₂/temperature/humidity (OSDR EDA) and radiation (RadLab).
@@ -207,7 +208,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 | # | Feature | Track | When (target) | Why at this point |
 |---|---|---|---|---|
 | 0 | F1 check-in (partial), F2 offline sync | App | Done | Already in `src/` |
-| 1 | Message format and reading model (FHIR-shaped `Observation`, MQTT topics) | All | Sat 09:00–10:00 | The contract every track builds against |
+| 1 | Message format and reading model (FHIR-shaped `Observation`, MQTT topics) | All | Sat 09:00–10:00 | The contract every track builds against. Oximeter contract fixed in #22: topic `crew/a1/oximeter`, payload `{id, t, spo2_pct, pulse_bpm?, src}` |
 | 2 | F8 Device Simulator: environment node + oximeter, nominal scenario | Simulator | Sat from 10:00 | Independent; the demo depends on it |
 | 3 | F3 baseline + F4 rules engine with ~10 sourced rules | Rules | Sat from 10:00 | The core; everything else needs a status |
 | 4 | F1 complete (BP, temperature, symptoms) | App | Sat morning | Inputs for the rules |

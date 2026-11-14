@@ -412,6 +412,7 @@ A separate app pretends to be every sensor. It runs on its own laptop or browser
   - *Sensor dropout:* the oximeter goes silent and the data-age warning appears.
 - **Live controls:** sliders and buttons to inject a value or start a scenario during the demo. A teammate "operates the spacecraft" while another presents the crew app.
 - **Transport: one local MQTT broker** (e.g. Mosquitto, which supports MQTT over WebSocket for browsers [P5]). Each virtual device publishes on its own topic, e.g. `crew/a1/wrist/ble/0x2A37` (bracelet live HR), `crew/a1/wrist/dock` (bracelet export batch, JSON) or `module/hab/env`.
+  - *Oximeter, until the GATT adapter exists:* JSON on `crew/a1/oximeter`, `{"id": UUID, "t": ISO 8601 time, "spo2_pct": number, "pulse_bpm"?: number, "src": "synthetic"|"replay"|"proxy"}`. The crew app shows the source as `oximeter · <src>`. The topic stays separate from `crew/a1/ble/0x2A5E`, which is kept for the GATT bytes.
   - *BLE devices:* the payload is the characteristic's **standard GATT bytes** (base64). The crew app's BLE adapter therefore decodes the real format. Swapping in a real device later only replaces the transport (Web Bluetooth instead of MQTT), not the decoder.
   - *Wi-Fi node:* JSON, as a real ESP32 node would send.
   - *Simulator controls:* a separate topic, so scenario commands never mix with sensor data.
@@ -423,7 +424,7 @@ MQTT (Mosquitto) **simulates no device**. The Device Simulator simulates the dev
 
 | Device | In reality | In the demo | What MQTT does |
 |---|---|---|---|
-| BLE sensors (oximeter, BP cuff, …) | Bluetooth radio: pair, then subscribe to the GATT characteristic (*notify*) | One MQTT message per measurement on `crew/a1/ble/0x2A5E` | **Replaces the Bluetooth radio.** The payload (the GATT bytes) is identical to a real device's |
+| BLE sensors (oximeter, BP cuff, …) | Bluetooth radio: pair, then subscribe to the GATT characteristic (*notify*) | One MQTT message per measurement on `crew/a1/ble/0x2A5E` (the oximeter uses JSON on `crew/a1/oximeter` until the GATT adapter exists) | **Replaces the Bluetooth radio.** The payload (the GATT bytes) is identical to a real device's |
 | Wi-Fi environment node | An ESP32 publishing over MQTT on the local network | The simulator publishes on `module/hab/env` | **Simulates nothing:** it's the same transport a real node would use |
 | Dosimeter | The dosimeter sends its reading | RadLab replay published over MQTT | Transport, as for the Wi-Fi node |
 

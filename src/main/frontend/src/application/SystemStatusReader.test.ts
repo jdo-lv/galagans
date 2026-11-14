@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { JsonRuleSource } from '../infrastructure/JsonRuleSource'
-import { FakeRepository, FakeRuleSource } from '../test/fakes'
+import { combinedHistory, FakeRepository, FakeRuleSource } from '../test/fakes'
 import type { Placeholder, Rule } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
 import { SystemStatusReader } from './SystemStatusReader'
@@ -10,7 +10,7 @@ describe('SystemStatusReader', () => {
     const repository = new FakeRepository()
     await repository.add({ id: 'a', recordedAt: '2026-11-14T08:00:00Z', spo2Percent: 88, symptoms: [] })
     const rules = new FakeRuleSource(await new JsonRuleSource().load())
-    const reader = new SystemStatusReader(rules, repository, () => new Date('2026-11-14T09:00:00Z'))
+    const reader = new SystemStatusReader(rules, combinedHistory(repository), () => new Date('2026-11-14T09:00:00Z'))
 
     const [status] = await reader.read()
 
@@ -25,13 +25,13 @@ describe('SystemStatusReader', () => {
       { system: 'Cognition', state: 'nominal', detail: 'c', source: 'synthetic' },
       { system: 'Sleep', state: 'nominal', detail: 's', source: 'synthetic' },
     ]
-    const reader = new SystemStatusReader(new FakeRuleSource([spo01, sleepRule]), new FakeRepository(), undefined, placeholders)
+    const reader = new SystemStatusReader(new FakeRuleSource([spo01, sleepRule]), combinedHistory(new FakeRepository()), undefined, placeholders)
 
     const statuses = await reader.read()
 
     expect(statuses.map((s) => [s.system, s.source])).toEqual([
-      ['Respiratory', 'manual'],
-      ['Sleep', 'manual'],
+      ['Respiratory', undefined],
+      ['Sleep', undefined],
       ['Cognition', 'synthetic'],
     ])
   })
@@ -56,7 +56,7 @@ describe('SystemStatusReader', () => {
       return repository
     }
     const reader = async (repository: FakeRepository) =>
-      new SystemStatusReader(new FakeRuleSource(await new JsonRuleSource().load()), repository, () => NOW, mockStatuses)
+      new SystemStatusReader(new FakeRuleSource(await new JsonRuleSource().load()), combinedHistory(repository), () => NOW, mockStatuses)
 
     it('AC31: returns the list status, the system rules and the 7-day points oldest first', async () => {
       const r = await reader(
@@ -69,9 +69,9 @@ describe('SystemStatusReader', () => {
       expect(detail?.status).toEqual((await r.read()).find((s) => s.system === 'Respiratory'))
       expect(detail?.rules).toEqual(rules.filter((r) => r.system === 'Respiratory'))
       expect(detail?.points).toEqual([
-        { recordedAt: '2026-11-08T08:00:00Z', value: 97, status: 'nominal' },
-        { recordedAt: '2026-11-13T08:15:00Z', value: 93, status: 'caution' },
-        { recordedAt: '2026-11-14T09:20:00Z', value: 92, status: 'caution' },
+        { recordedAt: '2026-11-08T08:00:00Z', value: 97, source: 'manual', status: 'nominal' },
+        { recordedAt: '2026-11-13T08:15:00Z', value: 93, source: 'manual', status: 'caution' },
+        { recordedAt: '2026-11-14T09:20:00Z', value: 92, source: 'manual', status: 'caution' },
       ])
     })
 
@@ -126,6 +126,6 @@ describe('SystemStatusReader', () => {
     const rules = new FakeRuleSource()
     rules.fail = true
 
-    await expect(new SystemStatusReader(rules, new FakeRepository()).read()).rejects.toThrow()
+    await expect(new SystemStatusReader(rules, combinedHistory(new FakeRepository())).read()).rejects.toThrow()
   })
 })

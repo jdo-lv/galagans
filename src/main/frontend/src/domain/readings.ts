@@ -1,3 +1,4 @@
+import type { ObservationSource } from './observation'
 import { STALE_AFTER_MS, type Indicator, type Rule, type Status } from './rules'
 
 export type ReadingSpec =
@@ -11,7 +12,6 @@ export type ReadingSpec =
       validMin: number
       validMax: number
       staleAfterMs: number
-      source?: 'manual' | 'in-app test'
     }
   // No input in the app yet; shown from a placeholder.
   | { key: string; label: string; labelSuffix?: string; unit: string; indicator: null }
@@ -31,7 +31,7 @@ export interface LatestReading {
   text?: string
   recordedAt?: string
   /** Only when a value or text is shown. */
-  source?: 'manual' | 'synthetic' | 'in-app test'
+  source?: ObservationSource | 'synthetic'
   /** Only for caution and warning: the row that decided it. */
   rule?: Rule
   /** The indicator has no rule rows, so its state is not a judgement. */
@@ -55,6 +55,11 @@ export const READINGS: ReadingSpec[] = [
     validMin: 130,
     validMax: 10000,
     staleAfterMs: 4 * 24 * 60 * 60 * 1000,
-    source: 'in-app test',
   },
 ]
+
+export function readingSpec(indicator: Indicator): Extract<ReadingSpec, { indicator: Indicator }> {
+  for (const spec of READINGS) if (spec.indicator === indicator) return spec
+  // Unreachable: domain/readings.test.ts checks every rule's indicator has a spec.
+  throw new Error(`No READINGS spec for ${indicator}`)
+}
