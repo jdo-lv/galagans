@@ -1,0 +1,64 @@
+<!doctype html>
+<!-- Static mock for issue #8 (detail screen), built on the app's tokens and classes. Screenshot: tools/cdp.mjs at 1280 px. -->
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/tokens.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/base.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/status.css">
+<style>
+.detail-head{display:flex;flex-direction:column;gap:var(--space-2)}
+.detail-title{display:flex;align-items:center;gap:var(--space-3)}
+.tiers{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-2)}
+.tiers li{display:grid;place-items:center;text-align:center;min-height:52px;padding:var(--space-1);border:1px solid var(--color-edge);border-radius:var(--radius-item)}
+.tiers li[aria-current]{background:var(--color-inverse-bg);color:var(--color-inverse-text);border-color:transparent;font-weight:700}
+svg text{fill:var(--color-text-muted);font-size:12px;font-family:var(--font-data)}
+.next{margin:0;padding:var(--space-3) var(--space-4);border-radius:var(--radius-item);background:var(--color-inset)}
+</style></head>
+<body><div class="app">
+<header class="app-header"><span></span><h1 class="wordmark">Health</h1><span></span></header>
+<p class="pill pill--quiet"><span>Online</span></p>
+<main class="layout">
+<div class="stack">
+  <a href="#/">← Body systems</a>
+  <div class="detail-head">
+    <div class="detail-title"><span class="badge badge--caution">▲ CAUTION</span><h2 class="section-heading">Respiratory</h2></div>
+    <div class="muted">SpO₂ <span class="num">92</span> % · 10 min ago · manual</div>
+  </div>
+  <section class="card">
+    <h3 class="card-heading">SpO₂ · last 7 days</h3>
+    <svg viewBox="0 0 640 230" width="100%" role="img" aria-label="SpO₂, last 7 days, 7 readings">
+      <g stroke="var(--color-divider)">
+        <line x1="48" x2="620" y1="16" y2="16"/><line x1="48" x2="620" y1="62" y2="62"/><line x1="48" x2="620" y1="108" y2="108"/><line x1="48" x2="620" y1="154" y2="154"/><line x1="48" x2="620" y1="200" y2="200"/>
+      </g>
+      <text x="4" y="20">100 %</text><text x="12" y="66">95 %</text><text x="12" y="112">90 %</text><text x="12" y="158">85 %</text><text x="12" y="204">80 %</text>
+      <line x1="48" x2="620" y1="71.2" y2="71.2" stroke="var(--color-text-muted)" stroke-dasharray="6 4"/>
+      <text x="54" y="66">SPO-01 · &lt; 94 % caution</text>
+      <line x1="48" x2="620" y1="108" y2="108" stroke="var(--color-text-muted)" stroke-dasharray="6 4"/>
+      <text x="54" y="103">SPO-02 · &lt; 90 % warning</text>
+      <polyline fill="none" stroke="var(--color-text)" stroke-width="2" points="124.8,43.6 207.3,52.8 287.4,43.6 369.9,62 451.7,52.8 534.2,80.4 619.2,89.6"/>
+      <g fill="var(--color-text)"><circle cx="124.8" cy="43.6" r="4"/><circle cx="207.3" cy="52.8" r="4"/><circle cx="287.4" cy="43.6" r="4"/><circle cx="369.9" cy="62" r="4"/><circle cx="451.7" cy="52.8" r="4"/></g>
+      <g fill="var(--color-caution)" stroke="var(--color-on-caution)" stroke-width="1.5"><circle cx="534.2" cy="80.4" r="6"/><circle cx="619.2" cy="89.6" r="6"/></g>
+      <text x="528" y="100" style="fill:var(--color-text)">▲</text><text x="590" y="115" style="fill:var(--color-text)">▲ 92 %</text>
+      <text x="80" y="222">8 Nov</text><text x="162" y="222">9 Nov</text><text x="240" y="222">10 Nov</text><text x="322" y="222">11 Nov</text><text x="404" y="222">12 Nov</text><text x="486" y="222">13 Nov</text><text x="568" y="222">14 Nov</text>
+    </svg>
+  </section>
+  <section class="card">
+    <h3 class="card-heading">Explanation</h3>
+    <dl class="status-explanation">
+      <div><dt>What</dt><dd>SpO₂ is below 94 %.</dd></div>
+      <div><dt>Why it matters</dt><dd>Low oxygen saturation can mean hypoxia from a cabin atmosphere fault, fire or smoke.</dd></div>
+      <div><dt>How decided</dt><dd>Rule SPO-01: SpO₂ &lt; 94 % → caution. Earth clinical convention, not a NASA in-flight limit (health-indicators §4).</dd></div>
+      <div><dt>Source</dt><dd>research/health-indicators.md §4 <span class="tag tag--rule">rule · SPO-01</span></dd></div>
+    </dl>
+  </section>
+</div>
+<div class="stack">
+  <section class="card">
+    <h3 class="card-heading">What next</h3>
+    <p class="next">Re-measure: warm your hands, sit still for 1 minute, finger fully in, hand at heart level. Still below 94 % → tell the CMO now.</p>
+  </section>
+  <section class="card">
+    <h3 class="card-heading">Who to involve</h3>
+    <ol class="tiers"><li>Self-care</li><li aria-current="true">CMO</li><li>Medical conference</li><li>Urgent ground</li></ol>
+  </section>
+</div>
+</main></div></body></html>
