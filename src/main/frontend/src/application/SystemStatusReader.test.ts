@@ -67,7 +67,7 @@ describe('SystemStatusReader', () => {
       const detail = await r.readDetail('Respiratory')
 
       expect(detail?.status).toEqual((await r.read()).find((s) => s.system === 'Respiratory'))
-      expect(detail?.rules).toEqual(rules)
+      expect(detail?.rules).toEqual(rules.filter((r) => r.system === 'Respiratory'))
       expect(detail?.points).toEqual([
         { recordedAt: '2026-11-08T08:00:00Z', value: 97, status: 'nominal' },
         { recordedAt: '2026-11-13T08:15:00Z', value: 93, status: 'caution' },
@@ -78,7 +78,7 @@ describe('SystemStatusReader', () => {
     it('AC32: a placeholder or unknown system has no detail', async () => {
       const r = await reader(store())
 
-      expect(await r.readDetail('Cognition')).toBeUndefined()
+      expect(await r.readDetail('Sleep')).toBeUndefined()
       expect(await r.readDetail('Nope')).toBeUndefined()
     })
 

@@ -1,14 +1,14 @@
 import { CHART_WINDOW_MS, type ChartPoint, type Indicator, type Rule } from '../domain/rules'
 
 // Plot area in viewBox units.
-const LEFT = 60
+const LEFT = 72
 const RIGHT = 620
 const TOP = 16
 const BOTTOM = 200
 const DAY = 24 * 60 * 60 * 1000
 
 /** Fixed Y axis per indicator [min, max, step], so threshold lines always show. */
-const Y_RANGE: Partial<Record<Indicator, [number, number, number]>> = { spo2Percent: [80, 100, 5] }
+const Y_RANGE: Partial<Record<Indicator, [number, number, number]>> = { spo2Percent: [80, 100, 5], pvtMedianMs: [200, 400, 50] }
 
 const MARKER: Partial<Record<ChartPoint['status'], string>> = { caution: '▲', warning: '!' }
 

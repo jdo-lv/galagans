@@ -1,5 +1,6 @@
 import type { CheckIn } from '../domain/checkIn'
-import { CHART_WINDOW_MS, STALE_AFTER_MS, type ChartPoint, type Indicator, type Rule, type Status, type SystemStatus } from '../domain/rules'
+import { READINGS } from '../domain/readings'
+import { CHART_WINDOW_MS, type ChartPoint, type Indicator, type Rule, type Status, type SystemStatus } from '../domain/rules'
 
 const SEVERITY: Record<Status, number> = { nominal: 0, caution: 1, warning: 2 }
 
@@ -71,13 +72,22 @@ export function chartPoints(rows: Rule[], checkIns: CheckIn[], now: Date, stale:
   }))
 }
 
+/** Data age and source label come from the indicator's reading spec, so a PVT ages in 4 days and an SpO₂ in 24 h. */
+function readingSpec(indicator: Indicator) {
+  for (const spec of READINGS) if (spec.indicator === indicator) return spec
+  // Unreachable: domain/readings.test.ts checks every rule's indicator has a spec.
+  throw new Error(`No READINGS spec for ${indicator}`)
+}
+
 function evaluateSystem(system: string, rows: Rule[], checkIns: CheckIn[], now: Date): SystemStatus {
   const { indicator, validMin, validMax, label, unit } = rows[0]
+  const spec = readingSpec(indicator)
+  const source = spec.source ?? 'manual'
   const latest = latestReading(checkIns, indicator, validMin, validMax, rows)
-  if (!latest) return { system, state: 'no-data', source: 'manual' }
+  if (!latest) return { system, state: 'no-data', source }
 
-  const shown = { system, label, unit, value: latest.value, recordedAt: latest.recordedAt, source: 'manual' as const }
-  if (now.getTime() - latest.time > STALE_AFTER_MS) return { ...shown, state: 'stale' }
+  const shown = { system, label, unit, value: latest.value, recordedAt: latest.recordedAt, source }
+  if (now.getTime() - latest.time > spec.staleAfterMs) return { ...shown, state: 'stale' }
   return latest.rule ? { ...shown, state: latest.status, rule: latest.rule } : { ...shown, state: latest.status }
 }
 

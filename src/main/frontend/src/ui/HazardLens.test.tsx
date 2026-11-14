@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mockStatuses } from '../infrastructure/mockStatuses'
-import { reading, setup } from '../test/renderApp'
+import { pvt, reading, setup } from '../test/renderApp'
 
 const NOW = '2026-11-14T09:30:00Z'
 const KEY = 'crew-health.hazard-lens'
@@ -318,5 +318,17 @@ describe('Hazard lens', () => {
     expect(children[1]).toBe(lens())
     expect(children[2]).toHaveClass('stack')
     expect(children[2].tagName).toBe('DIV')
+  })
+})
+
+describe('Body figure with COG-01 (#17)', () => {
+  it.each([
+    [312, '▲ CAUTION'],
+    [268, undefined],
+  ])('AC17: a PVT of %s gives the Cognition label badge %s', async (ms, badge) => {
+    setup({ now: NOW, placeholders: mockStatuses, seed: [pvt('p', NOW, ms)] }).renderApp()
+    await within(screen.getByRole('region', { name: 'Body systems' })).findAllByRole('listitem')
+
+    await vi.waitFor(() => expect(itemOf('Cognition').querySelector('.badge')?.textContent).toBe(badge))
   })
 })

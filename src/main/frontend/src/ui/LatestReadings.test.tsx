@@ -352,11 +352,25 @@ describe('Reaction time tile (#16)', () => {
     expect(tile('Reaction time')).not.toHaveClass('metric-tile--stale')
     expect(tile('Reaction time')).toHaveTextContent('Reaction time / 4 d ago')
   })
+})
 
-  it('AC33: the synthetic Cognition row stays until #17', async () => {
-    setupApp({ placeholders: mockStatuses, seed: [pvt('p', NOW, 300)] }).renderApp()
+describe('Reaction time tile with COG-01 (#17)', () => {
+  const NOW = '2026-11-14T09:30:00Z'
+  const tileOf = () =>
+    within(screen.getByRole('region', { name: 'Latest readings' }))
+      .getAllByRole('listitem')
+      .find((li) => li.textContent?.includes('Reaction time')) as HTMLElement
 
-    const list = await screen.findByRole('region', { name: 'Body systems' })
-    expect(await within(list).findByText('PVT 268 ms · within your baseline · synthetic')).toBeInTheDocument()
+  it('AC16: 312 ms shows the caution badge in place of the icon; 268 ms shows the icon', async () => {
+    setupApp({ placeholders: mockStatuses, seed: [pvt('p', NOW, 312)] }).renderApp()
+    await waitFor(() => expect(tileOf()).toHaveTextContent('▲ CAUTION'))
+    expect(tileOf().querySelector('.metric-tile__icon')).toBeNull()
+  })
+
+  it('AC16: 268 ms shows the icon and no badge', async () => {
+    setupApp({ placeholders: mockStatuses, seed: [pvt('p', NOW, 268)] }).renderApp()
+    await waitFor(() => expect(tileOf()).toHaveTextContent('268 ms'))
+    expect(tileOf().querySelector('.metric-tile__icon')).not.toBeNull()
+    expect(tileOf().querySelector('.badge')).toBeNull()
   })
 })
