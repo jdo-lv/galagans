@@ -77,10 +77,7 @@ export function App() {
       {route.kind === "check-in" ? (
         <main>
           <CheckInScreen
-            onSaved={() => {
-              refreshAll();
-              goHome({ returned: true });
-            }}
+            onSaved={refreshAll}
             onExit={() => goHome({ returned: true })}
           />
         </main>

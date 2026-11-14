@@ -29,3 +29,16 @@ export function formatTime(recordedAt: string): string {
   const d = new Date(recordedAt)
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+/** A local calendar date "YYYY-MM-DD" as "14 Nov". */
+export function formatDay(date: string): string {
+  return `${Number(date.slice(8, 10))} ${MONTHS[Number(date.slice(5, 7)) - 1]}`
+}
+
+/** Whole seconds as "48 s", or "1 min 22 s" from a minute on; negative reads 0 s. */
+export function formatDuration(ms: number): string {
+  const seconds = Math.max(0, Math.floor(ms / 1000))
+  return seconds < 60 ? `${seconds} s` : formatDelay(seconds * 1000)
+}

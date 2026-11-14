@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CheckInRecorder } from '../application/CheckInRecorder'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
 import { RoutineReader } from '../application/RoutineReader'
+import { StreakReader } from '../application/StreakReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import type { CheckIn } from '../domain/checkIn'
@@ -41,6 +42,7 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
     healthGateway: device.healthGateway,
     readingsReader,
     routineReader,
+    streakReader: new StreakReader(repository, () => clock.now),
     random: () => 0,
     voiceSession: voiceFakes({ recorder, statusReader, routineReader }).voiceSession,
     ...packetFakes(readingsReader, connectivity, () => clock.now).services,

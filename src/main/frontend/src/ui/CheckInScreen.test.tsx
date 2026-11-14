@@ -1,7 +1,9 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import type { CheckIn } from '../domain/checkIn'
 import { mockRoutine } from '../infrastructure/mockRoutine'
+import { mockCounters, mockStreakSeed } from '../infrastructure/mockStreak'
 import { saveCheckIn, setup } from '../test/renderApp'
 
 // Local times, so the tests pass in any TZ.
@@ -366,6 +368,7 @@ describe('Save and leave', () => {
     const s = setupAt(at(8, 5))
     await open(s)
     await answerAll()
+    await userEvent.click(await screen.findByRole('button', { name: 'Done' }))
     await screen.findByRole('region', { name: 'Body systems' })
     expect(window.location.hash).toBe('#/')
     await waitFor(() => expect(document.activeElement).toBe(bodySystemsHeading()))
@@ -409,7 +412,7 @@ describe('Save and leave', () => {
     const s = setupAt()
     await open(s)
     for (let i = 0; i < 6; i++) await skip()
-    await screen.findByRole('region', { name: 'Body systems' })
+    await screen.findByRole('region', { name: 'Check-in complete · 08:00' })
     expect(s.repository.items.size).toBe(1)
     const [c] = saved(s)
     for (const field of ['heartRateBpm', 'spo2Percent', 'sleepHours', 'kss', 'mood', 'symptomsAnswered'] as const) expect(c[field]).toBeUndefined()
@@ -484,7 +487,7 @@ describe('Save and leave', () => {
     await within(checkIn()).findByRole('alert')
     s.repository.failAdd = false
     await userEvent.click(button('Save check-in'))
-    await screen.findByRole('region', { name: 'Body systems' })
+    await screen.findByRole('region', { name: 'Check-in complete · 08:00' })
     expect(s.repository.items.size).toBe(1)
   })
 
@@ -505,5 +508,359 @@ describe('Save and leave', () => {
     await waitFor(() => expect(within(systems).getAllByRole('listitem')[0]).toHaveTextContent('WARNING'))
     const tiles = screen.getByRole('region', { name: 'Latest readings' })
     await waitFor(() => expect(within(tiles).getAllByRole('listitem')[0]).toHaveTextContent('88 %'))
+  })
+})
+
+describe('Reporting is a win (#40)', () => {
+  const local = (h: number, m: number, s = 0, day = 14) => new Date(2026, 10, day, h, m, s)
+  const setup40 = (options: Parameters<typeof setup>[0] = {}) => setup({ now: local(8, 5).toISOString(), routinePlaceholders: mockRoutine, ...options })
+  const stored = (day: number, symptoms: string[], h = 8, m = 0): CheckIn => ({ id: `s${day}-${h}${m}`, recordedAt: local(h, m, 0, day).toISOString(), symptoms })
+  const completion = () => document.querySelector('.check-in-complete') as HTMLElement
+  const completeCard = () => screen.getByRole('region', { name: /^Check-in complete · / })
+  const summary = () => completeCard().querySelector('.complete__summary')
+  const ack = () => completeCard().querySelector('strong')
+  const nextSteps = () => within(within(completeCard()).getByRole('list', { name: 'What happens next' })).getAllByRole('listitem').map((li) => li.textContent)
+  const streakCard = () => screen.getByRole('region', { name: 'Your routine streak' })
+
+  async function save(symptoms: string[] = []) {
+    await goTo(6)
+    for (const label of symptoms) await userEvent.click(button(label))
+    await userEvent.click(button('Save check-in'))
+    await screen.findByRole('region', { name: /^Check-in complete · / })
+  }
+
+  describe('Completion state', () => {
+    it('AC1: the symptoms hint says a logged symptom always counts', async () => {
+      await open(setup40())
+      await goTo(6)
+      expect(within(checkIn()).getByText('Tap all that apply. Logging a symptom always counts as a completed check-in.')).toBeInTheDocument()
+    })
+
+    it('AC4: after save the check-in shows its completion at #/check-in with focus on the heading', async () => {
+      await open(setup40())
+      await save()
+      expect(window.location.hash).toBe('#/check-in')
+      expect(screen.queryByRole('region', { name: 'Morning check-in' })).toBeNull()
+      expect(screen.queryByRole('list', { name: 'Steps' })).toBeNull()
+      const heading = within(completeCard()).getByRole('heading', { level: 2, name: 'Check-in complete · 08:05' })
+      await waitFor(() => expect(document.activeElement).toBe(heading))
+    })
+
+    it('AC5: the summary counts the answered steps and the time since opening', async () => {
+      const s = setup40({ now: local(8, 3, 38).toISOString() })
+      await open(s)
+      await type('63')
+      await next()
+      await type('97')
+      await next()
+      await type('6.5')
+      await next()
+      await userEvent.click(button('7'))
+      await next()
+      await next()
+      await userEvent.click(button('Headache'))
+      s.clock.now = local(8, 5)
+      await userEvent.click(button('Save check-in'))
+      await screen.findByRole('region', { name: 'Check-in complete · 08:05' })
+      expect(summary()).toHaveTextContent('6 steps · 5 answered · 1 min 22 s')
+    })
+
+    it('AC6: under a minute the time reads in seconds; skipped steps are not answered', async () => {
+      const s = setup40({ now: local(8, 5).toISOString() })
+      await open(s)
+      for (let i = 0; i < 5; i++) await skip()
+      s.clock.now = local(8, 5, 48)
+      await skip()
+      await screen.findByRole('region', { name: /^Check-in complete · / })
+      expect(summary()).toHaveTextContent('6 steps · 0 answered · 48 s')
+    })
+
+    it('AC7: a clock moved back reads 0 s', async () => {
+      const s = setup40({ now: local(8, 5).toISOString() })
+      await open(s)
+      await goTo(6)
+      s.clock.now = local(8, 4)
+      await userEvent.click(button('Save check-in'))
+      await screen.findByRole('region', { name: 'Check-in complete · 08:04' })
+      expect(summary()?.textContent).toMatch(/· 0 s$/)
+    })
+
+    it('AC8: a decorative ✓ circle beside the heading and no status badge anywhere', async () => {
+      await open(setup40())
+      await save(['Headache'])
+      const mark = completeCard().querySelector('span.done-mark')
+      expect(mark).toHaveTextContent('✓')
+      expect(mark).toHaveAttribute('aria-hidden', 'true')
+      expect(completion().querySelector('.badge')).toBeNull()
+    })
+  })
+
+  describe('Acknowledgement', () => {
+    const RAISE = 'consider raising with your CMO, or at your next private medical conference.'
+
+    it('AC9: a reported symptom is thanked, never breaks the streak, and gets its next step', async () => {
+      await open(setup40())
+      await save(['Headache', 'Back pain'])
+      expect(ack()).toHaveTextContent('Logged: headache, back pain. Thanks for reporting.')
+      const text = completeCard().textContent ?? ''
+      const order = [
+        'Logged: headache, back pain. Thanks for reporting.',
+        'Reporting a symptom counts as a completed check-in and never breaks your streak.',
+        'What happens next',
+      ].map((t) => text.indexOf(t))
+      expect(order.every((i, k) => i >= 0 && (k === 0 || i > order[k - 1]))).toBe(true)
+      expect(within(completeCard()).getByRole('heading', { level: 3, name: 'What happens next' })).toBeInTheDocument()
+      expect(nextSteps()).toEqual([`Headache, back pain: ${RAISE}`])
+    })
+
+    it('AC10: swelling gets its own CMO line after the shared line', async () => {
+      await open(setup40())
+      await save(['Headache', 'Neck or face swelling'])
+      expect(nextSteps()).toEqual([`Headache: ${RAISE}`, 'Neck or face swelling: tell your CMO.'])
+    })
+
+    it('AC11: swelling alone goes to the CMO only', async () => {
+      await open(setup40())
+      await save(['Neck or face swelling'])
+      expect(nextSteps()).toEqual(['Neck or face swelling: tell your CMO.'])
+    })
+
+    it('AC12: None of these thanks for checking in, with no next step', async () => {
+      await open(setup40())
+      await save(['None of these'])
+      expect(ack()).toHaveTextContent('No symptoms logged. Thanks for checking in.')
+      expect(completeCard()).not.toHaveTextContent('Reporting a symptom')
+      expect(completeCard()).not.toHaveTextContent('What happens next')
+    })
+
+    it('AC13: a symptom step left empty or skipped is not answered', async () => {
+      await open(setup40())
+      await save()
+      expect(ack()).toHaveTextContent('Symptoms not answered. Thanks for checking in.')
+      expect(completeCard()).not.toHaveTextContent('Reporting a symptom')
+      expect(completeCard()).not.toHaveTextContent('What happens next')
+      await userEvent.click(screen.getByRole('button', { name: 'Done' }))
+      await userEvent.click(await screen.findByRole('link', { name: 'Add entry' }))
+      await screen.findByRole('region', { name: 'Morning check-in' })
+      await goTo(6)
+      await userEvent.click(button('Headache'))
+      await skip()
+      await screen.findByRole('region', { name: /^Check-in complete · / })
+      expect(ack()).toHaveTextContent('Symptoms not answered. Thanks for checking in.')
+      expect(completeCard()).not.toHaveTextContent('What happens next')
+    })
+
+    it('AC14: a symptom logged on the days before counts its day', async () => {
+      await open(setup40({ seed: [stored(12, ['headache']), stored(13, ['headache'])] }))
+      await save(['Headache', 'Back pain'])
+      await waitFor(() => expect(ack()).toHaveTextContent('Logged: headache (day 3), back pain. Thanks for reporting.'))
+    })
+
+    it('AC15: the second day in a row reads day 2', async () => {
+      await open(setup40({ seed: [stored(13, ['headache'])] }))
+      await save(['Headache'])
+      await waitFor(() => expect(ack()).toHaveTextContent('Logged: headache (day 2). Thanks for reporting.'))
+    })
+
+    it('AC16: a skipped symptom step breaks the run', async () => {
+      await open(setup40({ seed: [stored(12, ['headache']), stored(13, [])] }))
+      await save(['Headache'])
+      await screen.findByText(/check-ins? in a row/)
+      expect(ack()).toHaveTextContent('Logged: headache. Thanks for reporting.')
+    })
+
+    it('AC17: no health value appears in the completion', async () => {
+      await open(setup40())
+      await type('63')
+      await next()
+      await type('97')
+      await next()
+      await type('6.5')
+      await next()
+      await userEvent.click(button('7'))
+      await next()
+      await userEvent.click(button('4'))
+      await next()
+      await userEvent.click(button('Save check-in'))
+      await screen.findByText(/check-ins? in a row/)
+      for (const value of ['63', '97', '6.5', 'bpm', '%']) expect(completion().textContent).not.toContain(value)
+    })
+  })
+
+  describe('Leaving and saving', () => {
+    it('AC18: Done is the only primary button and goes home with focus on Body systems and the row done', async () => {
+      await open(setup40())
+      await save()
+      expect([...completion().querySelectorAll('.button-primary')].map((b) => b.textContent)).toEqual(['Done'])
+      await userEvent.click(screen.getByRole('button', { name: 'Done' }))
+      await screen.findByRole('region', { name: 'Body systems' })
+      expect(window.location.hash).toBe('#/')
+      await waitFor(() => expect(document.activeElement).toBe(bodySystemsHeading()))
+      const card = screen.getByRole('region', { name: "Today's routine" })
+      await waitFor(() => expect(within(card).getAllByRole('listitem')[0]).toHaveTextContent('done 08:05'))
+    })
+
+    it('AC19: browser back from the completion goes home, and Add entry starts empty', async () => {
+      await open(setup40())
+      await save()
+      window.location.hash = '#/'
+      await screen.findByRole('region', { name: 'Body systems' })
+      await waitFor(() => expect(document.activeElement).toBe(bodySystemsHeading()))
+      await userEvent.click(screen.getByRole('link', { name: 'Add entry' }))
+      await screen.findByRole('region', { name: 'Morning check-in' })
+      await expectStep(1, 'What is your heart rate?')
+      expect(input()).toHaveValue(null)
+    })
+
+    it('AC21: offline, the completion and streak show and the check-in waits to sync', async () => {
+      const s = setup40({ online: false })
+      await open(s)
+      await save()
+      expect(streakCard()).toBeInTheDocument()
+      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Offline · 1 waiting to sync'))
+      expect(s.gateway.sent).toEqual([])
+    })
+  })
+
+  describe('Routine streak card', () => {
+    const withSeed = () => setup40({ streakSeed: mockStreakSeed, counters: mockCounters })
+    const items = () => within(within(streakCard()).getByRole('list', { name: 'Last 14 days' })).getAllByRole('listitem')
+    const hidden = (li: HTMLElement) => li.querySelector('.visually-hidden')?.textContent
+    const mark = (li: HTMLElement) => li.querySelector('.day__mark') as HTMLElement
+    async function savedWithSeed(s = withSeed()) {
+      await open(s)
+      await save(['Headache'])
+      await screen.findByText(/check-ins? in a row/)
+      return s
+    }
+
+    it('AC22: the card counts check-ins, not values', async () => {
+      await savedWithSeed()
+      expect(streakCard()).toHaveTextContent('Counts what you do, never your values. No comparison with your crewmates.')
+      expect(streakCard().querySelector('.streak__count b')).toHaveTextContent(/^12$/)
+      expect(streakCard()).toHaveTextContent('check-ins in a row · last 14 days below')
+    })
+
+    it('AC23: 14 day cells from 1 Nov with a hidden day number and a hidden mark', async () => {
+      await savedWithSeed()
+      const cells = items()
+      expect(cells).toHaveLength(14)
+      cells.forEach((li, i) => {
+        const date = li.querySelector('.day__date')
+        expect(date).toHaveTextContent(new RegExp(`^${i + 1}$`))
+        expect(date).toHaveAttribute('aria-hidden', 'true')
+        expect(mark(li)).toHaveAttribute('aria-hidden', 'true')
+      })
+      const kind = (li: HTMLElement) =>
+        mark(li).querySelector('.tabler-icon-player-pause') ? 'paused' : mark(li).querySelector('.tabler-icon-report-medical') ? 'reported' : mark(li).textContent
+      expect(cells.map(kind)).toEqual(['✓', '✓', '✓', '✓', '✓', '✓', 'paused', 'paused', 'reported', 'reported', '✓', 'reported', 'reported', 'reported'])
+      for (const li of cells.filter((c) => kind(c) === 'reported')) expect(mark(li)).toHaveTextContent('✓')
+    })
+
+    it('AC24: each cell names its date and state for screen readers', async () => {
+      await savedWithSeed()
+      expect(items().map(hidden)).toEqual([
+        '1 Nov: check-in done, synthetic',
+        '2 Nov: check-in done, synthetic',
+        '3 Nov: check-in done, synthetic',
+        '4 Nov: check-in done, synthetic',
+        '5 Nov: check-in done, synthetic',
+        '6 Nov: check-in done, synthetic',
+        '7 Nov: paused, synthetic',
+        '8 Nov: paused, synthetic',
+        '9 Nov: check-in done, symptom reported, synthetic',
+        '10 Nov: check-in done, symptom reported, synthetic',
+        '11 Nov: check-in done, synthetic',
+        '12 Nov: check-in done, symptom reported, synthetic',
+        '13 Nov: check-in done, symptom reported, synthetic',
+        '14 Nov: check-in done, symptom reported',
+      ])
+    })
+
+    it('AC25: a day without a check-in shows — and says no check-in', async () => {
+      await open(setup40({ seed: [stored(12, [], 7, 30), stored(14, [], 7, 30)] }))
+      await save(['Headache'])
+      await screen.findByText(/check-ins? in a row/)
+      const cell = items()[12]
+      expect(mark(cell)).toHaveTextContent(/^—$/)
+      expect(hidden(cell)).toBe('13 Nov: no check-in')
+    })
+
+    it('AC26: only today is the current date', async () => {
+      await savedWithSeed()
+      const current = items().filter((li) => li.getAttribute('aria-current') === 'date')
+      expect(current).toEqual([items()[13]])
+      expect(items().filter((li) => li.classList.contains('day--today'))).toEqual([items()[13]])
+    })
+
+    it('AC27: the legend explains every mark', async () => {
+      await savedWithSeed()
+      const entries = [...(streakCard().querySelector('.legend')?.children ?? [])] as HTMLElement[]
+      expect(entries.map((e) => e.textContent?.trim())).toEqual([
+        '✓ check-in done',
+        'symptom reported (counts as done)',
+        'sick or rest day: paused, never reset',
+        '— no check-in',
+      ])
+      expect(entries[1].querySelector('.tabler-icon-report-medical')).not.toBeNull()
+      expect(entries[2].querySelector('.tabler-icon-player-pause')).not.toBeNull()
+    })
+
+    it('AC28: a caption labels the synthetic history', async () => {
+      await savedWithSeed()
+      const note = streakCard().querySelector('.seed-note')
+      expect(note?.querySelector('.tag')).toHaveTextContent('synthetic')
+      expect(note).toHaveTextContent('Days before 14 Nov are a pre-loaded demo history.')
+    })
+
+    it('AC29: without a seed there is no caption, and one check-in reads in the singular', async () => {
+      await open(setup40())
+      await save()
+      await screen.findByText(/check-ins? in a row/)
+      expect(streakCard().querySelector('.seed-note')).toBeNull()
+      expect(streakCard()).not.toHaveTextContent('synthetic')
+      expect(streakCard().querySelector('.streak__count b')).toHaveTextContent(/^1$/)
+      expect(streakCard()).toHaveTextContent('check-in in a row · last 14 days below')
+    })
+
+    it('AC30: three process counters, the synthetic ones tagged', async () => {
+      await savedWithSeed()
+      const counters = within(within(streakCard()).getByRole('list', { name: 'Process counters' })).getAllByRole('listitem')
+      expect(counters.map((li) => li.textContent)).toEqual([
+        'Exercise this week540 / 600 mincountermeasure minutes done synthetic',
+        'Fluid log4 of 7 daysdays you logged to target synthetic',
+        'PVT sessions0 of 7every 4th day, last 28 days',
+      ])
+      expect(counters.map((li) => li.querySelector('.tag')?.textContent ?? null)).toEqual(['synthetic', 'synthetic', null])
+    })
+
+    it('AC31: the card ends by saying no health value is shown', async () => {
+      await savedWithSeed()
+      expect(streakCard().lastElementChild).toHaveTextContent(
+        'Never shown here: heart rate, SpO₂, sleep hours, mood or any health value. Nothing is scored as good or bad.',
+      )
+    })
+
+    it('AC32: while the streak is loading, only its heading shows and Done still works', async () => {
+      const s = setup40({ seed: [stored(12, ['headache']), stored(13, ['headache'])] })
+      vi.spyOn(s.streakReader, 'read').mockReturnValue(new Promise(() => {}))
+      await open(s)
+      await save(['Headache'])
+      expect(streakCard().textContent).toBe('Your routine streak')
+      expect(ack()).toHaveTextContent('Logged: headache. Thanks for reporting.')
+      await userEvent.click(screen.getByRole('button', { name: 'Done' }))
+      await screen.findByRole('region', { name: 'Body systems' })
+    })
+
+    it('AC33: a failed streak read says so, without a day count, and Done still works', async () => {
+      const s = setup40({ seed: [stored(12, ['headache']), stored(13, ['headache'])] })
+      vi.spyOn(s.streakReader, 'read').mockRejectedValue(new Error('IndexedDB unavailable'))
+      await open(s)
+      await save(['Headache'])
+      expect(await within(streakCard()).findByText('Streak unavailable')).toBeInTheDocument()
+      expect(ack()).toHaveTextContent('Logged: headache. Thanks for reporting.')
+      await userEvent.click(screen.getByRole('button', { name: 'Done' }))
+      await screen.findByRole('region', { name: 'Body systems' })
+    })
   })
 })

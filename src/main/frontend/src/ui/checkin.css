@@ -188,3 +188,178 @@
     grid-row: 2;
   }
 }
+
+/* Check-in completion and routine streak (mockup 09, #40). No status colour anywhere: nothing here is an alert level. */
+.check-in-complete {
+  display: grid;
+  gap: var(--gap-cards);
+}
+
+.complete__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* A finished task drawn in text colour, not the Nominal badge. */
+.done-mark {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border: 2px solid var(--color-text);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--text-value);
+  font-weight: 700;
+}
+
+.complete__title {
+  font-size: var(--text-value);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.complete__title:focus {
+  outline: none;
+}
+
+.complete__summary span {
+  white-space: nowrap;
+}
+
+.complete__ack {
+  margin-top: var(--space-5);
+}
+
+.complete__ack + p {
+  margin-top: var(--space-1);
+}
+
+.complete__next {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-inset);
+  border: 1px solid var(--color-edge);
+  border-radius: var(--radius-item);
+}
+
+.complete__next h3 {
+  font-size: var(--text-body);
+  font-weight: 700;
+}
+
+.complete__next ul {
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.streak__count {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.streak__count b {
+  font-size: var(--text-value);
+}
+
+.days {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.day {
+  min-height: 64px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  border: 1px solid var(--color-edge);
+  border-radius: var(--radius-item);
+  background: var(--color-inset);
+}
+
+.day--today {
+  border: 2px solid var(--color-text);
+}
+
+.day__mark {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 700;
+}
+
+.day__date {
+  color: var(--color-text-muted);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin-top: var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.seed-note {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.counters {
+  list-style: none;
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gap-targets);
+}
+
+.counters li {
+  display: grid;
+  gap: var(--space-1);
+  align-content: start;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-inset);
+  border-radius: var(--radius-item);
+}
+
+.counters__value {
+  font-size: var(--text-heading);
+}
+
+.streak__never {
+  margin-top: var(--space-4);
+}
+
+.complete__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 599px) {
+  .days {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .counters {
+    grid-template-columns: 1fr;
+  }
+
+  .complete__actions .button-primary {
+    width: 100%;
+  }
+}

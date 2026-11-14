@@ -8,6 +8,7 @@ import { PacketSender } from './application/PacketSender'
 import { PacketUplink } from './application/PacketUplink'
 import { PersonalHealthGateway } from './application/PersonalHealthGateway'
 import { RoutineReader } from './application/RoutineReader'
+import { StreakReader } from './application/StreakReader'
 import { SyncService } from './application/SyncService'
 import type { Synchronizer } from './application/Synchronizer'
 import { SystemStatusReader } from './application/SystemStatusReader'
@@ -26,6 +27,7 @@ import { DeviceLink } from './infrastructure/DeviceLink'
 import { WebSocketReadingSource } from './infrastructure/WebSocketReadingSource'
 import { mockRoutine } from './infrastructure/mockRoutine'
 import { mockStatuses } from './infrastructure/mockStatuses'
+import { mockCounters, mockStreakSeed } from './infrastructure/mockStreak'
 import ruleRows from './infrastructure/rules.json'
 import { PiperSpeechOutput } from './infrastructure/PiperSpeechOutput'
 import { WhisperSpeechInput } from './infrastructure/WhisperSpeechInput'
@@ -40,6 +42,8 @@ export interface Services {
   healthGateway: { subscribe(listener: () => void): () => void }
   readingsReader: LatestReadingsReader
   routineReader: RoutineReader
+  /** The routine streak after a check-in (#40). */
+  streakReader: StreakReader
   /** In [0, 1); the PVT's random wait (#16). */
   random: () => number
   packetDraftReader: PacketDraftReader
@@ -82,6 +86,7 @@ export function createServices(): Services & { startSync: () => () => void; star
     healthGateway,
     readingsReader,
     routineReader,
+    streakReader: new StreakReader(repository, undefined, mockStreakSeed, mockCounters),
     random: Math.random,
     packetDraftReader: new PacketDraftReader(readingsReader),
     lastPacketReader: new LastPacketReader(packets),

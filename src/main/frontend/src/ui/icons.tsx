@@ -38,6 +38,7 @@ import {
   IconMicrophone,
   IconMoon,
   IconPill,
+  IconPlayerPause,
   IconRadioactive,
   IconRefresh,
   IconReportMedical,
@@ -171,6 +172,8 @@ export const ChevronIcon = /* @__PURE__ */ decorative(IconChevronRight)
 export const StepDoneIcon = /* @__PURE__ */ decorative(IconCircleFilled)
 export const StepCurrentIcon = /* @__PURE__ */ decorative(IconArrowRight)
 export const StepPendingIcon = /* @__PURE__ */ decorative(IconDots)
+/** A streak day paused for sickness or rest (#40). */
+export const PausedIcon = /* @__PURE__ */ decorative(IconPlayerPause)
 export const LightThemeIcon = /* @__PURE__ */ decorative(IconSun)
 export const DarkThemeIcon = /* @__PURE__ */ decorative(IconMoon)
 export const VoiceIcon = /* @__PURE__ */ decorative(IconMicrophone)

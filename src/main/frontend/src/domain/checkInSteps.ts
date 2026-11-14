@@ -104,7 +104,7 @@ export const CHECK_IN_STEPS: CheckInStep[] = [
     field: 'symptoms',
     tab: 'Symptoms',
     prompt: 'Any of these symptoms today?',
-    hint: 'Tap all that apply.',
+    hint: 'Tap all that apply. Logging a symptom always counts as a completed check-in.',
     noneLabel: 'None of these',
     seconds: SECONDS,
   },
