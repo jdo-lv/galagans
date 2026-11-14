@@ -1,0 +1,65 @@
+<!doctype html>
+<!-- Static mock for issue #27 (personal baseline on the Cognition detail), built on the app's tokens and classes. Screenshot: tools/cdp.mjs at 1280 px. -->
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/tokens.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/base.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/status.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/detail.css">
+<style>
+.detail-head{display:flex;flex-direction:column;gap:var(--space-2)}
+.detail-title{display:flex;align-items:center;gap:var(--space-3)}
+.tiers{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-2)}
+.tiers li{display:grid;place-items:center;text-align:center;min-height:52px;padding:var(--space-1);border:1px solid var(--color-edge);border-radius:var(--radius-item)}
+.tiers li[aria-current]{background:var(--color-inverse-bg);color:var(--color-inverse-text);border-color:transparent;font-weight:700}
+svg text{fill:var(--color-text-muted);font-size:12px;font-family:var(--font-data)}
+.next{margin:0;padding:var(--space-3) var(--space-4);border-radius:var(--radius-item);background:var(--color-inset)}
+</style></head>
+<body><div class="app">
+<header class="app-header"><span></span><h1 class="wordmark">Health</h1><span></span></header>
+<p class="pill pill--quiet"><span>Online</span></p>
+<a href="#/">← Body systems</a>
+<div class="detail-head">
+  <div class="detail-title"><span class="badge badge--caution">▲ CAUTION</span><h2 class="section-heading">Cognition</h2></div>
+  <div class="muted">PVT median <span class="num">312</span> ms · 10 min ago · in-app test</div>
+</div>
+<main class="layout">
+<div class="stack">
+  <section class="card">
+    <h3 class="card-heading">PVT median · last 7 days</h3>
+    <svg viewBox="0 0 640 230" width="100%" role="img" aria-label="PVT median, last 7 days, 2 readings">
+      <g stroke="var(--color-divider)">
+        <line x1="48" x2="620" y1="16" y2="16"/><line x1="48" x2="620" y1="62" y2="62"/><line x1="48" x2="620" y1="108" y2="108"/><line x1="48" x2="620" y1="154" y2="154"/><line x1="48" x2="620" y1="200" y2="200"/>
+      </g>
+      <text x="0" y="20">400 ms</text><text x="0" y="66">350 ms</text><text x="0" y="112">300 ms</text><text x="0" y="158">250 ms</text><text x="0" y="204">200 ms</text>
+      <line x1="48" x2="620" y1="103.6" y2="103.6" stroke="var(--color-text-muted)" stroke-dasharray="6 4"/>
+      <line x1="48" x2="620" y1="140.2" y2="140.2" stroke="var(--color-text-muted)" stroke-width="1" stroke-dasharray="6 4"/>
+      <text x="620" y="156" text-anchor="end">your pre-flight normal · 265 ms · synthetic</text>
+      <text x="54" y="98">COG-01 · &gt; 304.75 ms caution</text>
+      <polyline fill="none" stroke="var(--color-text)" stroke-width="2" points="291.5,137.4 619.2,97"/>
+      <circle cx="291.5" cy="137.4" r="4" fill="var(--color-text)"/>
+      <circle cx="619.2" cy="97" r="6" fill="var(--color-caution)" stroke="var(--color-on-caution)" stroke-width="1.5"/>
+      <text x="613" y="85" style="fill:var(--color-text)">▲</text>
+      <text x="80" y="222">8 Nov</text><text x="162" y="222">9 Nov</text><text x="240" y="222">10 Nov</text><text x="322" y="222">11 Nov</text><text x="404" y="222">12 Nov</text><text x="486" y="222">13 Nov</text><text x="568" y="222">14 Nov</text>
+    </svg>
+  </section>
+  <section class="card">
+    <h3 class="card-heading">Explanation</h3>
+    <dl class="status-explanation">
+      <div><dt>What</dt><dd>Your PVT median is above 304.75 ms, 15 % slower than your pre-flight baseline (265 ms).</dd></div>
+      <div><dt>Why it matters</dt><dd>PVT slows early in flight in ISS crews, and nights of 6 h or less of sleep slow it further. Slower attention raises the risk of performance errors.</dd></div>
+      <div><dt>How decided</dt><dd>Rule COG-01: PVT median &gt; 304.75 ms (pre-flight baseline 265 ms + 15 %) → caution. The baseline is a synthetic pre-loaded profile; +15 % is a team heuristic, not a NASA limit. No adaptation corridor yet.</dd></div>
+      <div><dt>Source</dt><dd>research/health-indicators.md §13; research/long-duration-literature.md [L5] <span class="tag tag--rule">rule · COG-01</span></dd></div>
+    </dl>
+  </section>
+</div>
+<div class="stack">
+  <section class="card">
+    <h3 class="card-heading">What next</h3>
+    <p class="next">Tell the CMO today and repeat the test tomorrow morning.</p>
+  </section>
+  <section class="card">
+    <h3 class="card-heading">Who to involve</h3>
+    <ol class="tiers"><li>Self-care</li><li aria-current="true">CMO</li><li>Medical conference</li><li>Urgent ground</li></ol>
+  </section>
+</div>
+</main></div></body></html>
