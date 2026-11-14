@@ -61,6 +61,7 @@
   --tracking-hero: -0.04em;
   --tracking-splash: 0.32em;
   --line-height: 1.4;
+  --icon-stroke: 1.75; /* canvas icons use 1.6–1.8 */
 
   /* Space and shape */
   --space-1: 4px;

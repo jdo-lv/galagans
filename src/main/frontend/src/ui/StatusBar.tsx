@@ -1,4 +1,4 @@
-import { CloudOffIcon } from './icons'
+import { OfflineIcon } from './icons'
 
 // Connection is not a health status: neutral pill, quiet when online with nothing waiting.
 export function StatusBar({ online, pending }: { online: boolean; pending: number }) {
@@ -6,7 +6,7 @@ export function StatusBar({ online, pending }: { online: boolean; pending: numbe
 
   return (
     <p role="status" className={quiet ? 'pill pill--quiet' : 'pill'}>
-      {online ? null : <CloudOffIcon />}
+      {online ? null : <OfflineIcon size={18} />}
       <span>
         {online ? 'Online' : 'Offline'}
         {pending > 0 ? ` · ${pending} waiting to sync` : ''}

@@ -1,76 +1,162 @@
-import type { ReactNode } from 'react'
+import {
+  createReactComponent,
+  IconAlertOctagon,
+  IconAlertTriangle,
+  IconApple,
+  IconArrowBarToDown,
+  IconBiohazard,
+  IconBone,
+  IconBottle,
+  IconBrain,
+  IconCalendarEvent,
+  IconCamera,
+  IconChartLine,
+  IconCircleCheck,
+  IconCircleDashed,
+  IconCirclePlus,
+  IconClipboardList,
+  IconClock,
+  IconCloudOff,
+  IconDeviceWatch,
+  IconDroplet,
+  IconEar,
+  IconEye,
+  IconGauge,
+  IconHeart,
+  IconHeartbeat,
+  IconInfoCircle,
+  IconLock,
+  IconLungs,
+  IconMoodSadDizzy,
+  IconMoodSick,
+  IconMoodSmile,
+  IconMoon,
+  IconPill,
+  IconRadioactive,
+  IconRefresh,
+  IconReportMedical,
+  IconRun,
+  IconSatellite,
+  IconScale,
+  IconSend,
+  IconShieldCheck,
+  IconStethoscope,
+  IconStopwatch,
+  IconSun,
+  IconTemperaturePlus,
+  IconThermometer,
+  IconUser,
+  IconUsersGroup,
+  IconWind,
+  IconWorld,
+  IconZzz,
+  type IconProps,
+} from '@tabler/icons-react'
+import type { ComponentType } from 'react'
 
-// Line icons from the design canvas (research/Health Palette Prototype.html): 24 × 24, currentColor, round caps.
-function Icon({ size = 22, strokeWidth = 1.6, children }: { size?: number; strokeWidth?: number; children: ReactNode }) {
+// The app's icon vocabulary (ideas/ui-guidelines.md §5 "Icons"): Tabler outline icons named by what they mean here,
+// one icon per meaning. Line weight comes from CSS (--icon-stroke). Every icon is decorative: a word or label carries the meaning.
+type AppIcon = ComponentType<IconProps>
+
+function decorative(Svg: AppIcon): AppIcon {
+  const Decorative = (props: IconProps) => <Svg size={22} aria-hidden="true" focusable="false" {...props} />
+  return Decorative
+}
+
+// Drawn on the design canvas (research/Health Palette Prototype.html, body-system ring) because Tabler has no kidney or stomach.
+const IconKidneys = /* @__PURE__ */ createReactComponent('outline', 'kidneys', 'Kidneys', [
+  ['path', { d: 'M9 6C6 6 4 9 4 12s1.5 6 4 6c2 0 2.5-2 2-3.5s-1-1.5-1-2.5 1-1.5 1-3 0-3-1-3z', key: 'svg-0' }],
+  ['path', { d: 'M15 6c3 0 5 3 5 6s-1.5 6-4 6c-2 0-2.5-2-2-3.5s1-1.5 1-2.5-1-1.5-1-3 0-3 1-3z', key: 'svg-1' }],
+])
+
+const IconStomach = /* @__PURE__ */ createReactComponent('outline', 'stomach', 'Stomach', [
+  ['path', { d: 'M9 3v4a3 3 0 0 0 3 3h1a5 5 0 0 1 5 5 6 6 0 0 1-6 6H9a4 4 0 0 1-4-4v-1', key: 'svg-0' }],
+  ['path', { d: 'M9 17c1.5 0 3-1 3-3', key: 'svg-1' }],
+])
+
+// Canvas SpO₂ mark: a drop with "O2". Not built with createReactComponent because it needs a text node.
+function IconSpo2({ size = 24, stroke = 2, className, ...props }: IconProps) {
   return (
     <svg
+      xmlns="http://www.w3.org/2000/svg"
       width={size}
       height={size}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={strokeWidth}
+      strokeWidth={stroke}
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
+      className={['tabler-icon', 'tabler-icon-spo2', className].filter(Boolean).join(' ')}
+      {...props}
     >
-      {children}
-    </svg>
-  )
-}
-
-export function MoonIcon() {
-  return (
-    <Icon>
-      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-    </Icon>
-  )
-}
-
-export function SunIcon() {
-  return (
-    <Icon>
-      <circle cx="12" cy="12" r="4.5" />
-      <path d="M12 1.5v2.5M12 20v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M1.5 12H4M20 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8" />
-    </Icon>
-  )
-}
-
-export function HeartIcon() {
-  return (
-    <Icon>
-      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.8 1-1.1a5.5 5.5 0 0 0 0-7.8z" />
-    </Icon>
-  )
-}
-
-export function OxygenIcon() {
-  return (
-    <Icon>
       <path d="M10 3s-6 7-6 11a6 6 0 0 0 9 5.2" />
       <text x="13.5" y="19.5" fontSize="7.5" fontWeight="700" fill="currentColor" stroke="none" fontFamily="Inter, sans-serif">
         O2
       </text>
-    </Icon>
+    </svg>
   )
 }
 
-export function MoodIcon() {
-  return (
-    <Icon>
-      <circle cx="12" cy="12" r="9" />
-      <circle cx="9" cy="10" r="0.8" fill="currentColor" />
-      <circle cx="15" cy="10" r="0.8" fill="currentColor" />
-      <path d="M8.5 14a4 4 0 0 0 7 0" />
-    </Icon>
-  )
-}
+/* Status (never the only cue: always with the status word) */
+export const NominalIcon = /* @__PURE__ */ decorative(IconCircleCheck)
+export const CautionIcon = /* @__PURE__ */ decorative(IconAlertTriangle)
+export const WarningIcon = /* @__PURE__ */ decorative(IconAlertOctagon)
+export const InfoIcon = /* @__PURE__ */ decorative(IconInfoCircle)
+export const DataAgeIcon = /* @__PURE__ */ decorative(IconClock)
+export const NoDataIcon = /* @__PURE__ */ decorative(IconCircleDashed)
 
-export function CloudOffIcon() {
-  return (
-    <Icon size={18} strokeWidth={1.8}>
-      <path d="M3 3l18 18M9.5 6.2A6 6 0 0 1 18 11h.5a3.5 3.5 0 0 1 2.2 6.2M16 19H7a4.5 4.5 0 0 1-1.6-8.7" />
-    </Icon>
-  )
-}
+/* Body systems */
+export const CognitionIcon = /* @__PURE__ */ decorative(IconBrain)
+export const RespiratoryIcon = /* @__PURE__ */ decorative(IconLungs)
+export const CardiovascularIcon = /* @__PURE__ */ decorative(IconHeart)
+export const KidneyIcon = /* @__PURE__ */ decorative(IconKidneys)
+export const DigestionIcon = /* @__PURE__ */ decorative(IconStomach)
+export const BoneMuscleIcon = /* @__PURE__ */ decorative(IconBone)
+export const VisionIcon = /* @__PURE__ */ decorative(IconEye)
+export const HearingIcon = /* @__PURE__ */ decorative(IconEar)
+export const ImmuneIcon = /* @__PURE__ */ decorative(IconShieldCheck)
+export const SleepIcon = /* @__PURE__ */ decorative(IconZzz)
+export const HydrationIcon = /* @__PURE__ */ decorative(IconDroplet)
+
+/* Readings, devices and inputs */
+export const HeartRateIcon = /* @__PURE__ */ decorative(IconHeartbeat)
+export const Spo2Icon = /* @__PURE__ */ decorative(IconSpo2)
+export const BloodPressureIcon = /* @__PURE__ */ decorative(IconGauge)
+export const TemperatureIcon = /* @__PURE__ */ decorative(IconThermometer)
+export const BodyMassIcon = /* @__PURE__ */ decorative(IconScale)
+export const BraceletIcon = /* @__PURE__ */ decorative(IconDeviceWatch)
+export const CameraIcon = /* @__PURE__ */ decorative(IconCamera)
+export const MoodIcon = /* @__PURE__ */ decorative(IconMoodSmile)
+export const PvtIcon = /* @__PURE__ */ decorative(IconStopwatch)
+export const QuestionnaireIcon = /* @__PURE__ */ decorative(IconClipboardList)
+export const SymptomIcon = /* @__PURE__ */ decorative(IconReportMedical)
+export const NauseaIcon = /* @__PURE__ */ decorative(IconMoodSick)
+export const DizzinessIcon = /* @__PURE__ */ decorative(IconMoodSadDizzy)
+export const FeverIcon = /* @__PURE__ */ decorative(IconTemperaturePlus)
+export const FluidsIcon = /* @__PURE__ */ decorative(IconBottle)
+export const FoodIcon = /* @__PURE__ */ decorative(IconApple)
+export const MedicationIcon = /* @__PURE__ */ decorative(IconPill)
+export const ExerciseIcon = /* @__PURE__ */ decorative(IconRun)
+
+/* Hazards (NASA HRP five hazards, hazard lens) */
+export const RadiationIcon = /* @__PURE__ */ decorative(IconRadioactive)
+export const IsolationIcon = /* @__PURE__ */ decorative(IconUsersGroup)
+export const DistanceFromEarthIcon = /* @__PURE__ */ decorative(IconWorld)
+export const GravityIcon = /* @__PURE__ */ decorative(IconArrowBarToDown)
+export const HostileEnvironmentIcon = /* @__PURE__ */ decorative(IconBiohazard)
+export const CabinAirIcon = /* @__PURE__ */ decorative(IconWind)
+
+/* People, ground and app */
+export const CrewIcon = /* @__PURE__ */ decorative(IconUser)
+export const CmoIcon = /* @__PURE__ */ decorative(IconStethoscope)
+export const GroundLinkIcon = /* @__PURE__ */ decorative(IconSatellite)
+export const SendIcon = /* @__PURE__ */ decorative(IconSend)
+export const ConferenceIcon = /* @__PURE__ */ decorative(IconCalendarEvent)
+export const TrendIcon = /* @__PURE__ */ decorative(IconChartLine)
+export const PrivateIcon = /* @__PURE__ */ decorative(IconLock)
+export const OfflineIcon = /* @__PURE__ */ decorative(IconCloudOff)
+export const SyncIcon = /* @__PURE__ */ decorative(IconRefresh)
+export const AddIcon = /* @__PURE__ */ decorative(IconCirclePlus)
+export const LightThemeIcon = /* @__PURE__ */ decorative(IconSun)
+export const DarkThemeIcon = /* @__PURE__ */ decorative(IconMoon)

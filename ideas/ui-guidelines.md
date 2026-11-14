@@ -198,7 +198,24 @@ Routing is a separate, neutral outline pill: "Self-care", "CMO", "Medical confer
 - **Connection and sync:** a neutral pill. Online with nothing waiting is quiet muted text; offline shows a cloud-off icon and "Offline · 2 waiting to sync". Being offline is not a health status.
 
 ### Icons
-Line icons with 1.6–1.8 px strokes, round caps, `currentColor`, at 20 px (nav), 22 px (tiles) and 30 px (header add). Use the standard metaphors on the canvas (heart, drop, moon, house, pencil, person) and don't draw custom icons for common things [S3]. Each icon has a word next to it or an `aria-label`.
+
+**Library: [Tabler Icons](https://tabler.io/icons), outline set** (`@tabler/icons-react` 3.50.0, MIT, 5,000+ icons) [I1]. It is the same rounded 24 px line style as the canvas icons, and of the line libraries it covers the most health and body concepts. The full vocabulary, rendered: [mockups/icons.png](mockups/icons.png).
+
+- **Import by concept from [`src/ui/icons.tsx`](../src/main/frontend/src/ui/icons.tsx)**, never from `@tabler/icons-react` directly: `RespiratoryIcon`, `CautionIcon`, `Spo2Icon`, `GroundLinkIcon`. One concept has one icon everywhere, and one icon has one meaning [S1 V2 10010/10011]. A new concept is one export line there, plus a row in the sheet.
+- **Defaults:** every icon is `aria-hidden` and 22 px. The word next to it, or the button's `aria-label`, carries the meaning. Sizes are 18 px in badges and pills, 20 px in navigation, 22 px in tiles and 30 px for the header "add".
+- **Line weight:** 1.75 px for all icons, set once in CSS (`--icon-stroke` on `.tabler-icon`, canvas range 1.6–1.8). Colour is `currentColor`; status colour comes from the badge around the icon, never from the icon alone.
+- **Gaps:** Tabler has no kidneys, stomach or SpO₂ icon. Those three are the canvas's own drawings, built with Tabler's `createReactComponent` so they behave identically. Blood pressure uses `gauge` for now. When a concept is missing, search Tabler first, then draw one on the 24 px grid with round caps and add it the same way. Don't mix in another library: [Healthicons](https://healthicons.org) has the organs, devices and symptoms but is drawn as thinner filled shapes on a 48 px grid, and looks out of place next to the rest [I2].
+- **Metaphors:** standard ones crews know from home devices, no custom icons for common things [S3]. Sleep is `zzz`, not a moon, because the moon means "dark theme" in the header.
+- **Bundle size:** only icons a screen actually uses are bundled (`/* @__PURE__ */` exports), so the vocabulary can grow without adding weight.
+
+Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packages themselves):
+
+| Library | Icons (line set) | Lungs | Kidneys, stomach | BP cuff, oximeter | Symptoms (nausea, dizziness, fever) | Style next to the canvas |
+|---|---|---|---|---|---|---|
+| Tabler 3.51 (MIT) | 5,233 | yes | no | no (gauge) | yes | same |
+| Lucide 1.73 (ISC) | 2,359 | no | no | no (gauge) | partial | same |
+| Phosphor 2.1 light (MIT) | 1,512 | no | no | no (gauge) | partial | close, thinner |
+| Healthicons 3.1 outline (CC0) | 776 | yes | yes | yes | yes | different: 48 px filled outlines, no UI glyphs (status, sync, theme) |
 
 ### Charts (for the detail screens)
 - **Lines and bands:** data line in `--color-text`; baseline band in `--color-ring` at low opacity; adaptation corridor as a dashed `--color-accent` outline.
@@ -226,7 +243,7 @@ Line icons with 1.6–1.8 px strokes, round caps, `currentColor`, at 20 px (nav)
 - [ ] Every new colour pair is in §2.4 and passes.
 - [ ] Text ≥ 16 px; values ≥ 28 px; targets ≥ 52 px and ≥ 18 px apart.
 - [ ] Values show unit, data age and source; missing shows "—"; stale looks stale.
-- [ ] Icon buttons have `aria-label`; the current nav item has `aria-current`; live sync text has `role="status"`.
+- [ ] Icons come from `src/ui/icons.tsx` by concept; icon buttons have `aria-label`; the current nav item has `aria-current`; live sync text has `role="status"`.
 - [ ] Keyboard focus is visible (2 px accent ring).
 - [ ] Checked in light and dark, at 390 px and 1280 px.
 
@@ -248,6 +265,7 @@ Line icons with 1.6–1.8 px strokes, round caps, `currentColor`, at 20 px (nav)
 | `#C61E37` and `#1651B6` in dark | `#E4002B` (3.55:1) and `#7FA6F0` (7.07:1) | 3:1 for shapes on `#1B1B1B` |
 | Values with a unit or a date but no data age | Value + unit, then label / data age, then a source tag | Stale data must be flagged [S1 V2 10020]; data honesty (`CLAUDE.md`) |
 | "Manual input" tab | "Check-in" | Glossary in [features.md](features.md) |
+| Moon for both the Sleep tile and the dark-mode toggle | Sleep uses `zzz`; the moon stays on the toggle | One meaning per icon [S1 V2 10010/10011] |
 
 The mockups in [mockups/](mockups/) are dark-only tablet comps with 11–14 px text and a few derived greys (`#3D403B`, `#2A3550`). Use them for layout and content; colours, sizes and status styles come from this document. Their colour use follows the rules (red and yellow only on status; "due" and rule tags neutral since 2026-11-14).
 
@@ -257,3 +275,5 @@ The mockups in [mockups/](mockups/) are dark-only tablet comps with 11–14 px t
 - `[S…]` tags: NASA-STD-3001 Vol 2 Rev B, the Human Integration Design Handbook and NASA HSI workshop decks, listed in [ux-human-factors.md](../research/ux-human-factors.md#sources).
 - [N1] NASA Brand Center, images and media usage: the insignia, logotype and seal may not be used without explicit permission. https://www.nasa.gov/nasa-brand-center/images-and-media/ (via search, 2026-11-14).
 - [W1] WCAG 2.1, success criteria 1.4.3 (contrast minimum) and 1.4.11 (non-text contrast). https://www.w3.org/TR/WCAG21/
+- [I1] Tabler Icons, MIT licence: https://tabler.io/icons; npm `@tabler/icons-react` 3.50.0 (published 2026-10-27, verified 2026-11-14). Coverage counted from the `@tabler/icons` 3.51.0 package.
+- [I2] Compared packages, verified 2026-11-14: `lucide-static` 1.73.0 (https://lucide.dev), `@phosphor-icons/core` 2.1.1, `healthicons` 3.1.0 (https://healthicons.org).
