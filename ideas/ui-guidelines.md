@@ -61,6 +61,7 @@ Components use these names, not the hex values.
 | `--color-edge-on-surface` | `#726F6C` | `#CFCFCF` | The same inside a card; `.card` swaps it in for `--color-edge` |
 | `--color-divider` | `#CFCFCF` | `#1B1B1B` | Row rules inside a surface (the background colour, as on the canvas contrast board) |
 | `--color-inset` | `#CFCFCF` | `#1B1B1B` | Recessed areas inside a surface: field tiles in a card, explanations |
+| `--color-text-muted-on-inset` | `#52574E` | `#868375` | Muted text on an inset inside a card: stale values on metric tiles (the "Muted on background" pair in §2.4) |
 | `--color-ring` | `#726F6C` | `#868375` | Brand ring track, nominal ring segments |
 | `--color-accent` | `#1651B6` | `#7FA6F0` | Brand arc, links on the background, focus ring, "due" counter, selection in charts |
 | `--color-link-on-surface` | `#1651B6` | `#DADADA` | Links on a surface (always underlined) |
@@ -124,7 +125,7 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 - **Gaps:** 16 px between static cards (canvas 14 px, moved onto the 4 px grid); **18 px between touch targets**.
 - **Touch targets:** at least 52 × 52 px. On an iPad-class screen that is 10 mm, and 18 px is 3.4 mm, meeting NASA's 9.5 mm targets with 3.2 mm gaps [S2 §10.4.2.21]. The canvas's 44 px icon buttons keep their look but get a 52 px hit area.
 - **Radii:** 16 px cards and tiles, 12 px items inside a card (nav items), fully round pills and badges.
-- **Grid:** phone, one or two columns (canvas). Tablet and laptop, content at most 1200 px wide; the home screen puts the body-systems card beside a 380 px check-in card (mockup 01) and stacks them below 860 px. Tile grids use tiles at least 150 px wide (two columns on a phone, like the canvas).
+- **Grid:** phone, one or two columns (canvas). Tablet and laptop, content at most 1200 px wide; the home screen puts the body-systems card beside a 380 px column that holds Latest readings above the Check-in card (mockup 01), and stacks them below 860 px. Tile grids use tiles at least 150 px wide (two columns on a phone, like the canvas).
 - **Critical information is visible without scrolling** [S1 V2 10037]; navigation is at most 2–3 levels deep.
 - **Motion:** 0.25 s colour transitions on theme change (canvas), none with `prefers-reduced-motion`. Nothing blinks or pulses.
 
@@ -144,11 +145,13 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Centre:** the number of systems in caution or warning (`--text-hero`) with "systems to check" and the (i) button that opens what / why / how decided / what next. With none, it shows "All nominal" in muted text and the time of the last update. Never a composite health score.
 - **Interaction:** each segment is a button to the system's detail. A list view of the same systems is always one tap away, so the ring isn't the only path [S1 V2 10045].
 
-### Metric tile
-- **Row 1:** the value in `--text-value` with its unit in bold body text, and the metric's icon on the right.
-- **Row 2:** the label in uppercase, then "/" and the data age in muted text: "SPO₂ / 4 MIN AGO". The canvas used a unit or a date here; the unit moves next to the value.
-- **Row 3:** a source tag whenever the reading is simulated, replayed or a proxy (always, in the demo).
-- **Missing:** "—" with the accessible text "No reading". **Stale** (older than the metric's expected interval): the value in muted colour and the age spelled out ("8 D OLD"), with no status colour.
+### Metric tile (built: issue #7)
+- **Surface:** an inset (`--color-inset`) tile in a card's tile grid, 16 px radius, no edge: it's static, not a control (§2.4).
+- **Row 1:** the value in `--text-value` with its unit in bold body text, and the metric's icon on the right. Mood shows as "3 / 5". A reading too wide for the tile wraps its unit under the value and moves the icon to the next line, still on the right.
+- **Row 2:** the field-tile label pattern: the label in uppercase, then "/" and the data age in muted text, in its own case: "SPO₂ / 4 min ago". The canvas used a unit or a date here; the unit moves next to the value.
+- **Row 3:** a source tag on every value shown ("manual", "synthetic"). Simulated, replayed and proxy readings say so.
+- **Missing:** "—" with the accessible text "No reading", and no unit, age or tag. **Stale** (older than the metric's expected interval): the value and unit in `--color-text-muted-on-inset` and the age spelled out ("8 d old"), with the icon and no status colour.
+- **Placeholder tile:** a reading the app can't take yet shows synthetic text and unit with the tag "synthetic", no data age and no badge (issue #7).
 - **Status:** an off-nominal tile shows a status badge in place of the icon. The tile surface itself never changes colour.
 
 ### Featured tile

@@ -1,0 +1,44 @@
+import { STALE_AFTER_MS, type Indicator, type Status } from './rules'
+
+export type ReadingSpec =
+  | {
+      key: string
+      label: string
+      labelSuffix?: string
+      unit: string
+      indicator: Indicator
+      /** Input limits of the check-in form and the server DTO, not medical thresholds. */
+      validMin: number
+      validMax: number
+      staleAfterMs: number
+    }
+  // No input in the app yet; shown from a placeholder.
+  | { key: string; label: string; labelSuffix?: string; unit: string; indicator: null }
+
+/** Synthetic stand-in for a reading the app can't take yet; never aged, never stale, never explained. */
+export interface ReadingPlaceholder {
+  key: string
+  text: string
+  source: 'synthetic'
+}
+
+export interface LatestReading {
+  spec: ReadingSpec
+  state: Status | 'no-data' | 'stale' | 'synthetic'
+  value?: number
+  /** Only for synthetic. */
+  text?: string
+  recordedAt?: string
+  /** Only when a value or text is shown. */
+  source?: 'manual' | 'synthetic'
+}
+
+/** One row per "Latest readings" tile, in display order (ideas/mockups/01-body-map.png). */
+export const READINGS: ReadingSpec[] = [
+  { key: 'spo2', label: 'SpO₂', unit: '%', indicator: 'spo2Percent', validMin: 50, validMax: 100, staleAfterMs: STALE_AFTER_MS },
+  { key: 'heartRate', label: 'Heart rate', unit: 'bpm', indicator: 'heartRateBpm', validMin: 20, validMax: 250, staleAfterMs: STALE_AFTER_MS },
+  { key: 'sleep', label: 'Sleep', unit: 'h', indicator: 'sleepHours', validMin: 0, validMax: 24, staleAfterMs: STALE_AFTER_MS },
+  { key: 'mood', label: 'Mood', unit: '/ 5', indicator: 'mood', validMin: 1, validMax: 5, staleAfterMs: STALE_AFTER_MS },
+  { key: 'bloodPressure', label: 'Blood pressure', unit: 'mmHg', indicator: null },
+  { key: 'cabinCo2', label: 'Cabin CO₂', labelSuffix: '(1-h avg)', unit: 'mmHg', indicator: null },
+]

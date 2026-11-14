@@ -5,7 +5,7 @@ import { WarningIcon } from './icons'
 import './status.css'
 import type { StatusListState } from './useSystemStatuses'
 
-function Badge({ state }: { state: SystemStatus['state'] }) {
+export function Badge({ state }: { state: SystemStatus['state'] }) {
   switch (state) {
     case 'no-data':
       return <span className="badge badge--quiet">No data</span>
@@ -82,7 +82,7 @@ export function SystemStatusList({ state }: { state: StatusListState }) {
       {state.kind === 'unavailable' && <p className="status-unavailable">Status unavailable</p>}
       {state.kind === 'ready' && (
         <ul className="status-list">
-          {state.statuses.map((status) => (
+          {state.data.map((status) => (
             <StatusRow key={status.system} status={status} now={state.now} />
           ))}
         </ul>
