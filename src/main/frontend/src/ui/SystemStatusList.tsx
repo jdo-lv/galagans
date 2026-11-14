@@ -52,6 +52,7 @@ function StatusRow({ status, now }: { status: SystemStatus; now: Date }) {
               <span>{`${age} · ${status.source}`}</span>
             </div>
           )}
+          {status.detail !== undefined && <div className="status-sub">{`${status.detail} · ${status.source}`}</div>}
         </div>
         <Badge state={state} />
       </div>

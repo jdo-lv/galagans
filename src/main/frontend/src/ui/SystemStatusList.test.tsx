@@ -259,4 +259,57 @@ describe('Body systems with placeholders (#4)', () => {
     ])
     expect(within(rows[0]).getByText('No data')).toBeInTheDocument()
   })
+
+  it('AC2: SpO₂ 88 warns on Respiratory with SPO-02 while the placeholders stay nominal', async () => {
+    setup({ placeholders: mockStatuses }).renderApp()
+    await submitSpo2(88)
+
+    expect(await within(list()).findByText('WARNING')).toBeInTheDocument()
+    const [respiratory, ...others] = within(list()).getAllByRole('listitem')
+    expect(within(respiratory).getByText('SPO-02')).toBeInTheDocument()
+    texts(SPO02).forEach((text) => expect(respiratory).toHaveTextContent(text))
+    expect(others).toHaveLength(9)
+    others.forEach((r) => expect(within(r).getByText('✓ Nominal')).toBeInTheDocument())
+  })
+
+  it.each([
+    ['Cognition', 'PVT 268 ms · within your baseline'],
+    ['Cabin air', 'CO₂ 2.3 mmHg (1-h avg)'],
+    ['Sleep', '7.1 h last night'],
+    ['Immune', 'no new symptoms'],
+    ['Cardiovascular', 'HR 63 bpm · BP 108/70'],
+    ['Bone & muscle', 'Exercise 540/600 min/wk'],
+    ['Vision (SANS)', 'self-test done Wed · no changes'],
+    ['Radiation', '38% of 30-day limit'],
+    ['Kidney & hydration', 'Fluids 1.1/2.5 L today'],
+  ])('AC3: %s shows ✓ Nominal and "%s · synthetic"', async (system, detail) => {
+    setup({ placeholders: mockStatuses }).renderApp()
+
+    const rows = await within(list()).findAllByRole('listitem')
+    const row = rows[systemNames(rows).indexOf(system)]
+    expect(within(row).getByText('✓ Nominal')).toBeInTheDocument()
+    expect(within(row).getByText(`${detail} · synthetic`)).toBeInTheDocument()
+  })
+
+  it('AC4: placeholder rows show no explanation list and no data age', async () => {
+    setup({ placeholders: mockStatuses }).renderApp()
+
+    const [, ...placeholders] = await within(list()).findAllByRole('listitem')
+    placeholders.forEach((r) => {
+      expect(r.querySelector('dl')).toBeNull()
+      expect(r).not.toHaveTextContent(/ ago|just now| old\b/)
+    })
+  })
+
+  it.each([
+    ['rules', (s: ReturnType<typeof setup>) => void (s.ruleSource.fail = true)],
+    ['history', (s: ReturnType<typeof setup>) => void (s.repository.failList = true)],
+  ])('AC6: when the %s fail, shows "Status unavailable" and no placeholder rows', async (_, fail) => {
+    const s = setup({ placeholders: mockStatuses })
+    fail(s)
+    s.renderApp()
+
+    expect(await within(list()).findByText('Status unavailable')).toBeInTheDocument()
+    expect(within(list()).queryByRole('listitem')).toBeNull()
+  })
 })
