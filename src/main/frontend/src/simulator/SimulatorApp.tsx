@@ -1,34 +1,17 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { newId as generateId } from '../application/newId'
-import { readingSpec } from '../domain/readings'
-import type { Indicator } from '../domain/rules'
 import type { LinkState } from '../infrastructure/DeviceLink'
 import { ThemeToggle } from '../ui/theme/ThemeToggle'
 import { startNominalDay } from './nominalDay'
-import { oximeterMessage } from './oximeterMessage'
 import type { Publisher } from './Publisher'
+import { deviceMessage, isValidInput, nominalValues, SIM_DEVICES, type SimDevice, type SimField } from './simDevices'
 
-const TOPIC = 'crew/a1/oximeter'
-const NOMINAL_SPO2 = 97
-const NOMINAL_PULSE = 63
 const LOG_LINES = 50
 
-const NOT_BUILT_DEVICES = [
-  ['Wrist bracelet', 'Live HR broadcast · GATT 0x180D · 0x2A37'],
-  ['BP cuff', 'GATT 0x1810 · char 0x2A35'],
-  ['Thermometer', 'GATT 0x1809 · char 0x2A1C'],
-  ['Environment node', 'Wi-Fi · JSON'],
-  ['Dosimeter', 'Wi-Fi · JSON'],
-]
 const NOT_BUILT_SCENARIOS = ['CO₂ build-up', 'Resting HR drift', 'Orthostatic risk', 'Solar particle event', 'Sensor dropout']
 
-/** Whole numbers within the READINGS input limits (the ones #22's gateway validates against). */
-function isValid(value: string, indicator: Indicator): boolean {
-  if (!/^\d+$/.test(value)) return false
-  const { validMin, validMax } = readingSpec(indicator)
-  const number = Number(value)
-  return number >= validMin && number <= validMax
-}
+/** Per device id, per payload key. */
+type Values = Record<string, Record<string, number>>
 
 interface LogLine {
   key: number
@@ -42,18 +25,22 @@ interface Props {
   newId?: () => string
 }
 
+const initialValues = (): Values => Object.fromEntries(SIM_DEVICES.map((sim) => [sim.device.id, nominalValues(sim)]))
+
+const inputOk = (input: string, simField: SimField) =>
+  simField.field.required ? isValidInput(input, simField) : input === '' || isValidInput(input, simField)
+
 export function SimulatorApp({ publisher, now = () => new Date(), newId = generateId }: Props) {
   const [linkState, setLinkState] = useState<LinkState>('disconnected')
-  const [spo2, setSpo2] = useState(NOMINAL_SPO2)
+  const [values, setValues] = useState<Values>(initialValues)
   const [running, setRunning] = useState(false)
   const [log, setLog] = useState<LogLine[]>([])
-  const [injectSpo2, setInjectSpo2] = useState('')
-  const [injectPulse, setInjectPulse] = useState('')
+  const [injectId, setInjectId] = useState(SIM_DEVICES[0].device.id)
+  const [inputs, setInputs] = useState<Record<string, string>>({})
   const linkStateRef = useRef(linkState)
-  const spo2Ref = useRef(spo2)
+  const valuesRef = useRef(values)
   const stopRef = useRef<(() => void) | null>(null)
   const lineKey = useRef(0)
-  const sliderLabelId = useId()
 
   useEffect(
     () =>
@@ -66,20 +53,20 @@ export function SimulatorApp({ publisher, now = () => new Date(), newId = genera
   // The timer starts on Run, not in an effect, so StrictMode's double effects can't publish twice.
   useEffect(() => () => stopRef.current?.(), [])
 
-  function send(reading: { spo2: number; pulse?: number }) {
+  function send(sim: SimDevice, reading: Record<string, number | undefined>) {
     const at = now()
-    const payload = oximeterMessage(reading, at, newId)
-    const sent = publisher.publish(TOPIC, payload)
+    const payload = deviceMessage(sim, reading, at, newId)
+    const sent = publisher.publish(sim.device.topic, payload)
     const line: LogLine = {
       key: ++lineKey.current,
       time: at.toISOString().slice(11, 19),
-      text: sent ? `${TOPIC}  ${JSON.stringify(payload)}` : `not sent · device link ${linkStateRef.current}`,
+      text: sent ? `${sim.device.topic}  ${JSON.stringify(payload)}` : `not sent · device link ${linkStateRef.current}`,
     }
     setLog((lines) => [line, ...lines].slice(0, LOG_LINES))
   }
 
   function run() {
-    stopRef.current = startNominalDay(() => send({ spo2: spo2Ref.current, pulse: NOMINAL_PULSE }))
+    stopRef.current = startNominalDay(() => SIM_DEVICES.forEach((sim) => send(sim, valuesRef.current[sim.device.id])))
     setRunning(true)
   }
 
@@ -89,17 +76,27 @@ export function SimulatorApp({ publisher, now = () => new Date(), newId = genera
     setRunning(false)
   }
 
-  function changeSpo2(value: number) {
-    spo2Ref.current = value
-    setSpo2(value)
+  function override(sim: SimDevice, value: number) {
+    const id = sim.device.id
+    const next = { ...valuesRef.current, [id]: { ...valuesRef.current[id], [sim.override.key]: value } }
+    valuesRef.current = next
+    setValues(next)
   }
 
-  const canPublish = isValid(injectSpo2, 'spo2Percent') && (injectPulse === '' || isValid(injectPulse, 'heartRateBpm'))
+  const injectSim = SIM_DEVICES.find((sim) => sim.device.id === injectId)!
+  const canPublish = injectSim.fields.every((simField) => inputOk(inputs[simField.field.key] ?? '', simField))
+
   function inject() {
-    send({ spo2: Number(injectSpo2), ...(injectPulse === '' ? {} : { pulse: Number(injectPulse) }) })
+    const reading = Object.fromEntries(injectSim.fields.map(({ field }) => [field.key, inputs[field.key] ? Number(inputs[field.key]) : undefined]))
+    send(injectSim, reading)
   }
 
-  const oximeterTag = running ? (linkState === 'connected' ? 'publishing' : 'not sending') : null
+  function pickInjectDevice(id: string) {
+    setInjectId(id)
+    setInputs({})
+  }
+
+  const tag = running ? (linkState === 'connected' ? 'publishing' : 'not sending') : null
 
   return (
     <div className="sim">
@@ -118,32 +115,8 @@ export function SimulatorApp({ publisher, now = () => new Date(), newId = genera
         <div className="stack">
           <Region title="Virtual devices" className="sim-devices-region">
             <div className="sim-devices">
-              <Device name="Pulse oximeter" tag={oximeterTag}>
-                <p className="muted">
-                  WebSocket JSON · <span className="num">{TOPIC}</span>
-                </p>
-                <p className="value">
-                  {spo2} % · {NOMINAL_PULSE} bpm
-                </p>
-                <p className="muted">source: synthetic</p>
-                <input
-                  className="sim-slider"
-                  type="range"
-                  min={80}
-                  max={100}
-                  step={1}
-                  value={spo2}
-                  aria-labelledby={sliderLabelId}
-                  onChange={(event) => changeSpo2(Number(event.target.value))}
-                />
-                <p className="muted" id={sliderLabelId}>
-                  SpO₂ override · <span className="num">{spo2} %</span>
-                </p>
-              </Device>
-              {NOT_BUILT_DEVICES.map(([name, line]) => (
-                <Device key={name} name={name} tag="not built" off>
-                  <p className="muted">{line}</p>
-                </Device>
+              {SIM_DEVICES.map((sim) => (
+                <DeviceCard key={sim.device.id} sim={sim} values={values[sim.device.id]} tag={tag} onOverride={(value) => override(sim, value)} />
               ))}
             </div>
           </Region>
@@ -195,20 +168,31 @@ export function SimulatorApp({ publisher, now = () => new Date(), newId = genera
           </Region>
 
           <Region title="Inject one reading" className="card stack">
-            <p className="muted">Pulse oximeter · source: synthetic</p>
+            <p className="muted">{`${injectSim.name} · source: synthetic`}</p>
+            <label className="field-tile">
+              <span className="tile-label">Device</span>
+              <select className="sim-select" value={injectId} onChange={(event) => pickInjectDevice(event.target.value)}>
+                {SIM_DEVICES.map((sim) => (
+                  <option key={sim.device.id} value={sim.device.id}>
+                    {sim.name}
+                  </option>
+                ))}
+              </select>
+            </label>
             <div className="sim-inject">
-              <label className="field-tile">
-                <span className="tile-label">
-                  SpO₂ <span className="tile-label__suffix">%</span>
-                </span>
-                <input type="text" inputMode="numeric" value={injectSpo2} onChange={(event) => setInjectSpo2(event.target.value)} />
-              </label>
-              <label className="field-tile">
-                <span className="tile-label">
-                  Pulse <span className="tile-label__suffix">bpm</span>
-                </span>
-                <input type="text" inputMode="numeric" value={injectPulse} onChange={(event) => setInjectPulse(event.target.value)} />
-              </label>
+              {injectSim.fields.map((simField) => (
+                <label key={simField.field.key} className="field-tile">
+                  <span className="tile-label">
+                    {simField.label} <span className="tile-label__suffix">{simField.field.unit}</span>
+                  </span>
+                  <input
+                    type="text"
+                    inputMode={simField.decimals > 0 ? 'decimal' : 'numeric'}
+                    value={inputs[simField.field.key] ?? ''}
+                    onChange={(event) => setInputs({ ...inputs, [simField.field.key]: event.target.value })}
+                  />
+                </label>
+              ))}
             </div>
             <button type="button" className="button-primary" disabled={!canPublish} onClick={inject}>
               Publish
@@ -220,6 +204,47 @@ export function SimulatorApp({ publisher, now = () => new Date(), newId = genera
   )
 }
 
+interface DeviceCardProps {
+  sim: SimDevice
+  values: Record<string, number>
+  tag: string | null
+  onOverride: (value: number) => void
+}
+
+function DeviceCard({ sim, values, tag, onOverride }: DeviceCardProps) {
+  const id = useId()
+  const sliderLabelId = useId()
+  const { override } = sim
+  const { decimals, field } = sim.fields.find((f) => f.field.key === override.key)!
+  return (
+    <section className="card sim-device" aria-labelledby={id}>
+      <div className="sim-device__top">
+        <h3 id={id}>{sim.name}</h3>
+        {tag && <span className="tag">{tag}</span>}
+      </div>
+      <p className="muted">
+        WebSocket JSON · <span className="num">{sim.device.topic}</span>
+      </p>
+      <p className="value">{sim.format(values)}</p>
+      <p className="muted">source: synthetic</p>
+      <input
+        className="sim-slider"
+        type="range"
+        min={override.min}
+        max={override.max}
+        step={override.step}
+        value={values[override.key]}
+        aria-labelledby={sliderLabelId}
+        // Range steps like 0.1 come back as 36.800000000000004; keep the field's decimals.
+        onChange={(event) => onOverride(Number(Number(event.target.value).toFixed(decimals)))}
+      />
+      <p className="muted" id={sliderLabelId}>
+        {override.label} override · <span className="num">{`${values[override.key].toFixed(decimals)} ${field.unit}`}</span>
+      </p>
+    </section>
+  )
+}
+
 function Region({ title, className, children }: { title: string; className: string; children: ReactNode }) {
   const id = useId()
   return (
@@ -227,19 +252,6 @@ function Region({ title, className, children }: { title: string; className: stri
       <h2 className="card-heading" id={id}>
         {title}
       </h2>
-      {children}
-    </section>
-  )
-}
-
-function Device({ name, tag, off = false, children }: { name: string; tag: string | null; off?: boolean; children: ReactNode }) {
-  const id = useId()
-  return (
-    <section className={off ? 'card sim-device sim-device--off' : 'card sim-device'} aria-labelledby={id}>
-      <div className="sim-device__top">
-        <h3 id={id}>{name}</h3>
-        {tag && <span className="tag">{tag}</span>}
-      </div>
       {children}
     </section>
   )

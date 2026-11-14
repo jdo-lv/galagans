@@ -69,9 +69,18 @@ describe('toPacketItem', () => {
     expect(toPacketItem({ spec: spec('sleep'), state: 'no-data' })).toStrictEqual({ key: 'sleep', label: 'Sleep', unit: 'h', state: 'no-data' })
   })
 
-  it('AC14: a synthetic placeholder keeps its text and source', () => {
-    const item = toPacketItem({ spec: spec('bloodPressure'), state: 'synthetic', text: '108/70', source: 'synthetic' })
+  it('a paired reading keeps its value and its "108/70" text', () => {
+    const item = toPacketItem({ spec: spec('bloodPressure'), state: 'nominal', value: 108, text: '108/70', recordedAt: AT, source: 'BP cuff · synthetic', unrated: true })
 
-    expect(item).toStrictEqual({ key: 'bloodPressure', label: 'Blood pressure', unit: 'mmHg', state: 'synthetic', text: '108/70', source: 'synthetic' })
+    expect(item).toStrictEqual({
+      key: 'bloodPressure',
+      label: 'Blood pressure',
+      unit: 'mmHg',
+      state: 'unrated',
+      value: 108,
+      text: '108/70',
+      recordedAt: AT,
+      source: 'BP cuff · synthetic',
+    })
   })
 })

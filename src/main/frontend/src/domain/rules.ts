@@ -1,7 +1,19 @@
 import type { BaselineEntry } from './baseline'
 import type { ObservationSource } from './observation'
 
-export type Indicator = 'heartRateBpm' | 'spo2Percent' | 'sleepHours' | 'mood' | 'pvtMedianMs'
+export type Indicator =
+  | 'heartRateBpm'
+  | 'spo2Percent'
+  | 'sleepHours'
+  | 'mood'
+  | 'pvtMedianMs'
+  | 'systolicMmHg'
+  | 'diastolicMmHg'
+  | 'bodyTempC'
+  | 'cabinCo2MmHg'
+  | 'cabinTempC'
+  | 'cabinHumidityPct'
+  | 'doseRateMsvDay'
 
 export type Status = 'nominal' | 'caution' | 'warning'
 

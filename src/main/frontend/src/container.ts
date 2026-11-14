@@ -10,6 +10,7 @@ import { RoutineReader } from './application/RoutineReader'
 import { SyncService } from './application/SyncService'
 import type { Synchronizer } from './application/Synchronizer'
 import { SystemStatusReader } from './application/SystemStatusReader'
+import { DEVICES } from './domain/devices'
 import type { CheckInRepository, ConnectivityMonitor } from './domain/ports'
 import { BrowserConnectivityMonitor } from './infrastructure/BrowserConnectivityMonitor'
 import { HttpCheckInGateway } from './infrastructure/HttpCheckInGateway'
@@ -20,7 +21,6 @@ import { IndexedDbPacketRepository } from './infrastructure/IndexedDbPacketRepos
 import { JsonRuleSource } from './infrastructure/JsonRuleSource'
 import { DeviceLink } from './infrastructure/DeviceLink'
 import { WebSocketReadingSource } from './infrastructure/WebSocketReadingSource'
-import { mockReadings } from './infrastructure/mockReadings'
 import { mockRoutine } from './infrastructure/mockRoutine'
 import { mockStatuses } from './infrastructure/mockStatuses'
 
@@ -48,9 +48,16 @@ export function createServices(): Services & { startSync: () => () => void; star
   const connectivity = new BrowserConnectivityMonitor()
   const syncService = new SyncService(repository, new HttpCheckInGateway(), connectivity)
   const observations = new IndexedDbObservationRepository()
-  const healthGateway = new PersonalHealthGateway(new WebSocketReadingSource(new DeviceLink()), observations)
+  const link = new DeviceLink()
+  const gateways = DEVICES.map((device) => new PersonalHealthGateway(new WebSocketReadingSource(link, device.topic), observations, undefined, device))
+  const healthGateway = {
+    subscribe(listener: () => void) {
+      const stops = gateways.map((gateway) => gateway.subscribe(listener))
+      return () => stops.forEach((stop) => stop())
+    },
+  }
   const history = new CombinedObservationHistory(repository, observations)
-  const readingsReader = new LatestReadingsReader(new JsonRuleSource(), history, undefined, mockReadings)
+  const readingsReader = new LatestReadingsReader(new JsonRuleSource(), history)
   const packets = new IndexedDbPacketRepository()
   const packetUplink = new PacketUplink(packets, new HttpPacketGateway(), connectivity)
   return {
@@ -67,7 +74,10 @@ export function createServices(): Services & { startSync: () => () => void; star
     lastPacketReader: new LastPacketReader(packets),
     packetSender: new PacketSender(readingsReader, packets, packetUplink),
     packetUplink,
-    startGateway: () => healthGateway.start(),
+    startGateway: () => {
+      const stops = gateways.map((gateway) => gateway.start())
+      return () => stops.forEach((stop) => stop())
+    },
     startSync: () => {
       const stops = [syncService.start(), packetUplink.start()]
       return () => stops.forEach((stop) => stop())

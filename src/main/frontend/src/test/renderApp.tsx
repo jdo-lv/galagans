@@ -14,7 +14,6 @@ import { SystemStatusReader } from '../application/SystemStatusReader'
 import type { CheckIn } from '../domain/checkIn'
 import type { Observation } from '../domain/observation'
 import type { CheckInHistory, ConnectivityMonitor } from '../domain/ports'
-import type { ReadingPlaceholder } from '../domain/readings'
 import type { RoutinePlaceholder } from '../domain/routine'
 import type { Placeholder } from '../domain/rules'
 import { App } from '../ui/App'
@@ -83,7 +82,6 @@ export function setup({
   placeholders = [] as Placeholder[],
   rules = RULES,
   routinePlaceholders = [] as RoutinePlaceholder[],
-  readingPlaceholders = [] as ReadingPlaceholder[],
   random = () => 0,
 } = {}) {
   const clock = { now: new Date(now) }
@@ -95,7 +93,7 @@ export function setup({
   const ruleSource = new FakeRuleSource(rules)
   const synchronizer = new SyncService(repository, gateway, connectivity)
   const device = observationFakes(repository, () => clock.now, observationSeed)
-  const readingsReader = new LatestReadingsReader(ruleSource, device.history, () => clock.now, readingPlaceholders)
+  const readingsReader = new LatestReadingsReader(ruleSource, device.history, () => clock.now)
   const packet = packetFakes(readingsReader, connectivity, () => clock.now)
   const services = {
     repository,
