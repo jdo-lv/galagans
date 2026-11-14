@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { CheckInRecorder } from '../application/CheckInRecorder'
+import { CheckInRecorder, type CheckInRecording } from '../application/CheckInRecorder'
 import { LastPacketReader } from '../application/LastPacketReader'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
 import { PacketDraftReader } from '../application/PacketDraftReader'
@@ -9,6 +9,9 @@ import { PacketUplink } from '../application/PacketUplink'
 import { RoutineReader } from '../application/RoutineReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
+import { HealthBriefing } from '../application/HealthBriefing'
+import type { RoutineReader as RoutineReading } from '../application/RoutineReader'
+import { VoiceSession } from '../application/VoiceSession'
 import type { CheckIn } from '../domain/checkIn'
 import type { ConnectivityMonitor } from '../domain/ports'
 import type { ReadingPlaceholder } from '../domain/readings'
@@ -17,7 +20,17 @@ import type { Placeholder, Rule } from '../domain/rules'
 import ruleRows from '../infrastructure/rules.json'
 import { App } from '../ui/App'
 import { ServicesProvider } from '../ui/ServicesContext'
-import { FakeConnectivity, FakeGateway, FakePacketGateway, FakePacketRepository, FakeRuleSource, FakeRepository } from './fakes'
+import {
+  FakeConnectivity,
+  FakeGateway,
+  FakePacketGateway,
+  FakePacketRepository,
+  FakeRepository,
+  FakeRuleSource,
+  FakeSpeechInput,
+  FakeSpeechOutput,
+  FakeVoiceInterpreter,
+} from './fakes'
 
 export const reading = (id: string, recordedAt: string, spo2Percent?: number): CheckIn => ({
   id,
@@ -52,6 +65,13 @@ export function packetFakes(readingsReader: LatestReadingsReader, connectivity: 
   }
 }
 
+/** The voice session (F25) on fakes: what it hears, says and interprets. */
+export function voiceFakes({ recorder, statusReader, routineReader }: { recorder: CheckInRecording; statusReader: SystemStatusReader; routineReader: RoutineReading }) {
+  const voice = { input: new FakeSpeechInput(), output: new FakeSpeechOutput(), interpreter: new FakeVoiceInterpreter() }
+  const briefing = new HealthBriefing(statusReader, routineReader)
+  return { voice, voiceSession: new VoiceSession(voice.input, voice.output, voice.interpreter, recorder, briefing) }
+}
+
 /** The whole app on fakes, with a clock the test moves. */
 export function setup({
   now = '2026-11-14T09:30:00Z',
@@ -73,18 +93,24 @@ export function setup({
   const synchronizer = new SyncService(repository, gateway, connectivity)
   const readingsReader = new LatestReadingsReader(ruleSource, repository, () => clock.now, readingPlaceholders)
   const packet = packetFakes(readingsReader, connectivity, () => clock.now)
+  const recorder = new CheckInRecorder(repository, synchronizer, undefined, () => clock.now)
+  const statusReader = new SystemStatusReader(ruleSource, repository, () => clock.now, placeholders)
+  const routineReader = new RoutineReader(repository, () => clock.now, routinePlaceholders)
+  const { voice, voiceSession } = voiceFakes({ recorder, statusReader, routineReader })
   const services = {
     repository,
     connectivity,
     synchronizer,
-    recorder: new CheckInRecorder(repository, synchronizer, undefined, () => clock.now),
-    statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now, placeholders),
+    recorder,
+    statusReader,
     readingsReader,
-    routineReader: new RoutineReader(repository, () => clock.now, routinePlaceholders),
+    routineReader,
     random,
     ...packet.services,
+    voiceSession,
   }
   return {
+    voice,
     clock,
     repository,
     gateway,
