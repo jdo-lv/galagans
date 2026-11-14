@@ -241,7 +241,7 @@ function NoteAndSend({ contentsReady, onSent }: { contentsReady: boolean; onSent
         )}
       </div>
       {failed && (
-        <p role="alert" className="packet-alert">
+        <p role="alert">
           Packet not saved. Try again.
         </p>
       )}
@@ -264,7 +264,7 @@ export function SurgeonPacket() {
   useEffect(() => packetUplink.subscribe(last.refresh), [packetUplink, last.refresh])
 
   return (
-    <section className="packet stack" aria-labelledby={headingId}>
+    <section className="stack" aria-labelledby={headingId}>
       <a href="#/" className="packet-home">
         ← Home
       </a>
