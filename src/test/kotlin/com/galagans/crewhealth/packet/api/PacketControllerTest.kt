@@ -123,6 +123,14 @@ class PacketControllerTest(
         assertEquals(listOf(AC1_PACKET), inbox.received)
     }
 
+    @ParameterizedTest
+    @MethodSource("invalidPackets")
+    fun `AC7 rejects an invalid packet`(body: String) {
+        post(body).expectStatus().isBadRequest
+
+        assertEquals(emptyList(), inbox.received)
+    }
+
     companion object {
         @JvmStatic
         fun blankNotes() = listOf(
@@ -136,6 +144,31 @@ class PacketControllerTest(
         fun freeStateAndSource() = listOf(
             named("state unrated", ac1BodyWith { it.items()[0]["state"] = "unrated" }),
             named("source in-app test", ac1BodyWith { it.items()[0]["source"] = "in-app test" }),
+        )
+
+        @JvmStatic
+        fun invalidPackets() = listOf(
+            named("id empty", ac1BodyWith { it["id"] = "" }),
+            named("id spaces", ac1BodyWith { it["id"] = "   " }),
+            named("id missing", ac1BodyWith { it.remove("id") }),
+            named("builtAt missing", ac1BodyWith { it.remove("builtAt") }),
+            named("builtAt not a time", ac1BodyWith { it["builtAt"] = "yesterday" }),
+            named("oneWayDelayMs missing", ac1BodyWith { it.remove("oneWayDelayMs") }),
+            named("oneWayDelayMs negative", ac1BodyWith { it["oneWayDelayMs"] = -1 }),
+            named("note 501 characters", ac1BodyWith { it["note"] = "x".repeat(501) }),
+            named("note 501 spaces", ac1BodyWith { it["note"] = " ".repeat(501) }),
+            named("items missing", ac1BodyWith { it.remove("items") }),
+            named("21 items", ac1BodyWith { body -> body["items"] = List(21) { body.items()[0] } }),
+            named("null item", ac1BodyWith { it["items"] = listOf(null) }),
+            named("item key blank", ac1BodyWith { it.items()[0]["key"] = " " }),
+            named("item key missing", ac1BodyWith { it.items()[0].remove("key") }),
+            named("item label blank", ac1BodyWith { it.items()[0]["label"] = " " }),
+            named("item label missing", ac1BodyWith { it.items()[0].remove("label") }),
+            named("item state blank", ac1BodyWith { it.items()[0]["state"] = " " }),
+            named("item state missing", ac1BodyWith { it.items()[0].remove("state") }),
+            named("item source empty", ac1BodyWith { it.items()[0]["source"] = "" }),
+            named("item source spaces", ac1BodyWith { it.items()[0]["source"] = "  " }),
+            named("not JSON", """{"id":"""),
         )
 
         private val mapper = jacksonObjectMapper()
