@@ -25,14 +25,14 @@ code{font-family:Menlo,monospace;font-size:11.5px;color:#DADADA}
 <div class="in" style="left:48px;top:704px;width:294px;height:128px"><h4>Operator console</h4><div class="t">run scenarios · inject a reading · dock &amp; export<br><span class="m">(the demo "spacecraft" operator)<br>imports the app's domain types and codecs</span></div></div>
 
 <!-- Broker -->
-<div class="b tr" style="left:394px;top:330px;width:206px;height:250px;background:#52574E"><h3>MQTT broker</h3><div class="sub">Mosquitto, local · MQTT over WebSocket</div>
+<div class="b tr" style="left:394px;top:330px;width:206px;height:250px;background:#52574E"><h3>Device link</h3><div class="sub">WebSocket relay in Spring Boot · /ws/devices</div>
 <div style="margin-top:12px;line-height:1.65"><code style="font-size:11px">crew/a1/wrist/ble/0x2A37<br>crew/a1/wrist/dock<br>crew/a1/ble/0x2A5E<br>module/hab/env<br>module/hab/dose<br>sim/control</code></div></div>
 <div class="b" style="left:400px;top:640px;width:190px;height:120px;border:2px dashed #868375;color:#CFCFCF"><h3 style="color:#CFCFCF">Future: real devices</h3><div class="t m" style="margin-top:6px">Web Bluetooth · bracelet broadcast mode · same GATT decoders</div></div>
 
 <!-- App -->
 <div class="b app" style="left:630px;top:90px;width:700px;height:760px"><h3>Crew app (on board)</h3><div class="sub">React + TS PWA · offline · rules run here · ports in <code>domain/</code>, wiring in <code>container.ts</code></div></div>
 <div class="in" style="left:648px;top:152px;width:318px;height:330px;border-color:#DADADA"><h4>Personal Health Gateway</h4><div class="t m">Continua / ITU-T H.810-style</div>
-<div class="t" style="margin-top:8px"><b>Adapters</b> (one per source, same <code>ReadingSource</code> port)<br>• BLE GATT decoder (bracelet, oximeter, …)<br>• Wi-Fi JSON (env node) · dosimeter replay<br>• Dock import (topic or file picker)<br>• Manual entry, PVT, questionnaires<br><span class="m">MQTT now · Web Bluetooth later</span></div>
+<div class="t" style="margin-top:8px"><b>Adapters</b> (one per source, same <code>ReadingSource</code> port)<br>• BLE GATT decoder (bracelet, oximeter, …)<br>• Wi-Fi JSON (env node) · dosimeter replay<br>• Dock import (topic or file picker)<br>• Manual entry, PVT, questionnaires<br><span class="m">WebSocket now · Web Bluetooth later</span></div>
 <div class="t" style="margin-top:10px"><b>Normalizer → HL7 FHIR</b><br>Observation + Patient + Device + gateway Device<br><span class="m">validated timestamp · unit · source label: bracelet / manual / replay / proxy / synthetic</span></div></div>
 <div class="in" style="left:986px;top:152px;width:326px;height:120px"><h4>Local store</h4><div class="t">IndexedDB · FHIR resources · pending / synced<br><span class="m">private by default · works with no link · personal baseline per indicator</span></div></div>
 <div class="in" style="left:986px;top:290px;width:326px;height:192px"><h4>Rules engine</h4><div class="t">rule table (JSON) via <code>RuleSource</code> · time via <code>Clock</code><br>personal baseline + <b>adaptation corridor</b><br>clinical guardrails · related signals<br><span class="m">indicator · condition · status · action · tier · source<br>NASA-STD-3001 · clinical guideline · paper<br>no cloud · no diagnosing LLM</span></div></div>
@@ -55,7 +55,7 @@ code{font-family:Menlo,monospace;font-size:11.5px;color:#DADADA}
 <div class="lg"><span class="sq" style="border-color:#DADADA;border-style:double;border-width:4px"></span>crew app (on board)</div>
 <div class="lg"><span class="sq" style="border-color:#CFCFCF"></span>ground</div>
 <div class="lg"><span class="sq" style="border-color:#868375;border-style:dashed"></span>future</div>
-<div class="t m" style="margin-top:8px">contract: MQTT topics + payloads</div></div>
+<div class="t m" style="margin-top:8px">contract: topics + payloads</div></div>
 
 <svg width="1600" height="1000" style="position:absolute;left:0;top:0;pointer-events:none">
 <defs><marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10z" fill="#CFCFCF"/></marker></defs>

@@ -1,12 +1,16 @@
+import { CombinedObservationHistory } from '../application/CombinedObservationHistory'
 import type { CheckIn } from '../domain/checkIn'
+import type { Observation } from '../domain/observation'
 import type { Packet, StoredPacket } from '../domain/packet'
 import type {
   CheckInGateway,
   CheckInHistory,
   CheckInRepository,
   ConnectivityMonitor,
+  ObservationRepository,
   PacketGateway,
   PacketRepository,
+  ReadingSource,
   RuleSource,
   SpeechInput,
   SpeechOutput,
@@ -179,3 +183,74 @@ export class FakeVoiceScreen implements VoiceScreen {
     this.states.push(state)
   }
 }
+export class FakeObservationRepository implements ObservationRepository {
+  items = new Map<string, Observation>()
+  failPut = false
+
+  async list() {
+    return [...this.items.values()]
+  }
+  async put(observation: Observation) {
+    if (this.failPut) throw new Error('storage failed')
+    this.items.set(observation.id, observation)
+  }
+}
+
+export class FakeReadingSource implements ReadingSource {
+  private listeners = new Set<(message: unknown) => void>()
+
+  subscribe(listener: (message: unknown) => void) {
+    this.listeners.add(listener)
+    return () => this.listeners.delete(listener)
+  }
+  emit(message: unknown) {
+    this.listeners.forEach((l) => l(message))
+  }
+}
+
+/** The history the rules read: the check-in store plus a device Observation store. */
+export const combinedHistory = (checkIns: CheckInHistory, observations = new FakeObservationRepository()) =>
+  new CombinedObservationHistory(checkIns, observations)
+
+/** Stands in for the browser `WebSocket`: records every socket and `send`, and lets a test fire its events. */
+export class FakeWebSocket {
+  static instances: FakeWebSocket[] = []
+  static throwOnCreate = false
+
+  onopen: (() => void) | null = null
+  onclose: (() => void) | null = null
+  onerror: (() => void) | null = null
+  onmessage: ((event: { data: unknown }) => void) | null = null
+  readonly sent: string[] = []
+
+  constructor(readonly url: string) {
+    if (FakeWebSocket.throwOnCreate) throw new SyntaxError('bad url')
+    FakeWebSocket.instances.push(this)
+  }
+
+  static reset() {
+    FakeWebSocket.instances = []
+    FakeWebSocket.throwOnCreate = false
+  }
+  static get last(): FakeWebSocket {
+    return FakeWebSocket.instances[FakeWebSocket.instances.length - 1]
+  }
+
+  send(data: string) {
+    this.sent.push(data)
+  }
+  open() {
+    this.onopen?.()
+  }
+  close() {
+    this.onclose?.()
+  }
+  error() {
+    this.onerror?.()
+  }
+  message(data: unknown) {
+    this.onmessage?.({ data })
+  }
+}
+
+export const fakeWebSocketCtor = FakeWebSocket as unknown as typeof WebSocket

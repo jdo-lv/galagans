@@ -118,6 +118,12 @@
   stroke-dasharray: 6 4;
 }
 
+.chart-baseline {
+  stroke: var(--color-text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 6 4;
+}
+
 .chart-label {
   fill: var(--color-text-muted);
   font-family: var(--font-data);

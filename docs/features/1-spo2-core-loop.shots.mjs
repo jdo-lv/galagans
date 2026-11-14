@@ -1,14 +1,13 @@
 // Retakes the screenshots in 1-spo2-core-loop.md. App must be running on :8080 (mvn spring-boot:run).
 // Run from the repo root: target/node/node docs/features/1-spo2-core-loop.shots.mjs
 import { openPage } from '../../tools/cdp.mjs'
+import { saveCheckIn } from '../../tools/checkin-shots.mjs'
 
 const img = (name) => `docs/features/img/1-${name}.png`
 const page = await openPage(process.env.APP_URL ?? 'http://localhost:8080/')
 
-const save = async (spo2) => {
-  await page.fill('input[name=spo2]', spo2)
-  await page.click('button[type=submit]')
-}
+// Since #29 values are entered through the check-in steps.
+const save = (spo2) => saveCheckIn(page, { spo2 })
 
 await page.shot(img('no-data'))
 for (const [spo2, state] of [[96, 'nominal'], [92, 'caution'], [88, 'warning']]) {

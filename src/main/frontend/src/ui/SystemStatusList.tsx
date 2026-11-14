@@ -41,7 +41,7 @@ function StatusRow({ status, now, lens }: { status: SystemStatus; now: Date; len
               {status.label} <span className="num">{status.value}</span> {status.unit}
             </span>
             {' · '}
-            <span>{`${age} · ${status.source}`}</span>
+            <span>{status.source ? `${age} · ${status.source}` : age}</span>
           </div>
         )}
         {status.detail !== undefined && <div className="status-sub">{`${status.detail} · ${status.source}`}</div>}

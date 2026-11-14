@@ -1,5 +1,6 @@
 import type { CheckIn, CheckInDraft } from '../domain/checkIn'
 import type { CheckInRepository } from '../domain/ports'
+import { newId as generateId } from './newId'
 import type { Synchronizer } from './Synchronizer'
 
 export interface CheckInRecording {
@@ -10,7 +11,7 @@ export class CheckInRecorder implements CheckInRecording {
   constructor(
     private readonly repository: CheckInRepository,
     private readonly synchronizer: Synchronizer,
-    private readonly newId: () => string = () => crypto.randomUUID(),
+    private readonly newId: () => string = generateId,
     private readonly now: () => Date = () => new Date(),
   ) {}
 

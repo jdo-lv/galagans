@@ -1,5 +1,5 @@
-import type { CheckIn } from '../domain/checkIn'
-import { READINGS } from '../domain/readings'
+import type { Observation, ObservationSource } from '../domain/observation'
+import { readingSpec } from '../domain/readings'
 import { CHART_WINDOW_MS, type ChartPoint, type Indicator, type Rule, type Status, type SystemStatus } from '../domain/rules'
 
 const SEVERITY: Record<Status, number> = { nominal: 0, caution: 1, warning: 2 }
@@ -9,6 +9,7 @@ export interface IndicatorReading {
   recordedAt: string
   time: number
   value: number
+  source: ObservationSource
   status: Status
   rule?: Rule
 }
@@ -32,68 +33,84 @@ function compare(a: IndicatorReading, b: IndicatorReading): number {
 
 /** Finite values of `indicator` within [validMin, validMax], classified against `rows`. */
 function validReadings(
-  checkIns: CheckIn[],
+  observations: Observation[],
   indicator: Indicator,
   validMin: number,
   validMax: number,
   rows: Rule[],
 ): IndicatorReading[] {
   const readings: IndicatorReading[] = []
-  for (const checkIn of checkIns) {
-    const value = checkIn[indicator]
-    if (typeof value !== 'number' || !Number.isFinite(value) || value < validMin || value > validMax) continue
-    readings.push({ id: checkIn.id, recordedAt: checkIn.recordedAt, time: Date.parse(checkIn.recordedAt), value, ...classify(rows, value) })
+  for (const observation of observations) {
+    if (observation.code.text !== indicator) continue
+    const { value } = observation.valueQuantity
+    if (!Number.isFinite(value) || value < validMin || value > validMax) continue
+    readings.push({
+      id: observation.id,
+      recordedAt: observation.effectiveDateTime,
+      time: Date.parse(observation.effectiveDateTime),
+      value,
+      source: observation.device.display,
+      ...classify(rows, value),
+    })
   }
   return readings
 }
 
 /** Newest finite value of `indicator` within [validMin, validMax], classified against `rows`. */
 export function latestReading(
-  checkIns: CheckIn[],
+  observations: Observation[],
   indicator: Indicator,
   validMin: number,
   validMax: number,
   rows: Rule[],
 ): IndicatorReading | undefined {
-  return validReadings(checkIns, indicator, validMin, validMax, rows).sort(compare)[0]
+  return validReadings(observations, indicator, validMin, validMax, rows).sort(compare)[0]
 }
 
 /** Valid readings of the last 7 days, oldest first; the newest is 'stale' when the system status is. */
-export function chartPoints(rows: Rule[], checkIns: CheckIn[], now: Date, stale: boolean): ChartPoint[] {
+export function chartPoints(rows: Rule[], observations: Observation[], now: Date, stale: boolean): ChartPoint[] {
   const from = now.getTime() - CHART_WINDOW_MS
   const { indicator, validMin, validMax } = rows[0]
-  const readings = validReadings(checkIns, indicator, validMin, validMax, rows)
+  const readings = validReadings(observations, indicator, validMin, validMax, rows)
     .filter((r) => r.time >= from && r.time <= now.getTime())
     .sort((a, b) => compare(b, a))
   return readings.map((r, i) => ({
     recordedAt: r.recordedAt,
     value: r.value,
+    source: r.source,
     status: stale && i === readings.length - 1 ? 'stale' : r.status,
   }))
 }
 
-/** Data age and source label come from the indicator's reading spec, so a PVT ages in 4 days and an SpO₂ in 24 h. */
-function readingSpec(indicator: Indicator) {
-  for (const spec of READINGS) if (spec.indicator === indicator) return spec
-  // Unreachable: domain/readings.test.ts checks every rule's indicator has a spec.
-  throw new Error(`No READINGS spec for ${indicator}`)
-}
-
-function evaluateSystem(system: string, rows: Rule[], checkIns: CheckIn[], now: Date): SystemStatus {
+/** Data age comes from the indicator's reading spec, so a PVT ages in 4 days and an SpO₂ in 24 h; the source label is the shown Observation's. */
+function evaluateIndicator(system: string, rows: Rule[], observations: Observation[], now: Date): SystemStatus {
   const { indicator, validMin, validMax, label, unit } = rows[0]
-  const spec = readingSpec(indicator)
-  const source = spec.source ?? 'manual'
-  const latest = latestReading(checkIns, indicator, validMin, validMax, rows)
-  if (!latest) return { system, state: 'no-data', source }
+  const latest = latestReading(observations, indicator, validMin, validMax, rows)
+  if (!latest) return { system, state: 'no-data' }
 
-  const shown = { system, label, unit, value: latest.value, recordedAt: latest.recordedAt, source }
-  if (now.getTime() - latest.time > spec.staleAfterMs) return { ...shown, state: 'stale' }
+  const shown = { system, label, unit, value: latest.value, recordedAt: latest.recordedAt, source: latest.source }
+  if (now.getTime() - latest.time > readingSpec(indicator).staleAfterMs) return { ...shown, state: 'stale' }
   return latest.rule ? { ...shown, state: latest.status, rule: latest.rule } : { ...shown, state: latest.status }
 }
 
-/** One status per distinct `system`, in table order. All rows of a system share its first row's indicator. */
-export function evaluate(rules: Rule[], checkIns: CheckIn[], now: Date): SystemStatus[] {
+const RANK: Record<SystemStatus['state'], number> = { 'no-data': 0, stale: 1, nominal: 2, caution: 3, warning: 4 }
+
+/** A system's rows grouped by indicator, in table order. */
+export function byIndicator(rows: Rule[]): Rule[][] {
+  const groups = new Map<string, Rule[]>()
+  for (const rule of rows) groups.set(rule.indicator, [...(groups.get(rule.indicator) ?? []), rule])
+  return [...groups.values()]
+}
+
+/** The worst indicator of the system (Cabin air: CO₂, temperature, humidity); equal states keep table order. */
+function evaluateSystem(system: string, rows: Rule[], observations: Observation[], now: Date): SystemStatus {
+  const statuses = byIndicator(rows).map((group) => evaluateIndicator(system, group, observations, now))
+  return statuses.reduce((worst, status) => (RANK[status.state] > RANK[worst.state] ? status : worst))
+}
+
+/** One status per distinct `system`, in table order. */
+export function evaluate(rules: Rule[], observations: Observation[], now: Date): SystemStatus[] {
   const bySystem = new Map<string, Rule[]>()
   for (const rule of rules) bySystem.set(rule.system, [...(bySystem.get(rule.system) ?? []), rule])
-  return [...bySystem].map(([system, rows]) => evaluateSystem(system, rows, checkIns, now))
+  return [...bySystem].map(([system, rows]) => evaluateSystem(system, rows, observations, now))
 }

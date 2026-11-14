@@ -14,6 +14,9 @@ const DAYS: Record<string, string> = {
 /** Symbols, units and short forms in rule text and system details, as Piper should say them; order matters. */
 const SPOKEN: [RegExp, string | ((match: string) => string)][] = [
   [/\s*·\s*/g, ', '],
+  [/(\d)\s*–\s*(\d)/g, '$1 to $2'],
+  [/\s*°C\b/g, ' degrees Celsius'],
+  [/\bRH\b/g, 'relative humidity'],
   [/\bBP (\d+)\/(\d+)/g, 'blood pressure $1 over $2'],
   [/\bHR\b/g, 'heart rate'],
   [/(\d+)\/(\d+) min\/wk\b/g, '$1 of $2 minutes per week'],

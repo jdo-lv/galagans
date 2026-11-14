@@ -1,0 +1,66 @@
+<!doctype html>
+<!-- Issue mock (#29): the morning check-in at #/check-in, one question per step (mockup 06), in the app's theme CSS.
+     States by hash: #kss (default, step 4), #symptoms (step 6), #error (step 1, out of range), #mood (step 5). -->
+<html data-theme="dark"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../src/main/frontend/node_modules/@fontsource/inter/latin-400.css">
+<link rel="stylesheet" href="../../src/main/frontend/node_modules/@fontsource/inter/latin-500.css">
+<link rel="stylesheet" href="../../src/main/frontend/node_modules/@fontsource/inter/latin-700.css">
+<link rel="stylesheet" href="../../src/main/frontend/node_modules/@fontsource/dm-mono/latin-300.css">
+<link rel="stylesheet" href="../../src/main/frontend/node_modules/@fontsource/dm-mono/latin-400.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/tokens.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/base.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/status.css">
+<style>
+.check-in { width: 100%; }
+.check-in__top { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
+.check-in__top .card-heading { margin: 0; }
+.step-tabs { list-style: none; margin: 0 0 var(--space-6); padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-2); }
+.step-tabs li { padding: 10px 12px; border: 1px solid var(--color-edge); border-radius: var(--radius-item); color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.step-tabs li[aria-current='step'] { border: 2px solid var(--color-text); color: var(--color-text); font-weight: 700; }
+.step-instrument { margin-bottom: var(--space-1); }
+.step-prompt { font-size: var(--text-value); font-weight: 700; line-height: 1.2; }
+.step-hint { margin-top: var(--space-2); }
+.step-body { margin-top: var(--space-6); }
+.step-body .field-tile { width: 240px; }
+.scale { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--count), minmax(52px, 82px)); gap: var(--gap-targets); }
+.scale li { display: grid; gap: var(--space-2); align-content: start; justify-items: center; text-align: center; color: var(--color-text-muted); }
+.scale button { height: 82px; }
+.scale button, .choices button { width: 100%; border: 1px solid var(--color-edge); border-radius: var(--radius-item); background: var(--color-inset); color: var(--color-text); cursor: pointer; }
+.scale button { font-family: var(--font-data); font-size: var(--text-value); }
+.choices { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--gap-targets); }
+.choices button { min-height: var(--target-min); font-weight: 500; }
+.choices li:last-child { grid-column: 1 / -1; }
+.choices li:last-child button { width: auto; padding: 0 var(--space-6); }
+[aria-pressed='true'] { background: var(--color-inverse-bg) !important; color: var(--color-inverse-text) !important; border-color: var(--color-inverse-bg) !important; }
+.field-error { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3); }
+.step-actions { display: flex; align-items: center; gap: var(--gap-targets); margin-top: var(--space-7); }
+.step-actions .spacer { flex: 1; text-align: center; color: var(--color-text-muted); }
+</style></head>
+<body><div class="app" id="app"></div>
+<script>
+const svg = (paths, size = 22) => `<svg class="tabler-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths.map((d) => `<path d="${d}"/>`).join('')}</svg>`
+const I = {
+  sun: svg(['M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0', 'M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7']),
+  hr: svg(['M19.5 13.572l-7.5 7.428l-2.896 -2.868m-6.117 -8.104a5 5 0 0 1 9.013 -3.022a5 5 0 1 1 7.5 6.572', 'M3 13h2l2 3l2 -6l1 3h3']),
+  info: svg(['M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0', 'M12 9h.01', 'M11 12h1v4h1']),
+}
+const brand = `<svg class="brand-mark" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M24.83 12.09 A11 11 0 1 1 10.24 3.66" fill="none" stroke="var(--color-ring)" stroke-width="3.5" stroke-linecap="round"/><path d="M14 3 A11 11 0 0 1 23.53 8.5" fill="none" stroke="var(--color-accent)" stroke-width="3.5" stroke-linecap="round"/></svg>`
+const header = `<header class="app-header">${brand}<h1 class="wordmark">Health</h1><button class="icon-button" aria-label="Switch to light mode">${I.sun}</button></header><p role="status" class="pill pill--quiet"><span>Online</span></p>`
+
+const steps = ['Heart rate', 'SpO₂', 'Sleep', 'Sleepiness', 'Mood', 'Symptoms']
+const tabs = (current, answered) => `<ol class="step-tabs">${steps.map((s, i) => `<li ${i === current ? 'aria-current="step"' : ''}>${i < current && answered[i] ? `✓ ${s}` : `${i + 1} · ${s}`}</li>`).join('')}</ol>`
+const actions = (current) => `<div class="step-actions"><button class="button-secondary">${current === 0 ? 'Cancel' : '← Back'}</button><span class="spacer">Skip is saved as "not answered", never as a value</span><button class="button-secondary">Skip</button><button class="button-primary">${current === 5 ? 'Save check-in' : 'Next →'}</button></div>`
+const left = (current) => (6 - current) * 15
+const screen = (current, answered, { instrument = '', prompt, hint, body }) => `${header}
+<main><section class="card check-in"><div class="check-in__top"><h2 class="card-heading">Morning check-in</h2><p class="pill">about ${left(current)} s left</p></div>${tabs(current, answered)}
+${instrument ? `<p class="step-instrument muted">${instrument}</p>` : ''}<h3 class="step-prompt">${prompt}</h3><p class="step-hint muted">${hint}</p><div class="step-body">${body}</div>${actions(current)}</section></main>`
+const scale = (max, pressed, anchors) => `<ol class="scale" style="--count:${max}">${Array.from({ length: max }, (_, i) => i + 1).map((n) => `<li><button aria-pressed="${n === pressed}">${n}</button>${anchors[n] ? `<span>${anchors[n]}</span>` : ''}</li>`).join('')}</ol>`
+
+const states = {
+  kss: () => screen(3, [true, true, true], { instrument: 'Karolinska Sleepiness Scale (KSS)', prompt: 'How sleepy do you feel right now?', hint: 'Tap one number. Think about the last 5 minutes.', body: scale(9, 7, { 1: 'Extremely alert', 3: 'Alert', 5: 'Neither alert nor sleepy', 7: 'Sleepy, but no difficulty remaining awake', 9: 'Extremely sleepy, fighting sleep' }) }),
+  mood: () => screen(4, [true, true, false, true], { prompt: 'How is your mood today?', hint: 'Tap one number.', body: scale(5, 4, { 1: 'Very low', 5: 'Very good' }) }),
+  symptoms: () => screen(5, [true, true, true, true, true], { prompt: 'Any of these symptoms today?', hint: 'Tap all that apply.', body: `<ul class="choices">${['Headache', 'Congestion', 'Rash', 'Neck or face swelling', 'Back pain', 'None of these'].map((s) => `<li><button aria-pressed="${s === 'Headache'}">${s}</button></li>`).join('')}</ul>` }),
+  error: () => screen(0, [], { prompt: 'What is your heart rate?', hint: 'Type the value from your device, or skip.', body: `<label class="field-tile"><span class="field-tile__top"><input type="number" value="300">${I.hr}</span><span class="tile-label">Heart rate <span class="tile-label__suffix">/ bpm</span></span></label><p class="field-error">${I.info}<span>Enter a whole number from 20 to 250 bpm, or skip.</span></p>` }),
+}
+document.getElementById('app').innerHTML = (states[location.hash.slice(1)] ?? states.kss)()
+</script></body></html>

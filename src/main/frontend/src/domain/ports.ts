@@ -1,4 +1,5 @@
 import type { CheckIn } from './checkIn'
+import type { Observation } from './observation'
 import type { Packet, StoredPacket } from './packet'
 import type { Rule } from './rules'
 import type { VoiceCommand, VoiceState, VoiceTarget } from './voice'
@@ -64,4 +65,18 @@ export interface VoiceScreen {
   /** A check-in was saved by voice. */
   saved(): void
   show(state: VoiceState): void
+}
+
+export interface ObservationHistory {
+  list(): Promise<Observation[]>
+}
+
+export interface ObservationRepository extends ObservationHistory {
+  /** Upserts by `id`, so a redelivered reading replaces itself. */
+  put(observation: Observation): Promise<void>
+}
+
+export interface ReadingSource {
+  /** Calls `listener` with each parsed device message; the message is untrusted. Returns the unsubscribe. */
+  subscribe(listener: (message: unknown) => void): () => void
 }

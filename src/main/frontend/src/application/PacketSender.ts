@@ -1,6 +1,7 @@
 import { ONE_WAY_DELAY_MS, type Packet } from '../domain/packet'
 import type { PacketRepository } from '../domain/ports'
 import type { LatestReadingsReader } from './LatestReadingsReader'
+import { newId as generateId } from './newId'
 import { toPacketItem } from './packetItems'
 import type { Synchronizer } from './Synchronizer'
 
@@ -10,7 +11,7 @@ export class PacketSender {
     private readonly readings: LatestReadingsReader,
     private readonly repository: PacketRepository,
     private readonly uplink: Synchronizer,
-    private readonly newId: () => string = () => crypto.randomUUID(),
+    private readonly newId: () => string = generateId,
     /** Public so the confirm step estimates the arrival on the clock that stamps `builtAt`. */
     readonly now: () => Date = () => new Date(),
   ) {}

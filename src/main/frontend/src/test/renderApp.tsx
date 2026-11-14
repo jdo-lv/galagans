@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CheckInRecorder, type CheckInRecording } from '../application/CheckInRecorder'
 import { LastPacketReader } from '../application/LastPacketReader'
@@ -6,6 +6,8 @@ import { LatestReadingsReader } from '../application/LatestReadingsReader'
 import { PacketDraftReader } from '../application/PacketDraftReader'
 import { PacketSender } from '../application/PacketSender'
 import { PacketUplink } from '../application/PacketUplink'
+import { PersonalHealthGateway } from '../application/PersonalHealthGateway'
+import { CombinedObservationHistory } from '../application/CombinedObservationHistory'
 import { RoutineReader } from '../application/RoutineReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
@@ -13,24 +15,26 @@ import { HealthBriefing } from '../application/HealthBriefing'
 import type { RoutineReader as RoutineReading } from '../application/RoutineReader'
 import { VoiceSession } from '../application/VoiceSession'
 import type { CheckIn } from '../domain/checkIn'
-import type { ConnectivityMonitor } from '../domain/ports'
-import type { ReadingPlaceholder } from '../domain/readings'
+import type { Observation } from '../domain/observation'
+import type { CheckInHistory, ConnectivityMonitor } from '../domain/ports'
 import type { RoutinePlaceholder } from '../domain/routine'
-import type { Placeholder, Rule } from '../domain/rules'
-import ruleRows from '../infrastructure/rules.json'
+import type { Placeholder } from '../domain/rules'
 import { App } from '../ui/App'
 import { ServicesProvider } from '../ui/ServicesContext'
 import {
   FakeConnectivity,
   FakeGateway,
+  FakeObservationRepository,
   FakePacketGateway,
   FakePacketRepository,
+  FakeReadingSource,
   FakeRepository,
   FakeRuleSource,
   FakeSpeechInput,
   FakeSpeechOutput,
   FakeVoiceInterpreter,
 } from './fakes'
+import { RULES } from './rules'
 
 export const reading = (id: string, recordedAt: string, spo2Percent?: number): CheckIn => ({
   id,
@@ -72,15 +76,25 @@ export function voiceFakes({ recorder, statusReader, routineReader }: { recorder
   return { voice, voiceSession: new VoiceSession(voice.input, voice.output, voice.interpreter, recorder, briefing) }
 }
 
+/** The device-reading services (#22) on fakes: the gateway is started, the test emits through `readings`. */
+export function observationFakes(checkIns: CheckInHistory, now: () => Date = () => new Date(), seed: Observation[] = []) {
+  const observations = new FakeObservationRepository()
+  seed.forEach((o) => observations.items.set(o.id, o))
+  const readings = new FakeReadingSource()
+  const healthGateway = new PersonalHealthGateway(readings, observations, now)
+  healthGateway.start()
+  return { observations, readings, healthGateway, history: new CombinedObservationHistory(checkIns, observations) }
+}
+
 /** The whole app on fakes, with a clock the test moves. */
 export function setup({
   now = '2026-11-14T09:30:00Z',
   seed = [] as CheckIn[],
+  observationSeed = [] as Observation[],
   online = true,
   placeholders = [] as Placeholder[],
-  rules = ruleRows as Rule[],
+  rules = RULES,
   routinePlaceholders = [] as RoutinePlaceholder[],
-  readingPlaceholders = [] as ReadingPlaceholder[],
   random = () => 0,
 } = {}) {
   const clock = { now: new Date(now) }
@@ -91,10 +105,11 @@ export function setup({
   const gateway = new FakeGateway()
   const ruleSource = new FakeRuleSource(rules)
   const synchronizer = new SyncService(repository, gateway, connectivity)
-  const readingsReader = new LatestReadingsReader(ruleSource, repository, () => clock.now, readingPlaceholders)
+  const device = observationFakes(repository, () => clock.now, observationSeed)
+  const readingsReader = new LatestReadingsReader(ruleSource, device.history, () => clock.now)
   const packet = packetFakes(readingsReader, connectivity, () => clock.now)
   const recorder = new CheckInRecorder(repository, synchronizer, undefined, () => clock.now)
-  const statusReader = new SystemStatusReader(ruleSource, repository, () => clock.now, placeholders)
+  const statusReader = new SystemStatusReader(ruleSource, device.history, () => clock.now, placeholders)
   const routineReader = new RoutineReader(repository, () => clock.now, routinePlaceholders)
   const { voice, voiceSession } = voiceFakes({ recorder, statusReader, routineReader })
   const services = {
@@ -103,6 +118,7 @@ export function setup({
     synchronizer,
     recorder,
     statusReader,
+    healthGateway: device.healthGateway,
     readingsReader,
     routineReader,
     random,
@@ -113,6 +129,8 @@ export function setup({
     voice,
     clock,
     repository,
+    observations: device.observations,
+    readings: device.readings,
     gateway,
     ruleSource,
     connectivity,
@@ -131,9 +149,18 @@ export function setup({
   }
 }
 
-export async function submitSpo2(value: number) {
-  // user-event keeps its own copy of the typed value, which form.reset() doesn't clear.
-  await userEvent.clear(screen.getByLabelText(/spo[2₂]/i))
-  await userEvent.type(screen.getByLabelText(/spo[2₂]/i), String(value))
-  await userEvent.click(screen.getByRole('button', { name: /save check-in/i }))
+/** Saves one check-in through the steps (#29): types or taps each given value, "Next →" everywhere else, never "Skip". */
+export async function saveCheckIn(fields: { heartRate?: number; spo2?: number; sleep?: number; kss?: number; mood?: number } = {}) {
+  await userEvent.click(await screen.findByRole('link', { name: 'Add entry' }))
+  const checkIn = await screen.findByRole('region', { name: 'Morning check-in' })
+  for (const key of ['heartRate', 'spo2', 'sleep', 'kss', 'mood'] as const) {
+    const value = fields[key]
+    if (value !== undefined && (key === 'kss' || key === 'mood')) await userEvent.click(within(checkIn).getByRole('button', { name: String(value) }))
+    else if (value !== undefined) await userEvent.type(within(checkIn).getByRole('spinbutton'), String(value))
+    await userEvent.click(within(checkIn).getByRole('button', { name: 'Next →' }))
+  }
+  await userEvent.click(within(checkIn).getByRole('button', { name: 'Save check-in' }))
+  await screen.findByRole('region', { name: 'Body systems' })
 }
+
+export const submitSpo2 = (value: number) => saveCheckIn({ spo2: value })

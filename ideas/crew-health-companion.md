@@ -40,7 +40,7 @@ Static images to illustrate the idea. All screens were remade or added on 2026-1
 | [Landing readiness](mockups/10-landing-readiness.png) | ISS environment mode, flight day 179. Countdown to entry with 9 sourced steps (repatriation briefing, 5-day pre-landing checks, fluid and salt advice, exercise, fluid loading due now, compression and cooling garments, after-landing care, post-flight mode); fluid loading card with prescribed volume and quick log; 5-day BP/HR/symptom table; "not suggested: midodrine". Nice-to-have (added 2026-11-13) |
 | [Device Simulator](mockups/04-simulator.png) | Virtual devices with GATT IDs and data source, including the wrist bracelet (live HR broadcast, "Dock & export", "Resting HR +9"), scenarios including resting HR drift, value injection, MQTT traffic (updated 2026-11-13) |
 | [Questionnaire](mockups/06-questionnaire.png) | Morning check-in step (KSS): one question per screen, instrument's own anchors, progress and time left, "why you're seeing this" (scheduled vs rule-triggered), skip logged as not answered, privacy note, upcoming questionnaires with their triggers |
-| [Architecture](mockups/05-architecture.png) | Device Simulator (browser page, bracelet live HR and dock batch) → MQTT broker → Personal Health Gateway (adapters incl. dock import, FHIR normalizer) → local store → rules engine (baseline + corridor, `RuleSource`, `Clock`) → crew UI (body map + hazard lens + schematic, detail + check-and-act, routine, escalation + agenda) → store-and-forward → Kotlin/Spring Boot ground station; future real devices dashed (updated 2026-11-13) |
+| [Architecture](mockups/05-architecture.png) | Device Simulator (browser page, bracelet live HR and dock batch) → device link (WebSocket relay in Spring Boot) → Personal Health Gateway (adapters incl. dock import, FHIR normalizer) → local store → rules engine (baseline + corridor, `RuleSource`, `Clock`) → crew UI (body map + hazard lens + schematic, detail + check-and-act, routine, escalation + agenda) → store-and-forward → Kotlin/Spring Boot ground station; future real devices dashed (updated 2026-11-13) |
 
 ## Idea template (from the viability checklist)
 
@@ -67,7 +67,7 @@ Gates G1–G5: pass (G2 and G3 with the modifications below) — see "Gates".
    - its scheduled checks
 4. **Mission routine.** The app prompts the checks NASA already schedules: daily check-in, PVT every 4th day, weekly vision self-test, and pre-landing fluid loading. A "post-flight" mode extends tracking into recovery, because bone and cognition don't return to baseline quickly ([long-duration-literature.md](../research/long-duration-literature.md)).
 5. **Escalation and delay.** Each action names the tier. The flight-surgeon packet is store-and-forward and shows the current one-way delay for the chosen environment mode: Moon ~1.3 s light-time, 6–10 s in practice; Mars 3–22 min.
-6. **NASA display rules.** Nominal is quiet. Statuses follow the 0–5 [alert levels](alert-levels.md): blue = astronaut input due, yellow/orange = caution band, red = emergency only, always with an icon and a word. Each value shows its unit, data age and trend ([ux-human-factors.md](../research/ux-human-factors.md)).
+6. **NASA display rules.** Nominal is quiet. Statuses follow the 0–5 [alert levels](alert-levels.md): mirroring NASA alert classes: blue = astronaut input due, a grey arrow = drifting, yellow = caution, red = treatment or emergency only, always with an icon and a word. Each value shows its unit, data age and trend ([ux-human-factors.md](../research/ux-human-factors.md)).
 7. **Privacy and gamification.**
    - Data is private by default.
    - There are role views for self, CMO and surgeon.
@@ -247,7 +247,7 @@ Instruments, timing and scoring come from [health-indicators.md](../research/hea
 
 - **One question per screen,** large touch targets (NASA guidance: ≥ 9.5 mm targets with 3.2 mm gaps) and large text, because fine motor accuracy drops early in flight and many crew see less sharply ([ux-human-factors.md](../research/ux-human-factors.md)).
 - **Progress and time left** are always visible; a session never surprises the crew with its length.
-- **The wording and anchors** are the instrument's own (e.g. KSS 1 "extremely alert" … 9 "very sleepy, fighting sleep"). They're never paraphrased, so scores stay comparable.
+- **The wording and anchors** are the instrument's own (e.g. KSS 1 "extremely alert" … 9 "extremely sleepy, fighting sleep", from [S56] in health-indicators.md). They're never paraphrased, so scores stay comparable.
 - **"Why you're seeing this"** shows the trigger: scheduled or added by a rule.
 - **Skip is always allowed** and recorded as "not answered", never as a value. Missed sessions don't nag: at most one reminder, then the data age shows on the body map.
 - **The privacy note is per questionnaire:** mood, PHQ and GAD answers are visible to the astronaut and the flight surgeon only, never to crewmates.
@@ -272,7 +272,7 @@ See the [home screen mockup](mockups/01-body-map.png).
 - **One reminder when a window opens:** a banner with "Start" and "Snooze", and nothing more. NASA notes that too many alerts become a nuisance and crews stop responding ([ux-human-factors.md](../research/ux-human-factors.md)).
 - **Bundling:** everything due in the same window starts with one "Start" as one session.
 - **Rule-triggered items join the next session** instead of interrupting, unless the rule is urgent. Even then the banner names the reason.
-- **"Due" is alert level 1, never 2–5.** A due item gets the level 1 blue outline, icon and the word "to do" ([alert-levels.md](alert-levels.md)). Yellow, orange and red stay for health status. The dashed grey "rule" tag marks why an item was added, not urgency.
+- **"Due" is alert level 1, never 2–5.** A due item gets the level 1 blue outline, icon and the word "to do" ([alert-levels.md](alert-levels.md)). Yellow and red stay for health status. The dashed grey "rule" tag marks why an item was added, not urgency.
 
 **Who sees what is pending**
 - The astronaut sees their own list.
@@ -312,7 +312,7 @@ All three inputs go through the Personal Health Gateway like any other reading, 
 
 1. **One-tap quick log (main input).** Preset buttons for the drink containers the crew uses, plus a custom volume. About 2 seconds per drink, within the crew-time budget. Manual logging has precedent in EveryWear's food diary.
 2. **Barcode scan (optional).** EveryWear already logs station food by barcode ([other-agencies.md](../research/other-agencies.md)). Scanning a drink pouch logs its volume and feeds nutrition too; sodium matters because in-flight intake is high (3.8–4.7 g/day). *Open check: whether drink pouches are in that barcode database.*
-3. **Simulated smart dispenser (future capability).** A virtual device in the Device Simulator publishes the volume dispensed per crew member over MQTT. No evidence that such a device flies, so it's labeled "future capability" in the UI and the pitch.
+3. **Simulated smart dispenser (future capability).** A virtual device in the Device Simulator publishes the volume dispensed per crew member over the device link. No evidence that such a device flies, so it's labeled "future capability" in the UI and the pitch.
 
 ### Cross-checks
 
@@ -392,10 +392,10 @@ A separate app pretends to be every sensor. It runs on its own laptop or browser
 ```
 ┌──────────── Device Simulator ────────────┐          ┌──────── Crew Health Companion ────────┐
 │ Virtual devices: bracelet, oximeter,     │          │                                       │
-│ BP cuff, thermometer, glucometer,        │   MQTT   │  PHG adapters ──▶ FHIR ──▶ rules ──▶  │
+│ BP cuff, thermometer, glucometer,        │  device  │  PHG adapters ──▶ FHIR ──▶ rules ──▶  │
 │ environment node, dosimeter              │ ───────▶ │  body map / alerts / surgeon packet   │
-│ Scenarios + live controls                │ (local   │                                       │
-└──────────────────────────────────────────┘  broker) └───────────────────────────────────────┘
+│ Scenarios + live controls                │  link    │                                       │
+└──────────────────────────────────────────┘(WebSocket)└───────────────────────────────────────┘
 ```
 
 - **What it simulates:** one virtual device per row in the BLE table (the wrist bracelet plays the heart-rate row), plus the environment node, the dosimeter and a smart water dispenser (labeled future capability; see "Fluid intake and hydration"). Each can be switched on or off, set to drop out, or given a low battery, so that stale-data handling is visible.
@@ -411,31 +411,32 @@ A separate app pretends to be every sensor. It runs on its own laptop or browser
   - *Solar particle event:* dosimeter rises toward the 30-day limit.
   - *Sensor dropout:* the oximeter goes silent and the data-age warning appears.
 - **Live controls:** sliders and buttons to inject a value or start a scenario during the demo. A teammate "operates the spacecraft" while another presents the crew app.
-- **Transport: one local MQTT broker** (e.g. Mosquitto, which supports MQTT over WebSocket for browsers [P5]). Each virtual device publishes on its own topic, e.g. `crew/a1/wrist/ble/0x2A37` (bracelet live HR), `crew/a1/wrist/dock` (bracelet export batch, JSON) or `module/hab/env`.
-  - *BLE devices:* the payload is the characteristic's **standard GATT bytes** (base64). The crew app's BLE adapter therefore decodes the real format. Swapping in a real device later only replaces the transport (Web Bluetooth instead of MQTT), not the decoder.
+- **Transport: the device link**, a WebSocket relay at `/ws/devices` in the Spring Boot app (issue #25). Both pages connect to the host that served them, so a tablet at `http://<machine IP>:8080` reaches it with no broker or Docker [P8]. That page is not a secure context, so ids fall back from `crypto.randomUUID` to `crypto.getRandomValues` and the tablet has no offline cache there [P7]. Each frame is `{"topic", "payload"}`; the relay passes it unchanged to every other open session and stores nothing. Each virtual device publishes on its own topic, e.g. `crew/a1/wrist/ble/0x2A37` (bracelet live HR), `crew/a1/wrist/dock` (bracelet export batch, JSON) or `module/hab/env`.
+  - *Oximeter, until the GATT adapter exists:* JSON on `crew/a1/oximeter`, `{"id": UUID, "t": ISO 8601 time, "spo2_pct": number, "pulse_bpm"?: number, "src": "synthetic"|"replay"|"proxy"}`. The crew app shows the source as `oximeter · <src>`. The topic stays separate from `crew/a1/ble/0x2A5E`, which is kept for the GATT bytes.
+  - *BLE devices:* the payload is the characteristic's **standard GATT bytes** (base64). The crew app's BLE adapter therefore decodes the real format. Swapping in a real device later only replaces the transport (Web Bluetooth instead of the device link), not the decoder.
   - *Wi-Fi node:* JSON, as a real ESP32 node would send.
   - *Simulator controls:* a separate topic, so scenario commands never mix with sensor data.
 - **Honesty:** every simulated reading carries its source (replay / proxy / synthetic) into the FHIR `Device`, and the crew app shows it. The pitch says plainly that the devices are simulated (gate G4).
 
-#### What MQTT does, and what it doesn't simulate
+#### What the device link does, and what it doesn't simulate
 
-MQTT (Mosquitto) **simulates no device**. The Device Simulator simulates the devices; MQTT replaces only the **link** the data travels over between the simulator and the crew app.
+The device link **simulates no device**. The Device Simulator simulates the devices; the link replaces only the **radio or network** the data travels over between the simulator and the crew app.
 
-| Device | In reality | In the demo | What MQTT does |
+| Device | In reality | In the demo | What the device link does |
 |---|---|---|---|
-| BLE sensors (oximeter, BP cuff, …) | Bluetooth radio: pair, then subscribe to the GATT characteristic (*notify*) | One MQTT message per measurement on `crew/a1/ble/0x2A5E` | **Replaces the Bluetooth radio.** The payload (the GATT bytes) is identical to a real device's |
-| Wi-Fi environment node | An ESP32 publishing over MQTT on the local network | The simulator publishes on `module/hab/env` | **Simulates nothing:** it's the same transport a real node would use |
-| Dosimeter | The dosimeter sends its reading | RadLab replay published over MQTT | Transport, as for the Wi-Fi node |
+| BLE sensors (oximeter, BP cuff, …) | Bluetooth radio: pair, then subscribe to the GATT characteristic (*notify*) | One frame per measurement on `crew/a1/ble/0x2A5E` (the oximeter uses JSON on `crew/a1/oximeter` until the GATT adapter exists) | **Replaces the Bluetooth radio.** The payload (the GATT bytes) is identical to a real device's |
+| Wi-Fi environment node | An ESP32 publishing over MQTT on the local network | The simulator publishes on `module/hab/env` | **Replaces the spacecraft LAN.** The JSON payload is what a real node would send; the real node's MQTT is not reproduced |
+| Dosimeter | The dosimeter sends its reading | RadLab replay published over the device link | Transport, as for the Wi-Fi node |
 
-- **Why a broker:** MQTT works through an intermediary. Senders publish to a *topic*, receivers subscribe, and neither knows the other.
+- **Why a relay:** senders publish to a *topic* through an intermediary, receivers filter by topic, and neither knows the other.
   - Several crew tablets can receive the same environment reading.
   - The simulator and the crew app are built separately. The topics and payload formats are the only contract between them.
 - **Why not real Bluetooth in the demo:**
   - A browser can't act as a Bluetooth device, so faking the radio would need a native app or hardware.
   - Web Bluetooth doesn't work in Safari on iPad.
-  - MQTT over WebSocket works in every browser.
+  - WebSocket works in every browser.
 - **What this means for the gateway:** the BLE adapter has two parts.
-  - The *transport*: MQTT today, Web Bluetooth with a real device.
+  - The *transport*: the device link today, Web Bluetooth with a real device.
   - The *GATT decoder*: the same in both cases. Only the transport changes, which is the decoupling the PHG is for.
 
 ### Personal Health Gateway: one interface for all sources
@@ -443,7 +444,7 @@ MQTT (Mosquitto) **simulates no device**. The Device Simulator simulates the dev
 The app embeds a **Personal Health Gateway (PHG)**. That is the established name, from the Continua Design Guidelines (adopted as ITU-T H.810), for a hub that collects data from personal health devices, translates each device's protocol into a standard data model and passes it on [P1][P2]. Here the gateway runs inside the PWA, on the crew tablet or laptop, so no extra hardware is needed. It **decouples** the application from the hardware: adding or replacing a sensor means writing a new adapter, not changing the app.
 
 ```
- Simulated BLE devices ──┐  (MQTT)
+ Simulated BLE devices ──┐  (device link)
  Bracelet dock file ─────┤
  Simulated Wi-Fi node ───┤                                  ┌──▶ Rules engine ──▶ Body map / alerts
  Simulated dosimeter ────┼──▶ Adapters ──▶ PHG ──▶ FHIR ────┤
@@ -453,9 +454,9 @@ The app embeds a **Personal Health Gateway (PHG)**. That is the established name
 ```
 
 - **Adapters (device side):** one per source type.
-  - *BLE device:* decodes the standard GATT characteristic bytes (table above). The transport is MQTT from the simulator; Web Bluetooth would be the transport for a real device.
-  - *Wi-Fi node:* MQTT JSON.
-  - *Dosimeter:* MQTT, fed by RadLab replay.
+  - *BLE device:* decodes the standard GATT characteristic bytes (table above). The transport is the device link from the simulator; Web Bluetooth would be the transport for a real device.
+  - *Wi-Fi node:* JSON over the device link.
+  - *Dosimeter:* the device link, fed by RadLab replay.
   - *Dock import:* reads a bracelet export batch in the app's JSON import shape, from the simulator's `crew/a1/wrist/dock` topic or a file picker. Both feed the same adapter.
   - *Manual entry.*
 
@@ -500,8 +501,8 @@ Updated 2026-11-13 to match the app skeleton in `src/` (see `CLAUDE.md` for buil
 |---|---|---|
 | Crew app (`src/main/frontend`) | React 19 + TypeScript PWA (Vite, `vite-plugin-pwa` service worker), IndexedDB | **The tablet on board.** Check-in, PVT, questionnaires, gateway, **rules engine**, body map, explanations. Works with no connection. |
 | Ground station (`src/main/kotlin`) | Kotlin + Spring Boot 3.4 WebFlux, Java 21 | **Earth.** Receives synced check-ins (`POST /api/checkins/sync`, done) and surgeon packets (`POST /api/packets`, done), and will give the flight surgeon a read-only view (not built). Never needed for the crew loop. |
-| Device Simulator | TypeScript, a second page in the same Vite project (`simulator.html`) | **The spacecraft's devices.** Runs scenario timelines in the browser and publishes readings to MQTT. |
-| Broker | Mosquitto, local (e.g. Docker) with its WebSocket listener | **The radio link** between simulator and crew app. |
+| Device Simulator | TypeScript, a second page in the same Vite project (`simulator.html`) | **The spacecraft's devices.** Runs scenario timelines in the browser and publishes readings to the device link. |
+| Device link | WebSocket relay at `/ws/devices` in the Spring Boot app; stores nothing, runs no rules | **The radio link** between simulator and crew app. |
 | Voice host (`voice-host/`) | Podman/Docker compose: whisper.cpp, llama.cpp with Qwen3.5-4B, Piper | **The ship-local server for F25.** Speech-to-text, voice commands and read-aloud, offline; reached through the Vite dev server (#37). |
 
 **Why rules run on the tablet, not on the server.** Offline-first is a design constraint: the crew loop (reading → status → explanation → action) must work during loss of signal and with a 3–22 min delay to Mars. The ground station only receives what the tablet sends, through store-and-forward. Putting rules on the server would make the crew depend on Earth, which is the problem the challenge describes.
@@ -511,7 +512,7 @@ Why this stack:
 1. **Judges can open it.** One URL serves the PWA on any laptop, tablet or phone with no install. Past winners were judged on a live demo (Demo strength score).
 2. **It works offline.** The service worker caches the app and IndexedDB stores readings as "pending" until `SyncService` sends them. That's already built and tested (Crew autonomy score).
 3. **It runs on what crews actually use.** ISS and Orion apps run on tablets and laptops (EveryWear and Dose Tracker on iPad), and a PWA runs on both.
-4. **Simulated sensors reach any browser.** The crew app connects to the broker over MQTT WebSocket, which works in every browser, including Safari on iPad. Real BLE devices could later use the Web Bluetooth API.
+4. **Simulated sensors reach any browser.** The crew app connects to the device link over WebSocket, which works in every browser, including Safari on iPad. Real BLE devices could later use the Web Bluetooth API.
 5. **The ground station is a real backend, not a mock.** Store-and-forward lands somewhere the team can show: the packet leaves the tablet, waits out the visible delay, and appears on the ground view.
 6. **Rich visuals are cheap.** SVG body map, systems schematic and charts in React.
 
@@ -521,18 +522,18 @@ Why this stack:
 
 **Device Simulator details:**
 - **Shared code:** a second Vite entry in the same project, so it imports the crew app's domain types and GATT encoders/decoders directly. Encoder and decoder are tested against each other.
-- **No Node process:** the scenario timeline and the live controls run in the browser page and publish over MQTT WebSocket.
-- **Independence:** it lives in its own folder (`src/main/frontend/src/simulator/`), so one teammate builds it in parallel. The only contract with the crew app is the MQTT topics and payload formats.
+- **No Node process:** the scenario timeline and the live controls run in the browser page and publish over the device link.
+- **Independence:** it lives in its own folder (`src/main/frontend/src/simulator/`), so one teammate builds it in parallel. The only contract with the crew app is the topics and payload formats.
 
 ## Engineering principles: SOLID
 
-The implementation follows SOLID, on top of the layering already in `src/` (`CLAUDE.md`, "Code architecture"). Each principle below names where it applies in this app. Guard against over-engineering: an interface is added at a boundary (storage, network, device, clock, rule source) or where a second implementation exists or is planned (e.g. MQTT now, Web Bluetooth later). Pure logic with one implementation stays a plain function or class.
+The implementation follows SOLID, on top of the layering already in `src/` (`CLAUDE.md`, "Code architecture"). Each principle below names where it applies in this app. Guard against over-engineering: an interface is added at a boundary (storage, network, device, clock, rule source) or where a second implementation exists or is planned (e.g. the device link now, Web Bluetooth later). Pure logic with one implementation stays a plain function or class.
 
 | Principle | What it means here | Concrete rule for the team |
 |---|---|---|
 | **S** · Single responsibility | One reason to change per class or module. | `CheckInRecorder` records, `SyncService` syncs (already so). The rules engine evaluates rules and returns statuses; it doesn't format text or touch storage. Explanation text comes from a separate formatter. React components render and call use cases; no business logic in components. On the backend, controllers map HTTP ↔ DTO, use cases decide, repositories store. |
 | **O** · Open/closed | Add features by adding things, not editing working code. | A new rule = a new row in the rule table. A new device = a new adapter. A new questionnaire = a new definition file read by the generic renderer. A new hazard or corridor = a new table row. If adding one of these needs an `if` in existing code, the design is wrong. |
-| **L** · Liskov substitution | Any implementation of a port can replace another without the caller noticing. | Every `ReadingSource` adapter (MQTT, manual, replay, later Web Bluetooth) emits the same FHIR-shaped `Observation` with source and timestamp. Test fakes (`src/test/fakes.ts`) honour the same contract as the real IndexedDB and HTTP adapters; where possible, one contract test suite runs against both. |
+| **L** · Liskov substitution | Any implementation of a port can replace another without the caller noticing. | Every `ReadingSource` adapter (device link, manual, replay, later Web Bluetooth) emits the same FHIR-shaped `Observation` with source and timestamp. Test fakes (`src/test/fakes.ts`) honour the same contract as the real IndexedDB and HTTP adapters; where possible, one contract test suite runs against both. |
 | **I** · Interface segregation | Small ports, each with only what its caller needs. | Keep ports like today's `CheckInRepository`, `CheckInGateway`, `ConnectivityMonitor`. Add `ReadingSource`, `RuleSource`, `Clock` and `PacketSender` as separate ports, never one `HealthService` that does everything. The body map reads statuses through a read-only port; it can't write readings. |
 | **D** · Dependency inversion | Use cases depend on ports defined in `domain`, never on concrete classes. | Frontend: concrete classes are chosen only in `container.ts`. Backend: only in Spring configuration. The rules engine receives its rule table through `RuleSource` (a JSON file today), and time through `Clock`, so flight-day logic and the simulator's accelerated time are testable. |
 
@@ -576,8 +577,8 @@ With all sensors simulated, native BLE no longer matters, so the case for a nati
 2. PVT and questionnaires
 3. Rules engine and the rule table with sources
 4. Body map, hazard lens, charts (adaptation corridor) and the systems schematic
-5. Personal Health Gateway: MQTT adapters, GATT decoders and the FHIR `Observation` mapping; also the **integrator** who keeps the end-to-end flow working (see "Build plan with Claude Code")
-6. Device Simulator: virtual devices, scenarios, live controls and the MQTT broker; then the pitch and the AI-use log
+5. Personal Health Gateway: device link adapters, GATT decoders and the FHIR `Observation` mapping; also the **integrator** who keeps the end-to-end flow working (see "Build plan with Claude Code")
+6. Device Simulator: virtual devices, scenarios, live controls and the device link; then the pitch and the AI-use log
 
 ## Build plan with Claude Code
 
@@ -601,11 +602,11 @@ The team builds with Claude Code. Code writing stops being the bottleneck; decis
 ### How the team works
 
 1. **One repo split by folders.** Each person works in their own folder, which keeps parallel Claude Code sessions from editing the same files.
-   - `src/main/frontend/src/domain/`: shared types, ports, MQTT topics, GATT codecs (the contract)
+   - `src/main/frontend/src/domain/`: shared types, ports, device topics, GATT codecs (the contract)
    - `src/main/frontend/src/{application,infrastructure,ui}/`: the crew app, split by layer and then by feature
    - `src/main/frontend/src/simulator/`: the Device Simulator
    - `src/main/kotlin/…/{checkin,packet}/`: the ground station, one folder per domain
-2. **Contracts first, as code.** Saturday 09:00–10:00, before anyone splits off: write the shared types (reading, FHIR-shaped `Observation`), the ports, the MQTT topic list and payload formats in `domain/`, and the packet DTO shared with the backend. Every session builds against that contract.
+2. **Contracts first, as code.** Saturday 09:00–10:00, before anyone splits off: write the shared types (reading, FHIR-shaped `Observation`), the ports, the device topic list and payload formats in `domain/`, and the packet DTO shared with the backend. Every session builds against that contract.
 3. **A `CLAUDE.md` for the build repo** carrying the design constraints from this workspace's `CLAUDE.md`:
    - NASA display rules
    - no diagnosing LLM
@@ -615,7 +616,7 @@ The team builds with Claude Code. Code writing stops being the bottleneck; decis
 
    Draft its text in `ideas/` before Nov 14; that's planning, not code.
 4. **Round-trip tests for the codecs.** The simulator encodes GATT bytes and the gateway decodes them with the same `domain/` code. Encode/decode tests are cheap and catch errors in the 16-bit float format the oximeter and BP characteristics use.
-5. **One integrator.** One person merges often and keeps the end-to-end flow (simulator → broker → gateway → screen) working at all times.
+5. **One integrator.** One person merges often and keeps the end-to-end flow (simulator → device link → gateway → screen) working at all times.
 6. **Rules are human-checked.** Claude Code may draft rules but can invent plausible citations. Every rule must cite a source already in `research/`, and a teammate verifies it before merge. Draft the rule table as a document before Nov 14 (research, not code).
 7. **Review.** At least a skim of everything merged into `domain/` and the rules engine, including the SOLID check (see "Engineering principles: SOLID").
 
@@ -624,7 +625,7 @@ The team builds with Claude Code. Code writing stops being the bottleneck; decis
 | When | Milestone |
 |---|---|
 | Sat 09:00–10:00 | Contracts in `domain/`, `CLAUDE.md` updated, roles confirmed |
-| Sat ~15:00 | One reading flows end to end: simulator → broker → gateway → screen |
+| Sat ~15:00 | One reading flows end to end: simulator → device link → gateway → screen |
 | Sat evening | Must-haves working roughly; rule table integrated |
 | Sun ~14:00 | **Feature freeze.** After this, only fixes, demo rehearsal, video, submission |
 | Sun 23:59 | Submission closes |
@@ -659,8 +660,8 @@ The fallback if the team codes by hand, or Claude Code is unavailable or rate-li
 | Body map (SVG) and system list | 10 | low–medium |
 | Detail screen with trend chart and explanation | 10 | low |
 | Adaptation corridor (3 indicators) and hazard lens (static mapping) | 5 | low: the content is already sourced |
-| Gateway: MQTT client, 1 GATT decoder, JSON adapter, FHIR-shaped mapping | 12 | medium–high |
-| Device Simulator: 3 devices, 2 scenarios, controls, broker | 14 | medium |
+| Gateway: device link client, 1 GATT decoder, JSON adapter, FHIR-shaped mapping | 12 | medium–high |
+| Device Simulator: 3 devices, 2 scenarios, controls, device link | 14 | medium |
 | Surgeon packet with delay timeline | 6 | low |
 | Check-and-act card (4 cases) and conference agenda | 5 | low for the code; the hint content needs sources and a human check |
 | Real data prep (RadLab/EDA replay files) | 4 | low; curl calls already exist |
@@ -690,7 +691,7 @@ The `CLAUDE.md` and generated-code review steps don't apply. With no buffer, the
 ## Open questions
 
 - Does the Nov 13 Resources tab change the data plan?
-- Agree the MQTT topic names and payload formats between the crew app and the simulator first, on Nov 14 morning; they are the only contract between the two apps.
+- Agree the device topic names and payload formats between the crew app and the simulator first, on Nov 14 morning; they are the only contract between the two apps.
 - Which scenarios make the 2-minute demo? Pick two from the simulator list.
 - Find the vehicle EMC/RF requirement to cite for the flight caveat.
 - Do we include post-flight mode in the must-have scope? It's strong evidence-wise, but it adds screens.
@@ -706,5 +707,6 @@ Sensor and platform facts checked 2026-11-06, PHG facts checked 2026-11-07. Rese
 - [P4] Bluetooth SIG Generic Health Sensor Profile and Service v1.0 (IEEE 11073-10206 ACOM over GATT): https://www.bluetooth.com/specifications/specs/generic-health-sensor-profile/ ; https://www.bluetooth.com/specifications/specs/generic-health-sensor-service
 - Web Bluetooth (secure context, user activation): https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API ; browser support: https://github.com/Fyrd/caniuse/blob/main/features-json/web-bluetooth.json
 - GATT service UUIDs: https://nrfconnectdocs.nordicsemi.com/ncs-bm/latest/nrf-bm/doxygen/html/group__UUID__SERVICES.html
-- [P5] Mosquitto broker configuration (WebSocket listener: `protocol websockets`): https://mosquitto.org/man/mosquitto-conf-5.html
 - [P6] Bluetooth SIG assigned numbers, characteristic UUIDs (0x2A18, 0x2A1C, 0x2A35, 0x2A37, 0x2A5E, 0x2A5F), checked 2026-11-07: https://bitbucket.org/bluetooth-SIG/public/src/main/assigned_numbers/uuids/characteristic_uuids.yaml
+- [P7] MDN, `Crypto.randomUUID()` ("available only in secure contexts (HTTPS)") and `Crypto.getRandomValues()` ("the only member of the Crypto interface which can be used from an insecure context"), checked 2026-11-14: https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID ; https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues
+- [P8] Spring Framework reference, WebFlux WebSockets (map a `WebSocketHandler` with `SimpleUrlHandlerMapping(map, -1)`; the WebFlux config provides the `WebSocketHandlerAdapter`), checked 2026-11-14: https://docs.spring.io/spring-framework/reference/web/webflux-websocket.html

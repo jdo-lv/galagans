@@ -1,0 +1,113 @@
+/* Device Simulator (mock ideas/mockups/src/12-simulator-device-sections.html). Operator page: no health levels, so neutral greys only. */
+.sim {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-4) var(--gutter);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.sim-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.sim-top h1 {
+  margin-right: var(--space-3);
+  font-size: var(--text-heading);
+}
+
+.sim-top .pill b {
+  overflow-wrap: anywhere;
+}
+
+/* Two sections per row on a laptop, one on a phone. */
+.sim-devices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr));
+  gap: var(--gap-cards);
+}
+
+.sim-device {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  padding: var(--space-4);
+}
+
+.sim-device p {
+  margin: 0;
+}
+
+.sim-device__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.sim-device__top h2 {
+  margin: 0;
+  font-size: var(--text-body);
+}
+
+.sim-device .tag {
+  white-space: nowrap;
+}
+
+.sim-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.sim-metrics .field-tile {
+  min-height: 0;
+  padding: var(--space-3) var(--space-4);
+}
+
+.sim-send {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-targets);
+}
+
+.sim-every {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sim-every input {
+  width: 72px;
+  min-height: var(--target-min);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-edge);
+  border-radius: var(--radius-item);
+  background: var(--color-inset);
+  color: inherit;
+  font-family: var(--font-data);
+  font-size: var(--text-body);
+}
+
+.sim-every input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.sim-every input:disabled {
+  opacity: 0.6;
+}
+
+.sim-send__now {
+  margin-left: auto;
+}
+
+@media (max-width: 600px) {
+  .sim-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

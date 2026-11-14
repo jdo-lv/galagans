@@ -8,7 +8,7 @@ Requirement tags such as `[S1 V2 10045]` are the source tags of [ux-human-factor
 
 ## The ten rules
 
-1. **Colour means an alert level, and nothing else uses it.** Status follows the 0–5 scale in [alert-levels.md](alert-levels.md): blue = level 1 "to do", yellow = levels 2–3, orange = level 4, red = level 5. Everything else (brand, links, focus, selection, categories, charts) is palette greys and whites. No red logo, heart, category colour, delete button or yellow "due" marker [S1 V2 10118/10119].
+1. **Colour means an alert level, and nothing else uses it.** Status follows the 0–5 scale in [alert-levels.md](alert-levels.md), which mirrors NASA's caution and warning classes: blue = level 1 "to do" (advisory), yellow = level 3 "check" (caution), red = levels 4–5 "treat" and "emergency" (warning, emergency). Level 2 "watch" has no colour, like NASA's silent class 0 arrow. Everything else (brand, links, focus, selection, categories, charts) is palette greys and whites. No red logo, heart, category colour, delete button or yellow "due" marker [S1 V2 10118/10119].
 2. **Every level has an icon, a word and a colour** [S1 V2 10045]. Colour is never the only cue.
 3. **Quiet when nominal.** Nominal is muted text with no fill; only off-nominal items draw the eye [S3].
 4. **Every reading shows its value with the unit, its data age and its source** [S1 V2 10046, V2 10020]. Simulated, replayed and proxy data say so.
@@ -39,12 +39,12 @@ Requirement tags such as `[S1 V2 10045]` are the source tags of [ux-human-factor
 | `#52574E` | Olive | Light muted text; dark surface; featured tile 2 |
 | `#1651B6` | Blue | Level 1 "to do", light theme only |
 | `#0032A0` | Deep blue | Not used (was link hover) |
-| `#C61E37` | Red | Level 5 emergency, light theme only |
-| `#E4002B` | Bright red | Level 5 emergency, dark theme only |
+| `#C61E37` | Red | Levels 4–5 treat and emergency, light theme only |
+| `#E4002B` | Bright red | Levels 4–5 treat and emergency, dark theme only |
 
-Added for the alert levels and dark contrast (not on the canvas): `#FFC72C` caution yellow (levels 2–3), `#FFF0C2` pale yellow (level 2 fill, light theme), `#F28C28` orange (level 4), `#FFFFFF` text on red, `#7FA6F0` blue tint (level 1 in dark; `#1651B6` is 2.37:1 on `#1B1B1B`). Colour-blind separation of the level colours: [alert-levels.md](alert-levels.md#colours).
+Added for the alert levels and dark contrast (not on the canvas): `#FFC72C` caution yellow (level 3), `#FFFFFF` text on red, `#7FA6F0` blue tint (level 1 in dark; `#1651B6` is 2.37:1 on `#1B1B1B`). Colour-blind separation of the level colours: [alert-levels.md](alert-levels.md#colours).
 
-Coding colours (colours that carry a meaning) are red, orange, yellow and blue, well under NASA's limit of 9 [S2 §10.9.2.5.1]. No red/green pairs [S2 §10.6.19]. The greys and earth tones carry no meaning.
+Coding colours (colours that carry a meaning) are red, yellow and blue, as on NASA displays, well under NASA's limit of 9 [S2 §10.9.2.5.1]. No red/green pairs [S2 §10.6.19]. The greys and earth tones carry no meaning.
 
 ### 2.2 Semantic tokens
 
@@ -69,16 +69,14 @@ Components use these names, not the hex values.
 | `--color-feature-1` / `--color-on-feature-1` | `#868375` / `#1B1B1B` | same | Featured tile 1 (exercise) |
 | `--color-feature-2` / `--color-on-feature-2` | `#52574E` / `#DADADA` | same | Featured tile 2 (sleep) |
 | `--color-todo` | `#1651B6` | `#7FA6F0` | Level 1 "to do": outline, icon and border only, never a fill (badge, to-do counter, due routine row) |
-| `--color-watch-bg` / `--color-on-watch` | `#FFF0C2` / `#1B1B1B` | transparent / `#FFC72C` | Level 2 "watch": light = pale fill with ink outline; dark = yellow outline and text |
 | `--color-check` / `--color-on-check` | `#FFC72C` / `#1B1B1B` | same | Level 3 "check" badge, segment and chart marker |
-| `--color-treat` / `--color-on-treat` | `#F28C28` / `#1B1B1B` | same | Level 4 "treat" |
-| `--color-emergency` / `--color-on-emergency` | `#C61E37` / `#FFFFFF` | `#E4002B` / `#FFFFFF` | Level 5 "emergency" |
+| `--color-alert` / `--color-on-alert` | `#C61E37` / `#FFFFFF` | `#E4002B` / `#FFFFFF` | Level 4 "treat" and level 5 "emergency" (NASA warning and emergency share red) |
 
 ### 2.3 Rules
 
-- **Level colours** appear only on a level badge, a ring segment, a chart marker or a level-1 "to do" outline, and always next to the level icon and word. Exception: a chart point marker is icon + colour; its word is in the point's title and the screen's badge (§5 "Charts").
+- **Level colours** (blue, yellow, red) appear only on a level badge, a ring segment, a chart marker or a level-1 "to do" outline, and always next to the level icon and word. Exception: a chart point marker is icon + colour; its word is in the point's title and the screen's badge (§5 "Charts").
 - **Neutral:** links, focus, the brand arc, selected states (inverse pill), chart lines and bands, "offline", "waiting to sync", "rule-added", form errors and destructive actions use greys and whites (§5). A missing questionnaire is data age, not a level.
-- **Filled level badges** carry a 1.5 px outline in `--color-text`: yellow, pale yellow and orange vanish on the light background (1.00–1.58:1) and red on the dark surface (1.53:1).
+- **Filled level badges** carry a 1.5 px outline in `--color-text`: yellow vanishes on the light background (1.00:1) and red on the dark surface (1.53:1).
 - **Featured tiles** (khaki, olive) are category surfaces for at most two summaries per screen. They never show status and never colour anything else.
 - **Khaki is never text on a surface** (2.72:1 light, 1.95:1 dark). On the dark background it is muted text (4.53:1).
 - **Ink on a fill** follows the canvas rule: dark ink `#1B1B1B` when the fill's relative luminance is above 0.164, otherwise `#DADADA`. Red is the exception: `#FFFFFF`.
@@ -101,13 +99,8 @@ Text needs 4.5:1 (3:1 at 24 px, or 19 px bold). The edges of controls and graphi
 | Focus ring on background / surface | 11.06 / 12.32 | 12.32 / 5.30 | Pass |
 | Inverse text on inverse | 12.32 | 12.32 | Pass |
 | Ink on yellow (level 3) | 11.04 | 11.04 | Pass |
-| Yellow fill on background | **1.00** | 11.04 | Light: the fill is invisible, so level 2–3 badges have an ink outline |
-| Yellow (level 2 outline) on surface | — | 4.75 | Pass |
-| Ink on pale yellow (level 2, light) | 15.17 | — | Pass; fill on background 1.37, so the ink outline carries the shape |
-| Ink on orange (level 4) | 7.02 | 7.02 | Pass |
-| Orange on background | **1.58** | 7.02 | Light: ink outline |
-| Orange on surface | **1.76** | 3.02 | Light: ink outline |
-| White on red (level 5) | 5.77 | 4.85 | Pass |
+| Yellow fill on background | **1.00** | 11.04 | Light: the fill is invisible, so level 3 badges have an ink outline |
+| White on red (levels 4–5) | 5.77 | 4.85 | Pass |
 | Red on background | 3.70 | 3.55 | Pass (shapes) |
 | Red on surface | 4.12 | **1.53** | Dark: badge meaning is carried by its white icon and word; never a bare red shape on a dark surface |
 | Ink on featured tile | 4.53 / 5.30 | same | Pass |
@@ -135,23 +128,24 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 - **Gaps:** 16 px between static cards (canvas 14 px, moved onto the 4 px grid); **18 px between touch targets**.
 - **Touch targets:** at least 52 × 52 px. On an iPad-class screen that is 10 mm, and 18 px is 3.4 mm, meeting NASA's 9.5 mm targets with 3.2 mm gaps [S2 §10.4.2.21]. The canvas's 44 px icon buttons keep their look but get a 52 px hit area.
 - **Radii:** 16 px cards and tiles, 12 px items inside a card (nav items), fully round pills and badges.
-- **Grid:** phone, one or two columns (canvas). Tablet and laptop, content at most 1200 px wide; the home screen shows three columns from 1200 px: the body-systems card (300 px), the Hazard lens card, and a 380 px column that holds Today's routine, Latest readings and the Check-in card, in that order (mockup 01). From 861 to 1199 px the Hazard lens card moves under the body-systems card, and at 860 px and below everything stacks, body systems first. Tile grids use tiles at least 150 px wide (two columns on a phone, like the canvas).
+- **Grid:** phone, one or two columns (canvas). Tablet and laptop, content at most 1200 px wide; the home screen shows three columns from 1200 px: the body-systems card (300 px), the Hazard lens card, and a 380 px column that holds Today's routine, Latest readings and the Reaction test card, in that order (mockup 01). From 861 to 1199 px the Hazard lens card moves under the body-systems card, and at 860 px and below everything stacks, body systems first. Tile grids use tiles at least 150 px wide (two columns on a phone, like the canvas).
 - **Critical information is visible without scrolling** [S1 V2 10037]; navigation is at most 2–3 levels deep.
 - **Motion:** 0.25 s colour transitions on theme change (canvas), none with `prefers-reduced-motion`. Nothing blinks or pulses.
 
 ## 5. Components
 
 ### App header
-Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, icon buttons on the right: voice control (microphone, inverse fill while on, disabled on the PVT screen, #37), theme toggle (moon in light, sun in dark) and "Add entry" (+). Context pills sit in one wrapping row under it on every layout and screen: the connection pill, the ground-link pill (#19), then the voice pill while voice is on ("Voice: listening", "Voice: thinking", "Voice: speaking") or after it failed, until the mic is tapped again ("Voice host unreachable", "Voice: audio not available") (#37). Crew and flight-day pills are not built.
+Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, icon buttons on the right, 18 px apart: voice control (microphone, inverse fill while on, disabled on the PVT screen, #37), "Add entry" (+, Home only, opens the check-in; built: issue #29) and the theme toggle (moon in light, sun in dark). Context pills sit in one wrapping row under it on every layout and screen: the connection pill, then the ground-link pill (#19), then the voice pill while voice is on ("Voice: listening", "Voice: thinking", "Voice: speaking") or after it failed, until the mic is tapped again ("Voice host unreachable", "Voice: audio not available") (#37). Crew and flight-day pills are not built.
 
 ### Brand mark and splash
 - **Ring:** a 270° arc in `--color-ring` and a 60° arc in `--color-text`, round caps (canvas geometry). The arc was red on the canvas, then blue; blue now means level 1 only.
-- **Splash:** an 88 px ring, the wordmark at 16 px with 0.32em tracking, on `--color-bg`.
+- **Splash:** an 88 px ring, the wordmark at 16 px with 0.32em tracking, on `--color-bg`, at the canvas positions (ring 23.7 % from the top). "Built for the NASA Space Apps Challenge 2026" in `--color-text-muted` sits where the canvas had the NASA logotype (80 %). Built: plain HTML in `index.html`, styled by `.splash` in `base.css`, so it shows before the app's JavaScript runs. `ui/splash.ts` fades it out once the app has drawn, but not before 1.2 s after launch. It follows the theme, including the one picked in the app.
+- **iOS launch images and icons:** iOS shows a launch image only for an app added to the home screen, and only when an `apple-touch-startup-image` media query matches the screen exactly. `tools/render-splash.mjs` renders the splash above (light theme) for every 2x iPad screen in both orientations into `public/splash/`, renders the ring alone into `apple-touch-icon.png` and `pwa-192/512.png`, and rewrites the tags in `index.html`. iOS copies the launch image when the app is added, so re-add the app after a change.
 - **No NASA insignia, logotype (worm) or seal:** they need NASA's explicit permission [N1]. Factual text such as "Built for the NASA Space Apps Challenge 2026" is fine.
 
 ### Body-system ring (the canvas "health score" ring)
 - **Segments:** one per body system the rules engine reports on (the list on the [body map](mockups/01-body-map.png)), each identified by its icon, not by colour.
-- **Colour by level:** nominal segments are `--color-ring` with an icon in `--color-text` (quiet). Levels 2–5 colour the segment with the level colour and its marker (↗/↘, ▲, kit, octagon "!"). Level 1 is not a body-system status.
+- **Colour by level:** nominal segments are `--color-ring` with an icon in `--color-text` (quiet). Levels 3–5 colour the segment with the level colour; level 2 keeps the grey segment. Every flagged segment shows its marker (↗/↘, ▲, kit, octagon "!"). Level 1 is not a body-system status.
 - **Centre:** the number of systems at levels 2–5 (`--text-hero`) with "systems to check" and the (i) button that opens what / why / how decided / what next. With none, it shows "All nominal" in muted text and the time of the last update. Never a composite health score.
 - **Interaction:** each segment is a button to the system's detail. A list view of the same systems is always one tap away, so the ring isn't the only path [S1 V2 10045].
 
@@ -159,7 +153,7 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Surface:** an inset (`--color-inset`) tile in a card's tile grid, 16 px radius, no edge: it's static, not a control (§2.4).
 - **Row 1:** the value in `--text-value` with its unit in bold body text, and the metric's icon on the right. Mood shows as "3 / 5". A reading too wide for the tile wraps its unit under the value and moves the icon to the next line, still on the right.
 - **Row 2:** the field-tile label pattern: the label in uppercase, then "/" and the data age in muted text, in its own case: "SPO₂ / 4 min ago". The canvas used a unit or a date here; the unit moves next to the value.
-- **Row 3:** a source tag on every value shown ("manual", "synthetic", "in-app test"). Simulated, replayed and proxy readings say so.
+- **Row 3:** a source tag on every value shown ("manual", "synthetic", "in-app test", "oximeter · synthetic", "oximeter · replay", "oximeter · proxy"). Simulated, replayed and proxy readings say so.
 - **Missing:** "—" with the accessible text "No reading", and no unit, age or tag. **Stale** (older than the metric's expected interval): the value and unit in `--color-text-muted-on-inset` and the age spelled out ("8 d old"), with the icon and no status colour.
 - **Placeholder tile:** a reading the app can't take yet shows synthetic text and unit with the tag "synthetic", no data age and no badge (issue #7).
 - **Status:** an off-nominal tile shows a status badge in place of the icon. The tile surface itself never changes colour.
@@ -167,13 +161,13 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 ### Today's routine (built: issue #10)
 - **Card:** a `card` with the uppercase `card-heading` "Today's routine"; one row per item, separated by `--color-divider`. The right-hand text, words included, is one `.num` span.
 - **Upcoming and missed:** muted row with the window ("07:00–09:00") or "not answered", and no button.
-- **Due:** a 1 px `--color-todo` outline in `--radius-item`, no fill, and a secondary "Start · ~<estimate>" button (the screen's one primary button stays "Save check-in"). Never red or yellow.
+- **Due:** a 1 px `--color-todo` outline in `--radius-item`, no fill, and a secondary "Start · ~<estimate>" button that opens the check-in at `#/check-in`, where "Save check-in" is the primary (issue #29). Never red or yellow.
 - **Done:** "done HH:MM" with no glyph; ✓ stays Nominal.
 - **Placeholder row:** the label with a "synthetic" tag under it and the muted detail on the right; no state, button or glyph, the same at every time of day.
 - **PVT row** (issue #16): "done HH:MM" when a PVT was done today, otherwise muted "every 4th day"; no tag, no button (the Reaction test card starts it).
 
 ### Test screen (PVT, built: issue #16)
-- **Home card:** "Reaction test" between Latest readings and Check-in, with a secondary "Start reaction test" button (Check-in keeps the one primary).
+- **Home card:** "Reaction test" under Latest readings, with a secondary "Start reaction test" button; Home has no primary button since the check-in moved to its own screen (#29).
 - **Start screen:** what to do, "use the same device each time" (device latency affects RT, health-indicators §13), a primary "Start test" and an underlined "← Home".
 - **Running:** the time left ("2:41 left", `.num`) beside the heading; the target is an inset `button` at least 300 px high (`aria-label="Respond"`) with the counter in `.value` at `--text-hero`; "Too early" for a false start; a secondary "Stop". Space and a tap both respond.
 - **Result:** a two-column list (muted terms, numbers right) of median, lapses, false starts and responses, then the save line and one primary button.
@@ -233,7 +227,7 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Structure:** a tile is the field. Its `<label>` wraps the uppercase label, the "/ unit" suffix and the input. The input is transparent DM Mono at value size, so the tile reads like a metric tile being filled in.
 - **Edge and focus:** a 1 px `--color-edge` border (3.20:1 light, 4.53:1 dark), and focus shows a 2 px `--color-focus` ring around the whole tile. Inside a card the tile is inset (`--color-inset`) and the edge switches to `--color-edge-on-surface` (3.57:1 light, 4.76:1 dark).
 - **Errors:** an icon plus a sentence under the field in `--color-text`. Never red or yellow.
-- **Questionnaires:** one question per screen, the instrument's own anchors, progress and time left, and "Skip" always allowed (see [crew-health-companion.md](crew-health-companion.md), "Rendering rules").
+- **Questionnaires (built: issue #29):** one question per screen, the instrument's own anchors, progress and time left, and "Skip" always allowed (see [crew-health-companion.md](crew-health-companion.md), "Rendering rules"). Step tabs show progress, not navigation (current step: 2 px `--color-text` outline, bold). Number questions use the field tile; an invalid value shows an info icon and "Enter … , or skip." in `--color-text` under it. Scales and checklists are 52 px+ buttons 18 px apart; the selection is the inverse fill, never a status colour.
 
 ### Level badge
 
@@ -243,10 +237,10 @@ The 0–5 scale, its meaning and routing: [alert-levels.md](alert-levels.md).
 |---|---|---|
 | 0 Nominal | No fill, muted text, ✓ icon, weight 500 | ✓ Nominal |
 | 1 To do | No fill, `--color-text` word, 1.5 px `--color-todo` outline, edit icon in `--color-todo`, weight 700 | ✎ To do |
-| 2 Watch | `--color-watch-bg` fill, `--color-on-watch` text, 1.5 px outline (light: ink; dark: yellow), trend-arrow icon, weight 700 | ↗ Watch |
+| 2 Watch | No fill, `--color-text` word and icon, 1.5 px `--color-text` outline, trend-arrow icon, weight 700. No level colour (NASA class 0) | ↗ Watch |
 | 3 Check | `--color-check` fill, ink text, 1.5 px `--color-text` outline, ▲ icon, weight 700 | ▲ Check |
-| 4 Treat | `--color-treat` fill, ink text, 1.5 px `--color-text` outline, first-aid-kit icon, weight 700 | ✚ Treat |
-| 5 Emergency | `--color-emergency` fill, white text, 1.5 px `--color-text` outline, octagon "!" icon, weight 700 | (octagon) Emergency |
+| 4 Treat | `--color-alert` fill, `--color-on-alert` text, 1.5 px `--color-text` outline, first-aid-kit icon, weight 700 | ✚ Treat |
+| 5 Emergency | `--color-alert` fill, `--color-on-alert` text, 1.5 px `--color-text` outline, octagon "!" icon, weight 700 | (octagon) Emergency |
 
 "No data" and "No recent data" use `badge--quiet`: muted, no icon, no fill. Missing or stale data is not a health status.
 
@@ -283,8 +277,8 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 
 ### Charts (for the detail screens)
 - **Plot area:** a `--color-inset` well inside the card, so the lines and the band keep contrast.
-- **Lines and bands:** data line in `--color-text`; the adaptation corridor is the only filled band (`--color-text` at about 20 % with a faint edge); the pre-flight baseline is a thin dashed `--color-text-muted` line at the baseline median, labelled "your pre-flight normal" ([mockup 02](mockups/02-detail.png)). No category colours: categories are told apart by name and icon ([health-categories.md](health-categories.md#how-categories-are-shown)).
-- **Points:** a point at level 2–5 takes its badge's fill and outline (a dark-theme Watch point is a yellow ring), with the level icon (18 px, `--color-text`) above it as the marker; stale or missing points are hollow, and the newest point of a stale level is hollow with no marker. The line itself never takes a level colour. The marker shows icon + colour without the word (§2.3 exception); each point's title gives value, level, UTC time and source.
+- **Lines and bands:** data line in `--color-text`; the adaptation corridor is the only filled band (`--color-text` at about 20 % with a faint edge); the pre-flight baseline is a thin dashed `--color-text-muted` line (`.chart-baseline`) at the baseline median, labelled "your pre-flight normal" with its value and source, bottom right ("your pre-flight normal · 265 ms · synthetic") ([mockup 02](mockups/02-detail.png)). No category colours: categories are told apart by name and icon ([health-categories.md](health-categories.md#how-categories-are-shown)).
+- **Points:** a point at level 2–5 takes its badge's fill and outline (a Watch point is a ring in `--color-text`), with the level icon (18 px, `--color-text`) above it as the marker; stale or missing points are hollow, and the newest point of a stale level is hollow with no marker. The line itself never takes a level colour. The marker shows icon + colour without the word (§2.3 exception); each point's title gives value, level, UTC time and source.
 - **Thresholds:** one dashed `--color-text-muted` line per rule row, labelled with the rule and its level ("SPO-01 · < 94 % check"). Never a level colour.
 - **Range:** a fixed Y range per indicator (SpO₂ 80–100 %, grid every 5) so the threshold lines always show; values outside it sit on the edge.
 - **Axes:** units on the axes, faint optional grid lines, no dual axes [S1 V2 10046][S2 §10.6.18].
@@ -306,7 +300,7 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 ## 8. Checklist for every UI pull request
 
 - [ ] Colours come from tokens only (no hex in `ui/*.tsx`).
-- [ ] Blue, yellow, orange and red appear only on alert levels, with icon + word.
+- [ ] Blue, yellow and red appear only on alert levels, with icon + word.
 - [ ] Every new colour pair is in §2.4 and passes.
 - [ ] Text ≥ 16 px; values ≥ 28 px; targets ≥ 52 px and ≥ 18 px apart.
 - [ ] Values show unit, data age and source; missing shows "—"; stale looks stale.
@@ -319,7 +313,7 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 | Canvas | Guideline | Why |
 |---|---|---|
 | Red arc in the logo and loading ring | `--color-text` arc (blue until 2026-11-14) | Red is reserved for level 5 [S1 V2 10118/10119]; blue for level 1 |
-| Ring segments coloured red, blue, khaki and olive by category | Ring grey when nominal; level colour only at levels 2–5; icon names the system | One meaning per colour; quiet when nominal [S2 §10.11.5.5][S3] |
+| Ring segments coloured red, blue, khaki and olive by category | Ring grey when nominal and at level 2; level colour only at levels 3–5; icon names the system | One meaning per colour; quiet when nominal [S2 §10.11.5.5][S3] |
 | "8.8 your health score" | Count of systems to check, or "All nominal" | No scores on health values; thresholds must be sourced; scoring feeds under-reporting ([crew-health-companion.md](crew-health-companion.md), "Reporting is a win") |
 | "Stress 82" tile | "Mood" tile, self-reported 1–5 | No inferred emotion ([ux-human-factors.md](../research/ux-human-factors.md) checklist item 14) |
 | "Genetics" segment | Removed | No in-flight genetic monitoring; segments follow the rules engine |

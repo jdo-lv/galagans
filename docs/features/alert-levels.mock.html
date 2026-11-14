@@ -3,8 +3,8 @@
 <style>
 *{box-sizing:border-box;margin:0}body{font-family:Inter,sans-serif;font-size:16px;display:grid;grid-template-columns:1fr 1fr;width:1200px}
 .t{padding:24px;display:flex;flex-direction:column;gap:16px}
-.light{--bg:#CFCFCF;--surf:#DADADA;--text:#1B1B1B;--muted:#52574E;--inset:#CFCFCF;--wbg:#FFF0C2;--onw:#1B1B1B;--em:#C61E37}
-.dark{--bg:#1B1B1B;--surf:#52574E;--text:#DADADA;--muted:#CFCFCF;--inset:#1B1B1B;--wbg:transparent;--onw:#FFC72C;--em:#E4002B}
+.light{--bg:#CFCFCF;--surf:#DADADA;--text:#1B1B1B;--muted:#52574E;--inset:#CFCFCF;--em:#C61E37}
+.dark{--bg:#1B1B1B;--surf:#52574E;--text:#DADADA;--muted:#CFCFCF;--inset:#1B1B1B;--em:#E4002B}
 .t{background:var(--bg);color:var(--text)}
 .card{background:var(--surf);border-radius:16px;padding:16px 20px}
 h2{font-size:16px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
@@ -13,9 +13,9 @@ h2{font-size:16px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
 .b{display:inline-flex;align-items:center;gap:4px;padding:2px 12px;border-radius:999px;font-weight:700;white-space:nowrap}
 .b svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 .nom{padding-inline:0;font-weight:500;color:var(--muted)}
-.watch{background:var(--wbg);color:var(--onw);box-shadow:inset 0 0 0 1.5px var(--onw)}
+.watch{color:var(--text);box-shadow:inset 0 0 0 1.5px var(--text)}
 .check{background:#FFC72C;color:#1B1B1B;box-shadow:inset 0 0 0 1.5px var(--text)}
-.treat{background:#F28C28;color:#1B1B1B;box-shadow:inset 0 0 0 1.5px var(--text)}
+.treat{background:var(--em);color:#fff;box-shadow:inset 0 0 0 1.5px var(--text)}
 .emer{background:var(--em);color:#fff;box-shadow:inset 0 0 0 1.5px var(--text)}
 svg.chart{background:var(--inset);border-radius:8px}
 .cap{font-size:13px;color:var(--muted)}
@@ -37,9 +37,9 @@ for(const th of ['light','dark']){document.write(`<div class="t ${th}"><div clas
 <line x1="20" x2="500" y1="100" y2="100" stroke="var(--muted)" stroke-dasharray="5 4"/><text x="26" y="94" font-size="12" fill="var(--muted)">SPO-02 · &lt; 90 % emergency</text>
 <polyline points="60,25 160,40 260,62 360,82 460,112" fill="none" stroke="var(--text)" stroke-width="2"/>
 <circle cx="60" cy="25" r="4" fill="var(--text)"/>
-<circle cx="160" cy="40" r="6" fill="var(--wbg)" stroke="var(--onw)" stroke-width="1.5"/><g transform="translate(151,10)" color="var(--text)">${I.down.replace('<svg','<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75"')}</g>
+<circle cx="160" cy="40" r="6" fill="var(--inset)" stroke="var(--text)" stroke-width="1.5"/><g transform="translate(151,10)" color="var(--text)">${I.down.replace('<svg','<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75"')}</g>
 <circle cx="260" cy="62" r="6" fill="#FFC72C" stroke="var(--text)" stroke-width="1.5"/><g transform="translate(251,32)" color="var(--text)">${I.tri.replace('<svg','<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75"')}</g>
-<circle cx="360" cy="82" r="6" fill="#F28C28" stroke="var(--text)" stroke-width="1.5"/><g transform="translate(351,52)" color="var(--text)">${I.kit.replace('<svg','<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75"')}</g>
+<circle cx="360" cy="82" r="6" fill="var(--em)" stroke="var(--text)" stroke-width="1.5"/><g transform="translate(351,52)" color="var(--text)">${I.kit.replace('<svg','<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75"')}</g>
 <circle cx="460" cy="112" r="6" fill="var(--em)" stroke="var(--text)" stroke-width="1.5"/><g transform="translate(451,82)" color="var(--text)">${I.oct.replace('<svg','<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75"')}</g>
 </svg><div class="cap" style="margin-top:6px">Points as the badge, marker = level icon in text colour. Links: <a href="#">underlined, text colour</a>.</div></div></div>`)}
 </script></body></html>

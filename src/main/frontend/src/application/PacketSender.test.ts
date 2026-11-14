@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
-import type { Rule } from '../domain/rules'
-import { mockReadings } from '../infrastructure/mockReadings'
-import rules from '../infrastructure/rules.json'
-import { FakePacketRepository, FakeRepository, FakeRuleSource } from '../test/fakes'
+import { RULES } from '../test/rules'
+import { combinedHistory, FakePacketRepository, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { LatestReadingsReader } from './LatestReadingsReader'
 import { toPacketItem } from './packetItems'
 import { PacketSender } from './PacketSender'
@@ -22,7 +20,7 @@ describe('PacketSender', () => {
   beforeEach(() => {
     history = new FakeRepository()
     history.items.set('a', { checkIn: stored('a', { spo2Percent: 92, heartRateBpm: 63 }), pending: false })
-    readings = new LatestReadingsReader(new FakeRuleSource(rules as Rule[]), history, () => NOW, mockReadings)
+    readings = new LatestReadingsReader(new FakeRuleSource(RULES), combinedHistory(history), () => NOW)
     repository = new FakePacketRepository()
     uplink = { sync: vi.fn(async () => {}), subscribe: () => () => {} }
     sender = new PacketSender(readings, repository, uplink, () => 'id-1', () => NOW)

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mockStatuses } from './mockStatuses'
 import { forSpeech, PiperSpeechOutput } from './PiperSpeechOutput'
-import rules from './rules.json'
+import { JsonRuleSource } from './JsonRuleSource'
 
 describe('forSpeech', () => {
   it('says symbols and units in rule text as words', () => {
@@ -21,9 +21,11 @@ describe('forSpeech', () => {
     expect(forSpeech('self-test done Wed · no changes')).toBe('self-test done Wednesday, no changes')
     expect(forSpeech('CO₂ 2.3 mmHg (1-h avg)')).toBe('CO2 2.3 millimetres of mercury (1-hour average)')
     expect(forSpeech('PVT 268 ms · within your baseline')).toBe('PVT 268 milliseconds, within your baseline')
+    expect(forSpeech('NASA\'s range is 18–27 °C and 25–75 % RH')).toBe('NASA\'s range is 18 to 27 degrees Celsius and 25 to 75 percent relative humidity')
   })
 
-  it('leaves no symbol in any spoken rule text or system detail', () => {
+  it('leaves no symbol in any spoken rule text (as loaded, placeholders filled) or system detail', async () => {
+    const rules = await new JsonRuleSource().load()
     const spoken = [...rules.flatMap((r) => [r.what, r.why, r.next]), ...mockStatuses.map((p) => p.detail)]
 
     expect(spoken.map(forSpeech).filter((text) => /[^A-Za-z0-9 .,;:'()?!-]/.test(text))).toEqual([])

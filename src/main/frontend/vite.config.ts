@@ -22,13 +22,19 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
-        navigateFallbackDenylist: [/^\/api\//],
+        // The simulator is an operator page: never cached by, or answered with, the crew app.
+        // iOS reads the launch images once, when the app is added to the home screen: no need to precache them.
+        globIgnores: ['simulator.html', 'assets/simulator-*.js', 'assets/simulator-*.css', 'splash/**'],
+        navigateFallbackDenylist: [/^\/api\//, /^\/ws\//, /simulator\.html$/],
       },
     }),
   ],
   build: {
     outDir: '../resources/static',
     emptyOutDir: true,
+    rolldownOptions: {
+      input: { index: 'index.html', simulator: 'simulator.html' },
+    },
   },
   server: {
     port: 5173,
@@ -39,6 +45,7 @@ export default defineConfig({
       '/voice/llm': { target: 'http://localhost:8081', rewrite: (path) => path.replace(/^\/voice\/llm/, '') },
       '/voice/stt': { target: 'http://localhost:8082', rewrite: (path) => path.replace(/^\/voice\/stt/, '') },
       '/voice/tts': { target: 'http://localhost:8084', rewrite: (path) => path.replace(/^\/voice\/tts/, '') },
+      '/ws': { target: 'ws://localhost:8080', ws: true },
     },
   },
   test: {

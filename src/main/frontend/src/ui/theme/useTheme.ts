@@ -2,21 +2,20 @@ import { useCallback, useLayoutEffect, useState, useSyncExternalStore } from 're
 
 export type Theme = 'light' | 'dark'
 
-const STORAGE_KEY = 'crew-health.theme'
 const DARK_QUERY = '(prefers-color-scheme: dark)'
 
-function readStoredTheme(): Theme | null {
+function readStoredTheme(storageKey: string): Theme | null {
   try {
-    const value = localStorage.getItem(STORAGE_KEY)
+    const value = localStorage.getItem(storageKey)
     return value === 'light' || value === 'dark' ? value : null
   } catch {
     return null
   }
 }
 
-function storeTheme(theme: Theme) {
+function storeTheme(storageKey: string, theme: Theme) {
   try {
-    localStorage.setItem(STORAGE_KEY, theme)
+    localStorage.setItem(storageKey, theme)
   } catch {
     // Storage blocked (private mode): the choice still holds until the app closes.
   }
@@ -33,8 +32,8 @@ function systemPrefersDark(): boolean {
 }
 
 /** Follows the system theme until the crewmember picks one; the pick is remembered on the device. */
-export function useTheme(): { theme: Theme; toggle: () => void } {
-  const [chosen, setChosen] = useState<Theme | null>(readStoredTheme)
+export function useTheme(storageKey = 'crew-health.theme'): { theme: Theme; toggle: () => void } {
+  const [chosen, setChosen] = useState<Theme | null>(() => readStoredTheme(storageKey))
   const systemDark = useSyncExternalStore(subscribeToSystemTheme, systemPrefersDark)
   const theme: Theme = chosen ?? (systemDark ? 'dark' : 'light')
 
@@ -45,8 +44,8 @@ export function useTheme(): { theme: Theme; toggle: () => void } {
   const toggle = useCallback(() => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark'
     setChosen(next)
-    storeTheme(next)
-  }, [theme])
+    storeTheme(storageKey, next)
+  }, [theme, storageKey])
 
   return { theme, toggle }
 }

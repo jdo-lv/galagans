@@ -2,7 +2,7 @@
 
 Home has a Hazard lens card between Body systems and the right column. It holds NASA's five HRP hazards as toggles, a caption and a body figure. Picking a hazard marks the Body systems rows and figure labels it affects (a bar on the side) and dims the rest. The caption says what the hazard does, which systems it affects, which checks watch it and the source. The lens never changes a status and never dims a caution or warning. The choice is remembered on the device. Features F12 and F6 (the figure) in [features.md](../../ideas/features.md); issue [#14](https://github.com/jdo-lv/galagans/issues/14).
 
-**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080. Enter SpO₂ 92, click "Save check-in", then click "Hostile/closed environment", "Gravity fields" and "Distance from Earth". Click a pressed hazard again to turn the lens off. **Retake the screenshots** with the app running: `target/node/node docs/features/14-hazard-lens.shots.mjs` ([script](14-hazard-lens.shots.mjs)); set `APP_URL` for another port.
+**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080. Enter SpO₂ 92 through "+" (Add entry) and the check-in steps ([#29](29-check-in-questionnaire.md)), then click "Hostile/closed environment", "Gravity fields" and "Distance from Earth". Click a pressed hazard again to turn the lens off. **Retake the screenshots** with the app running: `target/node/node docs/features/14-hazard-lens.shots.mjs` ([script](14-hazard-lens.shots.mjs)); set `APP_URL` for another port.
 
 ## Screens
 

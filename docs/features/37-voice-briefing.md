@@ -43,4 +43,4 @@ The issue mock is [37-mock.png](img/37-mock.png) ([script](37-voice-briefing.moc
 
 ## Mockup and deviations
 
-Home follows [01-body-map.png](../../ideas/mockups/01-body-map.png). Deviation: a microphone icon button left of the theme toggle and a voice pill after the ground-link pill; no voice mockup exists. Styles follow [ui-guidelines.md](../../ideas/ui-guidelines.md) §5 "App header", "Buttons" (inverse fill while on, 60 % opacity while disabled), "Pills and tags" and "Icons" (`VoiceIcon`). The header buttons are 20 px apart (`gap: var(--space-5)`, rule 7).
+Home follows [01-body-map.png](../../ideas/mockups/01-body-map.png). Deviation: a microphone icon button first among the header buttons (before "Add entry" and the theme toggle) and a voice pill after the ground-link pill; no voice mockup exists. Styles follow [ui-guidelines.md](../../ideas/ui-guidelines.md) §5 "App header", "Buttons" (inverse fill while on, 60 % opacity while disabled), "Pills and tags" and "Icons" (`VoiceIcon`). The header buttons are 18 px apart (`--gap-targets`, rule 7): the issue's AC7 said 20 px, but `main` gave the header its own 18 px gap for "Add entry" (#29) before this merged.

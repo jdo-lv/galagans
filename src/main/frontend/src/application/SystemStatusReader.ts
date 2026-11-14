@@ -1,11 +1,11 @@
-import type { CheckInHistory, RuleSource } from '../domain/ports'
+import type { ObservationHistory, RuleSource } from '../domain/ports'
 import type { Placeholder, SystemDetail, SystemStatus } from '../domain/rules'
-import { chartPoints, evaluate } from './evaluate'
+import { byIndicator, chartPoints, evaluate } from './evaluate'
 
 export class SystemStatusReader {
   constructor(
     private readonly rules: RuleSource,
-    private readonly history: CheckInHistory,
+    private readonly history: ObservationHistory,
     /** Public so the UI prints ages against the same clock the rules used. */
     readonly now: () => Date = () => new Date(),
     /** Listed after the evaluated systems; a system with rules drops its placeholder. */
@@ -13,19 +13,22 @@ export class SystemStatusReader {
   ) {}
 
   async read(): Promise<SystemStatus[]> {
-    const [rules, checkIns] = await Promise.all([this.rules.load(), this.history.list()])
-    const evaluated = evaluate(rules, checkIns, this.now())
+    const [rules, observations] = await Promise.all([this.rules.load(), this.history.list()])
+    const evaluated = evaluate(rules, observations, this.now())
     const covered = new Set(evaluated.map((s) => s.system))
     return [...evaluated, ...this.placeholders.filter((p) => !covered.has(p.system))]
   }
 
   /** Undefined for a system with no rule rows (placeholder or unknown). */
   async readDetail(system: string): Promise<SystemDetail | undefined> {
-    const [rules, checkIns] = await Promise.all([this.rules.load(), this.history.list()])
+    const [rules, observations] = await Promise.all([this.rules.load(), this.history.list()])
     const rows = rules.filter((r) => r.system === system)
     if (rows.length === 0) return undefined
     const now = this.now()
-    const [status] = evaluate(rows, checkIns, now)
-    return { status, rules: rows, points: chartPoints(rows, checkIns, now, status.state === 'stale') }
+    const [status] = evaluate(rows, observations, now)
+    // A system with several indicators charts the one its status shows (Cabin air: CO₂, temperature or humidity).
+    const groups = byIndicator(rows)
+    const shown = groups.find((group) => group[0].label === status.label) ?? groups[0]
+    return { status, rules: shown, points: chartPoints(shown, observations, now, status.state === 'stale') }
   }
 }

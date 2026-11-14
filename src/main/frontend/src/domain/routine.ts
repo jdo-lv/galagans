@@ -1,8 +1,10 @@
+import { CHECK_IN_SECONDS } from './checkInSteps'
+
 /** Local "HH:MM"; start inclusive, end exclusive. */
 export type TimeWindow = { start: string; end: string }
 
-/** Team example window and estimate (crew-health-companion.md "Schedule"), not a research value. */
-export const CHECK_IN_ROUTINE = { label: 'Morning check-in', window: { start: '07:00', end: '09:00' }, estimate: '~1.5 min' }
+/** Team example window (crew-health-companion.md "Schedule"), not a research value; the estimate sums the check-in steps. */
+export const CHECK_IN_ROUTINE = { label: 'Morning check-in', window: { start: '07:00', end: '09:00' }, estimate: `~${CHECK_IN_SECONDS} s` }
 
 export type RoutineState = 'upcoming' | 'due' | 'done' | 'missed'
 

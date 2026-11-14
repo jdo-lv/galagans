@@ -41,7 +41,7 @@ afterEach(() => {
 })
 
 describe('Reaction test on Home', () => {
-  it('AC9: a Reaction test card between Latest readings and Check-in, with a secondary start button', async () => {
+  it('AC9: a Reaction test card after Latest readings, ending the column, with a secondary start button', async () => {
     setup().renderApp()
     await flush()
 
@@ -51,9 +51,9 @@ describe('Reaction test on Home', () => {
     const column = card.parentElement as HTMLElement
     const order = [...column.children]
     expect(order.indexOf(card)).toBe(order.indexOf(screen.getByRole('region', { name: 'Latest readings' })) + 1)
-    expect(order.indexOf(screen.getByRole('region', { name: 'Check-in' }))).toBe(order.indexOf(card) + 1)
-    expect(document.querySelectorAll('.button-primary')).toHaveLength(1)
-    expect(screen.getByRole('button', { name: 'Save check-in' })).toHaveClass('button-primary')
+    expect(order.at(-1)).toBe(card)
+    // The check-in's "Save check-in" moved to #/check-in (#29), so Home has no primary button.
+    expect(document.querySelectorAll('.button-primary')).toHaveLength(0)
   })
 
   it('AC10: Start reaction test opens #/pvt in place of Home', async () => {
