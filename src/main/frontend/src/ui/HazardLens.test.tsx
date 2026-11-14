@@ -140,4 +140,57 @@ describe('Hazard lens', () => {
       expect(list().lastElementChild).toHaveTextContent(LENS_NOTE)
     }
   })
+
+  it('AC10: selecting Isolation & confinement stores its raw id', async () => {
+    home().renderApp()
+
+    await userEvent.click(chip('Isolation & confinement'))
+
+    expect(localStorage.getItem(KEY)).toBe('isolation')
+  })
+
+  it('AC11: a stored isolation id is pressed when the app starts', () => {
+    localStorage.setItem(KEY, 'isolation')
+
+    home().renderApp()
+
+    expect(chip('Isolation & confinement')).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('AC12: deselecting removes the stored id', async () => {
+    home().renderApp()
+    await userEvent.click(chip('Isolation & confinement'))
+
+    await userEvent.click(chip('Isolation & confinement'))
+
+    expect(localStorage.getItem(KEY)).toBeNull()
+  })
+
+  it('AC13: an unknown stored value selects nothing', () => {
+    localStorage.setItem(KEY, 'foo')
+
+    home().renderApp()
+
+    expect(chips().every((b) => b.getAttribute('aria-pressed') === 'false')).toBe(true)
+  })
+
+  it('AC14: storage that throws on read selects nothing and the app still renders', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('storage blocked')
+    })
+
+    expect(() => home().renderApp()).not.toThrow()
+    expect(chips().every((b) => b.getAttribute('aria-pressed') === 'false')).toBe(true)
+  })
+
+  it('AC15: storage that throws on write still selects Radiation', async () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('storage blocked')
+    })
+    home().renderApp()
+
+    await userEvent.click(chip('Radiation'))
+
+    expect(chip('Radiation')).toHaveAttribute('aria-pressed', 'true')
+  })
 })
