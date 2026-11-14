@@ -4,6 +4,7 @@ import {
   IconAlertTriangle,
   IconApple,
   IconArrowBarToDown,
+  IconArrowRight,
   IconBiohazard,
   IconBone,
   IconBottle,
@@ -14,11 +15,13 @@ import {
   IconChevronRight,
   IconCircleCheck,
   IconCircleDashed,
+  IconCircleFilled,
   IconCirclePlus,
   IconClipboardList,
   IconClock,
   IconCloudOff,
   IconDeviceWatch,
+  IconDots,
   IconDroplet,
   IconEar,
   IconEye,
@@ -161,5 +164,9 @@ export const SyncIcon = /* @__PURE__ */ decorative(IconRefresh)
 export const AddIcon = /* @__PURE__ */ decorative(IconCirclePlus)
 /** "Opens the detail" on a list row. */
 export const ChevronIcon = /* @__PURE__ */ decorative(IconChevronRight)
+/** Timeline steps (surgeon packet). Done is a filled dot, not a check, so it can't be read as the ✓ of Nominal. */
+export const StepDoneIcon = /* @__PURE__ */ decorative(IconCircleFilled)
+export const StepCurrentIcon = /* @__PURE__ */ decorative(IconArrowRight)
+export const StepPendingIcon = /* @__PURE__ */ decorative(IconDots)
 export const LightThemeIcon = /* @__PURE__ */ decorative(IconSun)
 export const DarkThemeIcon = /* @__PURE__ */ decorative(IconMoon)

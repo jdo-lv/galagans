@@ -1,0 +1,29 @@
+/* Surgeon packet screen (issue #19, mock docs/features/img/19-mock.png). Colours and sizes: ideas/ui-guidelines.md.
+   The timeline is not a health status: neutral tokens only, never caution or warning. */
+.packet-home {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+}
+
+.packet-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.packet-head h2:focus {
+  outline: none;
+}
+
+.packet-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* Centres the 18 px icon on the first line of text */
+.packet-privacy .tabler-icon {
+  margin-top: 2px;
+}
