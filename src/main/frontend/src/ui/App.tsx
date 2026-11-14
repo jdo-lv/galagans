@@ -44,6 +44,7 @@ export function App() {
           <SystemStatusList
             state={statuses.state}
             focusHeading={returnedHome}
+            lens={lens.selected}
           />
           <HazardLens selected={lens.selected} onToggle={lens.toggle} />
           <div className="stack">

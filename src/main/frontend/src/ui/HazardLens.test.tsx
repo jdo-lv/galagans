@@ -18,6 +18,25 @@ const chip = (name: string) => within(hazards()).getByRole('button', { name })
 const chips = () => within(hazards()).getAllByRole('button')
 const captionLines = () => [...lens().querySelectorAll('[aria-live="polite"] p')].map((p) => p.textContent)
 
+const list = () => screen.getByRole('region', { name: 'Body systems' })
+const rows = () => within(list()).getAllByRole('listitem')
+const rowOf = (system: string) => rows().find((li) => li.querySelector('.status-system')?.textContent === system)!
+const systemsWith = (className: string) =>
+  rows()
+    .filter((li) => li.classList.contains(className))
+    .map((li) => li.querySelector('.status-system')?.textContent)
+const badges = () => rows().map((li) => li.querySelector('.badge')?.textContent)
+const ALL_ROWS = ['Respiratory', ...mockStatuses.map((p) => p.system)]
+const LENS_NOTE = 'Lens on: affected systems marked, others dimmed. Status is unchanged by the lens.'
+
+/** The Systems cell of each hazard row in issue #14's Design notes; Distance from Earth marks all rows. */
+const HAZARD_ROWS: Record<string, string[]> = {
+  Radiation: ['Radiation', 'Immune', 'Vision (SANS)', 'Cardiovascular', 'Cognition'],
+  'Isolation & confinement': ['Sleep', 'Cognition'],
+  'Gravity fields': ['Bone & muscle', 'Vision (SANS)', 'Kidney & hydration', 'Cardiovascular'],
+  'Hostile/closed environment': ['Cognition', 'Cabin air', 'Sleep', 'Immune'],
+}
+
 describe('Hazard lens', () => {
   afterEach(() => {
     localStorage.clear()
@@ -93,5 +112,32 @@ describe('Hazard lens', () => {
     expect(captionLines()).toEqual(['Pick a hazard to see which body systems it affects.'])
     expect(container.querySelector('.lens-affected, .lens-dimmed')).toBeNull()
     expect(screen.queryByText(/^Lens on:/)).toBeNull()
+  })
+
+  it('AC6: SpO₂ 97 % → each hazard marks exactly its rows and dims the rest', async () => {
+    home().renderApp()
+    await within(list()).findByText('Respiratory')
+    expect(rows().map((li) => li.querySelector('.status-system')?.textContent)).toEqual(ALL_ROWS)
+
+    for (const [name, systems] of Object.entries(HAZARD_ROWS)) {
+      await userEvent.click(chip(name))
+
+      expect(systemsWith('lens-affected').sort()).toEqual([...systems].sort())
+      expect(systemsWith('lens-dimmed').sort()).toEqual(ALL_ROWS.filter((s) => !systems.includes(s)).sort())
+      systems.forEach((system) => expect(within(rowOf(system)).getByText(`Affected by ${name}`)).toHaveClass('visually-hidden'))
+    }
+  })
+
+  it('AC8: SpO₂ 97 % → a hazard never changes a status, and the card ends with the lens note', async () => {
+    home().renderApp()
+    await within(list()).findByText('Respiratory')
+    const before = badges()
+
+    for (const name of Object.keys(HAZARD_ROWS)) {
+      await userEvent.click(chip(name))
+
+      expect(badges()).toEqual(before)
+      expect(list().lastElementChild).toHaveTextContent(LENS_NOTE)
+    }
   })
 })

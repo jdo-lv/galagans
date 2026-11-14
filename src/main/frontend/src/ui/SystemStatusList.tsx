@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from 'react'
 import { formatAge, formatStaleAge } from '../application/formatAge'
+import { lensMark, type Hazard } from '../domain/hazards'
 import type { SystemStatus } from '../domain/rules'
 import { ChevronIcon, WarningIcon } from './icons'
 import { systemHref } from './useHashRoute'
@@ -26,8 +27,9 @@ export function Badge({ state }: { state: SystemStatus['state'] }) {
   }
 }
 
-function StatusRow({ status, now }: { status: SystemStatus; now: Date }) {
+function StatusRow({ status, now, lens }: { status: SystemStatus; now: Date; lens: Hazard | null }) {
   const { state, recordedAt } = status
+  const mark = lensMark(lens, status.system, state)
   const age = recordedAt && (state === 'stale' ? formatStaleAge(recordedAt, now) : formatAge(recordedAt, now))
   const head = (
     <div className="status-head">
@@ -49,7 +51,7 @@ function StatusRow({ status, now }: { status: SystemStatus; now: Date }) {
   )
   // Only flagged rows open the detail (F5); quiet rows stay plain.
   return (
-    <li className={`status-${state}`}>
+    <li className={mark ? `status-${state} lens-${mark}` : `status-${state}`}>
       {status.rule ? (
         <a className="status-link" href={systemHref(status.system)}>
           {head}
@@ -58,11 +60,20 @@ function StatusRow({ status, now }: { status: SystemStatus; now: Date }) {
       ) : (
         head
       )}
+      {mark === 'affected' && <span className="visually-hidden">Affected by {lens?.name}</span>}
     </li>
   )
 }
 
-export function SystemStatusList({ state, focusHeading = false }: { state: StatusListState; focusHeading?: boolean }) {
+export function SystemStatusList({
+  state,
+  focusHeading = false,
+  lens = null,
+}: {
+  state: StatusListState
+  focusHeading?: boolean
+  lens?: Hazard | null
+}) {
   const headingId = useId()
   const heading = useRef<HTMLHeadingElement>(null)
 
@@ -71,7 +82,7 @@ export function SystemStatusList({ state, focusHeading = false }: { state: Statu
     if (focusHeading) heading.current?.focus()
   }, [focusHeading])
   return (
-    <section className="card" aria-labelledby={headingId}>
+    <section className="card systems" aria-labelledby={headingId}>
       <h2 id={headingId} ref={heading} tabIndex={-1} className="card-heading">
         Body systems
       </h2>
@@ -79,9 +90,16 @@ export function SystemStatusList({ state, focusHeading = false }: { state: Statu
       {state.kind === 'ready' && (
         <ul className="status-list">
           {state.data.map((status) => (
-            <StatusRow key={status.system} status={status} now={state.now} />
+            <StatusRow key={status.system} status={status} now={state.now} lens={lens} />
           ))}
         </ul>
+      )}
+      {state.kind === 'ready' && lens && (
+        <p className="muted lens-note">
+          {lens.systems === 'all'
+            ? 'Lens on: all systems marked. Status is unchanged by the lens.'
+            : 'Lens on: affected systems marked, others dimmed. Status is unchanged by the lens.'}
+        </p>
       )}
     </section>
   )
