@@ -103,9 +103,9 @@ class PacketControllerTest(
 
     @Test
     fun `AC5 accepts a 500-character note and 20 items`() {
-        val body = ac1BodyWith {
-            it["note"] = "x".repeat(500)
-            it["items"] = List(20) { _ -> it.items()[0] }
+        val body = ac1BodyWith { body ->
+            body["note"] = "x".repeat(500)
+            body["items"] = List(20) { body.items()[0] }
         }
 
         post(body).expectStatus().isOk

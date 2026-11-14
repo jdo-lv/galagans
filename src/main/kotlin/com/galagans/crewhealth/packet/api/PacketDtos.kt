@@ -12,8 +12,10 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import java.time.Instant
 
-// Required fields are nullable so a missing one fails bean validation (400); toDomain() runs only after validation.
-
+/**
+ * Required fields are nullable so a missing one is a bean-validation 400 whatever Jackson does with
+ * missing Kotlin primitives; `toDomain()` runs only after validation. Unknown fields are ignored.
+ */
 data class PacketRequest(
     @field:NotBlank val id: String?,
     @field:NotNull val builtAt: Instant?,
