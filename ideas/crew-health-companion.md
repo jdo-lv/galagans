@@ -67,7 +67,7 @@ Gates G1–G5: pass (G2 and G3 with the modifications below) — see "Gates".
    - its scheduled checks
 4. **Mission routine.** The app prompts the checks NASA already schedules: daily check-in, PVT every 4th day, weekly vision self-test, and pre-landing fluid loading. A "post-flight" mode extends tracking into recovery, because bone and cognition don't return to baseline quickly ([long-duration-literature.md](../research/long-duration-literature.md)).
 5. **Escalation and delay.** Each action names the tier. The flight-surgeon packet is store-and-forward and shows the current one-way delay for the chosen environment mode: Moon ~1.3 s light-time, 6–10 s in practice; Mars 3–22 min.
-6. **NASA display rules.** Nominal is quiet. Statuses follow the 0–5 [alert levels](alert-levels.md): blue = astronaut input due, yellow/orange = caution band, red = emergency only, always with an icon and a word. Each value shows its unit, data age and trend ([ux-human-factors.md](../research/ux-human-factors.md)).
+6. **NASA display rules.** Nominal is quiet. Statuses follow the 0–5 [alert levels](alert-levels.md): mirroring NASA alert classes: blue = astronaut input due, a grey arrow = drifting, yellow = caution, red = treatment or emergency only, always with an icon and a word. Each value shows its unit, data age and trend ([ux-human-factors.md](../research/ux-human-factors.md)).
 7. **Privacy and gamification.**
    - Data is private by default.
    - There are role views for self, CMO and surgeon.
@@ -272,7 +272,7 @@ See the [home screen mockup](mockups/01-body-map.png).
 - **One reminder when a window opens:** a banner with "Start" and "Snooze", and nothing more. NASA notes that too many alerts become a nuisance and crews stop responding ([ux-human-factors.md](../research/ux-human-factors.md)).
 - **Bundling:** everything due in the same window starts with one "Start" as one session.
 - **Rule-triggered items join the next session** instead of interrupting, unless the rule is urgent. Even then the banner names the reason.
-- **"Due" is alert level 1, never 2–5.** A due item gets the level 1 blue outline, icon and the word "to do" ([alert-levels.md](alert-levels.md)). Yellow, orange and red stay for health status. The dashed grey "rule" tag marks why an item was added, not urgency.
+- **"Due" is alert level 1, never 2–5.** A due item gets the level 1 blue outline, icon and the word "to do" ([alert-levels.md](alert-levels.md)). Yellow and red stay for health status. The dashed grey "rule" tag marks why an item was added, not urgency.
 
 **Who sees what is pending**
 - The astronaut sees their own list.
