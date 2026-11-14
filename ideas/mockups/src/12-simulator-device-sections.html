@@ -1,0 +1,130 @@
+<!doctype html>
+<html data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../src/main/frontend/src/ui/theme/tokens.css">
+<link rel="stylesheet" href="../../../src/main/frontend/src/ui/theme/base.css">
+<style>
+body { margin: 0; }
+.sim { max-width: var(--content-max); margin: 0 auto; padding: var(--space-4) var(--gutter); display: grid; gap: var(--space-4); }
+.top { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.top h1 { font-size: var(--text-heading); margin: 0 var(--space-3) 0 0; }
+.devices { display: grid; grid-template-columns: repeat(auto-fill, minmax(460px, 1fr)); gap: var(--gap-cards); }
+.dev { display: grid; gap: var(--space-3); align-content: start; padding: var(--space-4); }
+.dev p { margin: 0; }
+.dev-top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-2); }
+.dev-top h2 { margin: 0; font-size: var(--text-body); }
+.tag { white-space: nowrap; }
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
+.metrics .field-tile { min-height: 0; padding: var(--space-3) var(--space-4); }
+.metrics .field-tile input { min-height: 36px; }
+.send { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.send .push { margin-left: auto; }
+.every { display: flex; align-items: center; gap: var(--space-2); }
+.every input { width: 72px; min-height: var(--target-min); border: 1px solid var(--color-edge); border-radius: var(--radius-item); background: var(--color-inset); padding: 0 var(--space-3); font-family: var(--font-data); font-size: var(--text-body); color: inherit; }
+.send .button-secondary { padding: 0 var(--space-5); }
+.last { color: var(--color-text-muted); }
+</style>
+</head>
+<body>
+<div class="sim">
+  <div class="top">
+    <h1>Device Simulator</h1>
+    <span class="pill">Device link <b class="num">ws://10.18.237.231:8080/ws/devices</b> · connected</span>
+    <span class="pill">All data simulated</span>
+  </div>
+
+  <div class="devices">
+    <section class="card dev">
+      <div class="dev-top"><h2>Pulse oximeter</h2><span class="tag">sending every 60 s</span></div>
+      <p class="muted"><span class="num">crew/a1/oximeter</span> · source: synthetic</p>
+      <div class="metrics">
+        <label class="field-tile"><span class="tile-label">SpO₂ <span class="tile-label__suffix">%</span></span><input value="97"></label>
+        <label class="field-tile"><span class="tile-label">Pulse <span class="tile-label__suffix">bpm</span></span><input value="63"></label>
+      </div>
+      <div class="send">
+        <label class="every">Every <input value="60"> s</label>
+        <button class="button-secondary">Stop</button>
+        <button class="button-secondary push">Send now</button>
+      </div>
+      <p class="last">Last sent <span class="num">09:31:00</span></p>
+    </section>
+
+    <section class="card dev">
+      <div class="dev-top"><h2>Wrist bracelet</h2><span class="tag">sending every 5 s</span></div>
+      <p class="muted"><span class="num">crew/a1/wrist/hr</span> · source: synthetic</p>
+      <div class="metrics">
+        <label class="field-tile"><span class="tile-label">Heart rate <span class="tile-label__suffix">bpm</span></span><input value="63"></label>
+      </div>
+      <div class="send">
+        <label class="every">Every <input value="5"> s</label>
+        <button class="button-secondary">Stop</button>
+        <button class="button-secondary push">Send now</button>
+      </div>
+      <p class="last">Last sent <span class="num">09:31:20</span></p>
+    </section>
+
+    <section class="card dev">
+      <div class="dev-top"><h2>BP cuff</h2></div>
+      <p class="muted"><span class="num">crew/a1/bp</span> · source: synthetic</p>
+      <div class="metrics">
+        <label class="field-tile"><span class="tile-label">Systolic <span class="tile-label__suffix">mmHg</span></span><input value="108"></label>
+        <label class="field-tile"><span class="tile-label">Diastolic <span class="tile-label__suffix">mmHg</span></span><input value="70"></label>
+        <label class="field-tile"><span class="tile-label">Pulse <span class="tile-label__suffix">bpm</span></span><input value="63"></label>
+      </div>
+      <div class="send">
+        <label class="every">Every <input value="60"> s</label>
+        <button class="button-secondary">Start</button>
+        <button class="button-secondary push">Send now</button>
+      </div>
+      <p class="last">Last sent <span class="num">09:20:14</span></p>
+    </section>
+
+    <section class="card dev">
+      <div class="dev-top"><h2>Thermometer</h2></div>
+      <p class="muted"><span class="num">crew/a1/thermometer</span> · source: synthetic</p>
+      <div class="metrics">
+        <label class="field-tile"><span class="tile-label">Temperature <span class="tile-label__suffix">°C</span></span><input value="36.8"></label>
+      </div>
+      <div class="send">
+        <label class="every">Every <input value="60"> s</label>
+        <button class="button-secondary">Start</button>
+        <button class="button-secondary push">Send now</button>
+      </div>
+      <p class="last">Not sent yet</p>
+    </section>
+
+    <section class="card dev">
+      <div class="dev-top"><h2>Environment node</h2><span class="tag">sending every 60 s</span></div>
+      <p class="muted"><span class="num">module/hab/env</span> · source: synthetic</p>
+      <div class="metrics">
+        <label class="field-tile"><span class="tile-label">CO₂ 1-h <span class="tile-label__suffix">mmHg</span></span><input value="3.4"></label>
+        <label class="field-tile"><span class="tile-label">Temp <span class="tile-label__suffix">°C</span></span><input value="22"></label>
+        <label class="field-tile"><span class="tile-label">Humidity <span class="tile-label__suffix">% RH</span></span><input value="45"></label>
+      </div>
+      <div class="send">
+        <label class="every">Every <input value="60"> s</label>
+        <button class="button-secondary">Stop</button>
+        <button class="button-secondary push">Send now</button>
+      </div>
+      <p class="last">Last sent <span class="num">09:31:00</span></p>
+    </section>
+
+    <section class="card dev">
+      <div class="dev-top"><h2>Dosimeter</h2></div>
+      <p class="muted"><span class="num">module/hab/dose</span> · source: synthetic</p>
+      <div class="metrics">
+        <label class="field-tile"><span class="tile-label">Dose rate <span class="tile-label__suffix">mSv/day</span></span><input value="0.5"></label>
+        <label class="field-tile"><span class="tile-label">30-day BFO dose <span class="tile-label__suffix">mGy-Eq</span></span><input value="95"></label>
+      </div>
+      <div class="send">
+        <label class="every">Every <input value="60"> s</label>
+        <button class="button-secondary">Start</button>
+        <button class="button-secondary push">Send now</button>
+      </div>
+      <p class="last">Not sent · device link disconnected <span class="num">09:15:02</span></p>
+    </section>
+  </div>
+</div>
+</body>
+</html>

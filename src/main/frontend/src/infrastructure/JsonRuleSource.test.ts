@@ -11,7 +11,7 @@ const stringFields = ['id', 'system', 'indicator', 'label', 'unit', 'tier', 'wha
 const numberFields = ['validMin', 'validMax']
 
 describe('JsonRuleSource', () => {
-  it('loads the SpO₂ rows, COG-01 (#17) and CAB-01', async () => {
+  it('loads the SpO₂, COG, CAB and RAD rows', async () => {
     const rules = await new JsonRuleSource().load()
 
     expect(rules.map((r) => [r.id, r.below ?? r.above, r.status, r.tier])).toEqual([
@@ -19,6 +19,12 @@ describe('JsonRuleSource', () => {
       ['SPO-02', 90, 'warning', 'Urgent ground'],
       ['COG-01', 304.75, 'caution', 'CMO'],
       ['CAB-01', 3, 'caution', 'CMO'],
+      ['CAB-02', 18, 'caution', 'CMO'],
+      ['CAB-03', 27, 'caution', 'CMO'],
+      ['CAB-04', 25, 'caution', 'CMO'],
+      ['CAB-05', 75, 'caution', 'CMO'],
+      ['RAD-01', 125, 'caution', 'CMO'],
+      ['RAD-02', 250, 'warning', 'Urgent ground'],
     ])
   })
 

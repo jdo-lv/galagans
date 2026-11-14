@@ -1,8 +1,13 @@
 # #25 Device Simulator and the device link
 
-The operator's console for the demo: a second page, `/simulator.html`, that plays the spacecraft's devices while another screen shows the crew app. All six devices work: pulse oximeter, wrist bracelet, BP cuff, thermometer, environment node and dosimeter. "Nominal day" sends every device's reading at once and every minute, each card's override slider changes what its next reading sends, and "Inject one reading" sends one reading from the device you pick. Readings travel over the **device link**, a WebSocket relay at `/ws/devices` in the Spring Boot app that replaces Mosquitto, so a tablet that opens the app at the machine's LAN IP gets them with no broker or Docker. The other five scenarios show as `not built`. Issue [#25](https://github.com/jdo-lv/galagans/issues/25); feature F8 in [features.md](../../ideas/features.md).
+The operator's console for the demo: a second page, `/simulator.html`, that plays the spacecraft's devices while another screen shows the crew app. Each of the six devices (pulse oximeter, wrist bracelet, BP cuff, thermometer, environment node, dosimeter) has one section with an input per metric, an **Every N s** frequency with **Start**/**Stop**, and **Send now** for one reading. A send always uses the values in the inputs at that moment, so editing a value while a device is sending changes its next reading. Readings travel over the **device link**, a WebSocket relay at `/ws/devices` in the Spring Boot app that replaces Mosquitto, so a tablet that opens the app at the machine's LAN IP gets them with no broker or Docker. Issue [#25](https://github.com/jdo-lv/galagans/issues/25); feature F8 in [features.md](../../ideas/features.md).
 
-**Try it:** `mvn clean verify`, then `mvn spring-boot:run`. Open http://localhost:8080/simulator.html on the laptop and http://&lt;machine IP&gt;:8080 on the tablet (or another tab). Click **Run** on Nominal day: every Latest readings tile fills in with its device tag (SpO₂ 97 %, heart rate 63 bpm, BP 108/70, 36.8 °C, cabin CO₂ 2.3 mmHg, 22 °C, 45 % RH, 0.5 mSv/day). Move the oximeter slider to 91, or type SpO₂ 91 and click **Publish**: Respiratory turns ▲ CAUTION (rule SPO-01). Move the environment node's CO₂ slider above 3 and wait a minute: Cabin air turns ▲ CAUTION (rule CAB-01). From a shell: `target/node/node tools/publish-reading.mjs 91 61`.
+**Try it:** `mvn clean verify`, then `mvn spring-boot:run`. Open http://localhost:8080/simulator.html on the laptop and http://&lt;machine IP&gt;:8080 on the tablet (or another tab). Click **Start** on each device: every Latest readings tile fills in with its device tag (SpO₂ 97 %, heart rate 63 bpm, BP 108/70, 36.8 °C, cabin CO₂ 2.3 mmHg, 22 °C, 45 % RH, 0.5 mSv/day, 95 mGy-Eq). Then try a caution with **Send now**:
+- Pulse oximeter SpO₂ 91 → Respiratory ▲ CAUTION (SPO-01).
+- Environment node CO₂ 3.4, cabin temp 28 or humidity 80 → Cabin air ▲ CAUTION (CAB-01, CAB-03, CAB-05); the row shows the worst of the three.
+- Dosimeter 30-day BFO dose 130 → Radiation ▲ CAUTION (RAD-01); above 250 → ⬣ WARNING (RAD-02).
+
+From a shell: `target/node/node tools/publish-reading.mjs 91 61` (oximeter only).
 
 At a LAN IP over plain `http:` the browser isn't in a secure context: ids fall back to `crypto.getRandomValues` (so check-ins, packets and readings still get ids), but there's no service worker, so the tablet has no offline cache there. Both demo machines need automatic network time, because the gateway drops readings more than 60 s ahead of the tablet.
 
@@ -11,29 +16,26 @@ At a LAN IP over plain `http:` the browser isn't in a secure context: ids fall b
 ## Screens
 
 ### Idle, device link connected
-Nothing sent yet: the traffic card reads "No traffic yet" and Publish stays disabled until SpO₂ is a whole number in 50–100.
+Every input starts at its nominal value, every device at Every 60 s and "Not sent yet".
 ![Simulator idle](img/25-idle.png)
 
-### Nominal day running, slider at 91, SpO₂ 88 / pulse 61 injected (light)
-The oximeter tag reads `publishing`; the newest message is on top, times in UTC. The log scrolls sideways for the full payload.
-![Simulator running, light](img/25-running-light.png)
+### Oximeter every 60 s, bracelet every 5 s, environment node with CO₂ 3.4 every 60 s, BP cuff sent once (light)
+A sending device shows `sending every N s` and its frequency is locked until Stop; each section shows its last send time (UTC).
+![Simulator sending, light](img/25-running-light.png)
 
 ### Same, dark
-![Simulator running, dark](img/25-running-dark.png)
+![Simulator sending, dark](img/25-running-dark.png)
 
-### Device link disconnected (app stopped), Nominal day running, SpO₂ 91 injected
-Nothing is queued: each unsent tick or inject is logged as `not sent · device link disconnected`, the scenario keeps running and the tag reads `not sending`.
+### Device link disconnected (app stopped), same actions
+Nothing is queued: each section shows `Not sent · device link disconnected HH:MM:SS`, and a sending device keeps trying on its period.
 ![Simulator disconnected](img/25-disconnected.png)
 
 ## Mockup and deviations
 
-Follows [04-simulator.png](../../ideas/mockups/04-simulator.png) in layout, through the issue mock ([25-mock.png](img/25-mock.png), source `ideas/mockups/src/11-simulator-oximeter.html`).
+Follows [12-simulator-device-sections.html](../../ideas/mockups/src/12-simulator-device-sections.html), which replaced the scenario layout of [04-simulator.png](../../ideas/mockups/04-simulator.png) (first built from [25-mock.png](img/25-mock.png)).
 
-- Crew app tokens in light and dark, not mockup 04's dark-only colours; body text at 16 px, so the log uses `--text-body`.
-- `Device link` pill and `Device traffic` card instead of Broker / MQTT traffic; the oximeter line reads `WebSocket JSON · crew/a1/oximeter`, the environment node and dosimeter `Wi-Fi · JSON`.
-- No mission clock and no source dropdown: the oximeter always sends `synthetic`.
-- Five scenarios show `not built`. Every device publishes JSON over the device link (`WebSocket JSON · <topic>`), not the GATT bytes of mockup 04.
-- The inject card has a Device picker (a field tile) above the device's fields.
-- Scenario buttons keep the 52 px touch target from the guidelines (the mock used 40 px), so some `not built` tags wrap under the scenario name.
-- The inject fields are field tiles (guidelines "Field tile"), labelled `SpO₂ %` and `Pulse bpm`, not the mock's plain inputs.
-- The log shows full ids and scrolls sideways; the mock shortened ids.
+- Crew app tokens in light and dark, not mockup 04's dark-only colours.
+- No scenarios, sliders, inject card or traffic log: one section per device instead.
+- Every device publishes JSON over the device link, not the GATT bytes of mockup 04; the source is always `synthetic`.
+- No mission clock.
+- Frequency is 1–3600 s per device; a value outside its device limits, or the wrong number of decimals, disables Start and Send now.

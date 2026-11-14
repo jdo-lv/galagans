@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
 import type { Rule } from '../domain/rules'
-import { fromCheckIn } from '../domain/observation'
+import { fromCheckIn, type Observation } from '../domain/observation'
 import { evaluate as evaluateObservations } from './evaluate'
 
 const now = new Date('2026-11-14T12:00:00Z')
@@ -119,5 +119,47 @@ describe('evaluate with the PVT (#17)', () => {
     const [status] = evaluate([spo01], [reading('a', at(DAY + 60_000), { spo2Percent: 92 })], now)
 
     expect(status).toMatchObject({ state: 'stale', source: 'manual' })
+  })
+})
+
+describe('evaluate, a system with several indicators (Cabin air)', () => {
+  const air = (id: string, indicator: Rule['indicator'], label: string, unit: string, threshold: { above?: number; below?: number }): Rule => ({
+    ...base, id, system: 'Cabin air', indicator, label, unit, validMin: 0, validMax: 100, status: 'caution', ...threshold,
+  })
+  const rows = [
+    air('CAB-01', 'cabinCo2MmHg', 'CO₂ (1-h avg)', 'mmHg', { above: 3 }),
+    air('CAB-02', 'cabinTempC', 'Cabin temp', '°C', { below: 18 }),
+    air('CAB-03', 'cabinTempC', 'Cabin temp', '°C', { above: 27 }),
+    air('CAB-04', 'cabinHumidityPct', 'Cabin humidity', '% RH', { above: 75 }),
+  ]
+  const obs = (indicator: Rule['indicator'], value: number, recordedAt = '2026-11-14T11:59:00Z'): Observation => ({
+    resourceType: 'Observation', id: `env-node:m-${indicator}:${indicator}`, status: 'final', code: { text: indicator },
+    valueQuantity: { value, unit: '' }, effectiveDateTime: recordedAt, device: { display: 'environment node · synthetic' },
+  })
+  const status = (observations: Observation[]) => evaluateObservations(rows, observations, now)
+
+  it('shows the first indicator when all are nominal', () => {
+    const [s] = status([obs('cabinCo2MmHg', 2.3), obs('cabinTempC', 22), obs('cabinHumidityPct', 45)])
+
+    expect([s.state, s.label, s.value, s.rule]).toEqual(['nominal', 'CO₂ (1-h avg)', 2.3, undefined])
+  })
+
+  it('shows the worst indicator: temperature 28 °C is a caution while CO₂ is nominal', () => {
+    const [s] = status([obs('cabinCo2MmHg', 2.3), obs('cabinTempC', 28), obs('cabinHumidityPct', 45)])
+
+    expect([s.state, s.label, s.value, s.unit, s.rule?.id]).toEqual(['caution', 'Cabin temp', 28, '°C', 'CAB-03'])
+  })
+
+  it('equal severity keeps table order', () => {
+    const [s] = status([obs('cabinCo2MmHg', 3.4), obs('cabinHumidityPct', 80)])
+
+    expect(s.rule?.id).toBe('CAB-01')
+  })
+
+  it('a fresh nominal beats a stale indicator; all missing is no data', () => {
+    const [s] = status([obs('cabinCo2MmHg', 9, '2026-11-12T11:00:00Z'), obs('cabinTempC', 22)])
+
+    expect([s.state, s.label]).toEqual(['nominal', 'Cabin temp'])
+    expect(status([])[0].state).toBe('no-data')
   })
 })

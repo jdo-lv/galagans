@@ -26,8 +26,8 @@ const systemsWith = (className: string) =>
     .filter((li) => li.classList.contains(className))
     .map((li) => li.querySelector('.status-system')?.textContent)
 const badges = () => rows().map((li) => li.querySelector('.badge')?.textContent)
-// Rule-driven systems first (Respiratory, Cognition, Cabin air), then the placeholders they don't cover.
-const ALL_ROWS = ['Respiratory', 'Cognition', 'Cabin air', ...mockStatuses.map((p) => p.system).filter((s) => s !== 'Cognition')]
+// Rule-driven systems first (Respiratory, Cognition, Cabin air, Radiation), then the placeholders they don't cover.
+const ALL_ROWS = ['Respiratory', 'Cognition', 'Cabin air', 'Radiation', ...mockStatuses.map((p) => p.system).filter((s) => s !== 'Cognition')]
 
 const figure = () => lens().querySelector<HTMLElement>('div.body-figure')!
 const items = () => within(screen.getByRole('list', { name: 'Body figure' })).getAllByRole('listitem')

@@ -24,5 +24,6 @@ export const READING_ICONS: Record<string, ComponentType<{ className?: string }>
   cabinTemp: TemperatureIcon,
   cabinHumidity: HumidityIcon,
   doseRate: RadiationIcon,
+  dose30d: RadiationIcon,
   pvt: PvtIcon,
 }

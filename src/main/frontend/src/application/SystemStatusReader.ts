@@ -1,6 +1,6 @@
 import type { ObservationHistory, RuleSource } from '../domain/ports'
 import type { Placeholder, SystemDetail, SystemStatus } from '../domain/rules'
-import { chartPoints, evaluate } from './evaluate'
+import { byIndicator, chartPoints, evaluate } from './evaluate'
 
 export class SystemStatusReader {
   constructor(
@@ -26,6 +26,9 @@ export class SystemStatusReader {
     if (rows.length === 0) return undefined
     const now = this.now()
     const [status] = evaluate(rows, observations, now)
-    return { status, rules: rows, points: chartPoints(rows, observations, now, status.state === 'stale') }
+    // A system with several indicators charts the one its status shows (Cabin air: CO₂, temperature or humidity).
+    const groups = byIndicator(rows)
+    const shown = groups.find((group) => group[0].label === status.label) ?? groups[0]
+    return { status, rules: shown, points: chartPoints(shown, observations, now, status.state === 'stale') }
   }
 }

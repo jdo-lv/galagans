@@ -151,10 +151,16 @@ describe('PersonalHealthGateway for the other devices', () => {
     ])
   })
 
+  it('a dosimeter message becomes dose rate and 30-day BFO dose Observations', async () => {
+    expect(await store('dosimeter', { dose_rate_msv_day: 0.5, dose_30d_mgy_eq: 95 })).toEqual([
+      ['dosimeter:m1:doseRateMsvDay', 0.5, 'mSv/day', 'dosimeter · synthetic'],
+      ['dosimeter:m1:bfoDose30dMgyEq', 95, 'mGy-Eq', 'dosimeter · synthetic'],
+    ])
+  })
+
   it.each([
     ['bracelet', { hr_bpm: 63 }, ['bracelet:m1:heartRateBpm', 63, 'bpm', 'bracelet · synthetic']],
     ['thermometer', { temp_c: 36.8 }, ['thermometer:m1:bodyTempC', 36.8, '°C', 'thermometer · synthetic']],
-    ['dosimeter', { dose_rate_msv_day: 0.5 }, ['dosimeter:m1:doseRateMsvDay', 0.5, 'mSv/day', 'dosimeter · synthetic']],
   ])('a %s message is stored with its label', async (id, fields, expected) => {
     expect(await store(id, fields)).toEqual([expected])
   })

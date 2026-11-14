@@ -19,6 +19,7 @@ const INDICATORS: Indicator[] = [
   'cabinTempC',
   'cabinHumidityPct',
   'doseRateMsvDay',
+  'bfoDose30dMgyEq',
 ]
 const THRESHOLDS = ['below', 'above', 'aboveBaselinePercent'] as const
 const TEXT_FIELDS = ['what', 'howDecided', 'next'] as const
