@@ -1,4 +1,4 @@
-import { STALE_AFTER_MS, type Indicator, type Status } from './rules'
+import { STALE_AFTER_MS, type Indicator, type Rule, type Status } from './rules'
 
 export type ReadingSpec =
   | {
@@ -32,6 +32,10 @@ export interface LatestReading {
   recordedAt?: string
   /** Only when a value or text is shown. */
   source?: 'manual' | 'synthetic' | 'in-app test'
+  /** Only for caution and warning: the row that decided it. */
+  rule?: Rule
+  /** The indicator has no rule rows, so its state is not a judgement. */
+  unrated?: true
 }
 
 /** One row per "Latest readings" tile, in display order (ideas/mockups/01-body-map.png). */

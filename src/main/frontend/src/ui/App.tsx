@@ -1,11 +1,13 @@
 import { useCallback, useEffect } from "react";
 import { AppHeader } from "./AppHeader";
 import { CheckInForm } from "./CheckInForm";
+import { GroundLinkPill } from "./GroundLinkPill";
 import { HazardLens } from "./HazardLens";
 import { LatestReadings } from "./LatestReadings";
 import { PvtCard } from "./PvtCard";
 import { PvtTest } from "./PvtTest";
 import { StatusBar } from "./StatusBar";
+import { SurgeonPacket } from "./SurgeonPacket";
 import { SystemDetail } from "./SystemDetail";
 import { SystemStatusList } from "./SystemStatusList";
 import { TodaysRoutine } from "./TodaysRoutine";
@@ -42,8 +44,15 @@ export function App() {
   return (
     <div className="app">
       <AppHeader />
-      <StatusBar online={online} pending={pending} />
-      {route.kind === "pvt" ? (
+      <div className="pill-row">
+        <StatusBar online={online} pending={pending} />
+        <GroundLinkPill current={route.kind === "packet"} />
+      </div>
+      {route.kind === "packet" ? (
+        <main>
+          <SurgeonPacket />
+        </main>
+      ) : route.kind === "pvt" ? (
         <main>
           <PvtTest onSaved={refreshAll} />
         </main>

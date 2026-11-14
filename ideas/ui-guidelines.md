@@ -142,7 +142,7 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 ## 5. Components
 
 ### App header
-Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, icon buttons on the right: theme toggle (moon in light, sun in dark) and "Add entry" (+). Optional context pills sit under it on tablet layouts (crew, flight day, ground delay).
+Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, icon buttons on the right: theme toggle (moon in light, sun in dark) and "Add entry" (+). Context pills sit in one wrapping row under it on every layout and screen: the connection pill, then the ground-link pill (#19). Crew and flight-day pills are not built.
 
 ### Brand mark and splash
 - **Ring:** a 270° arc in `--color-ring` and a 60° arc in `--color-text`, round caps (canvas geometry). The arc was red on the canvas, then blue; blue now means level 1 only.
@@ -220,6 +220,15 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **What next:** the rule's next step on an inset.
 - **Who to involve:** the four tiers (Self-care, CMO, Medical conference, Urgent ground) as outline tiles in a 2 × 2 grid; the rule's tier is the inverse fill, weight 700, with `aria-current`. Never a level colour.
 
+### Surgeon packet (built: #19)
+- **Route:** `#/packet`, opened from the ground-link pill. "← Home" (underlined link) goes back and focuses the "Body systems" heading; opening the screen focuses its heading once. Under the heading a muted line with `PrivateIcon`: "Shared with flight medicine only · Mars transit, one-way delay 14 min 05 s (demo value)".
+- **Columns** (`.layout`): left the "Last packet · store-and-forward" card above the "Next packet · contents" card; right the "Crew note (optional)" card and the send buttons. On phones everything stacks in that order.
+- **Timeline:** four steps (Packet built, Queued for uplink, In transit or Arrived, Earliest reply), each a 36 px dot with the step icon, the name (700; 500 when pending) and a detail with times in `.num`. Done is a solid `--color-text` ring with a filled dot, current a dashed ring with an arrow and `aria-current="step"`, pending an `--color-edge` ring with dots and muted text; each step also has its state word, visually hidden. The steps sit on one line joined by a 2 px `--color-edge` rule, and stack vertically below 600 px. The timeline is not a health status: neutral tokens only, never a level colour. A muted line under it gives the round trip and "Don't wait for the ground on anything in "What next": your on-board actions already apply."
+- **Contents table:** columns Item, Status, Value, Source with uppercase muted column labels and rows divided by `--color-divider`. Status is the level badge; a flagged row (caution or warning today) stacks the badge, the dashed rule tag ("rule · SPO-01") and the tier as a neutral text-height pill ("CMO"). Value is `.num` plus unit and a muted " · 10 min ago" (" · data 1 d old" when stale). Source is the source tag. Below 600 px each row stacks: item and status, then value and source, the column labels visually hidden.
+- **Not rated:** a value whose indicator has no rule rows shows "—" with the visually hidden text "Not rated", never "✓ Nominal": no rule judged it. A synthetic placeholder shows "—" "No status"; a missing value "—" "No reading" with the "No data" badge.
+- **Crew note:** a textarea inset (`--color-inset`) with the 1 px control edge and 12 px radius, at most 500 characters, and a right-aligned muted `.num` counter ("79 / 500").
+- **Inline confirm:** "Send packet" (primary) is replaced by "Confirm send · arrives ~07:45" (primary, focused) or "Confirm send · waits for ground link" offline, and "Cancel" (secondary), 18 px apart. Both are disabled while saving. A failed save shows "Packet not saved. Try again." (`role="alert"`, body text, no icon or colour) under the buttons.
+
 ### Field tile (forms)
 - **Structure:** a tile is the field. Its `<label>` wraps the uppercase label, the "/ unit" suffix and the input. The input is transparent DM Mono at value size, so the tile reads like a metric tile being filled in.
 - **Edge and focus:** a 1 px `--color-edge` border (3.20:1 light, 4.53:1 dark), and focus shows a 2 px `--color-focus` ring around the whole tile. Inside a card the tile is inset (`--color-inset`) and the edge switches to `--color-edge-on-surface` (3.57:1 light, 4.76:1 dark).
@@ -249,10 +258,11 @@ Routing is a separate, neutral outline pill (each level has a default, a rule ro
 - **Source tag:** a small outline tag ("BLE · simulated", "manual", "EDA replay").
 - **Rule tag:** a dashed outline ("rule · PVT slower than baseline"). It explains why an item was added; it is not a level.
 - **Connection and sync:** a neutral pill. Online with nothing waiting is quiet muted text; offline shows a cloud-off icon and "Offline · 2 waiting to sync". Being offline is not a health status.
+- **Ground link (built: #19):** a context pill that is a link (`a.pill.pill--link`) to the surgeon packet, beside the connection pill: `GroundLinkIcon` at 18 px and "Ground link: one-way delay **14 min 05 s** (demo)", the value bold and never broken across lines. At least 52 px high and not underlined: the outline is the link cue. On the packet screen it is the inverse fill with `aria-current="page"`, like a selected nav item. Its accessible name starts "Surgeon packet." so the destination is announced.
 
 ### Icons
 
-**Library: [Tabler Icons](https://tabler.io/icons), outline set** (`@tabler/icons-react` 3.50.0, MIT, 5,000+ icons) [I1]. It is the same rounded 24 px line style as the canvas icons, and of the line libraries it covers the most health and body concepts. The full vocabulary, rendered: [mockups/icons.png](mockups/icons.png). The sheet has no source in the repo, so icons added after it (`ChevronIcon`: chevron = "opens detail", #9) are not in it.
+**Library: [Tabler Icons](https://tabler.io/icons), outline set** (`@tabler/icons-react` 3.50.0, MIT, 5,000+ icons) [I1]. It is the same rounded 24 px line style as the canvas icons, and of the line libraries it covers the most health and body concepts. The full vocabulary, rendered: [mockups/icons.png](mockups/icons.png). The sheet has no source in the repo, so icons added after it (`ChevronIcon`: chevron = "opens detail", #9; `StepDoneIcon`, `StepCurrentIcon`, `StepPendingIcon`: a timeline step done, current or pending, #19) are not in it. `StepDoneIcon` is Tabler's `circle-filled`, the one filled icon in the app: a check would read as the ✓ of Nominal on the same screen.
 
 - **Import by concept from [`src/ui/icons.tsx`](../src/main/frontend/src/ui/icons.tsx)**, never from `@tabler/icons-react` directly: `RespiratoryIcon`, `CautionIcon`, `Spo2Icon`, `GroundLinkIcon`. One concept has one icon everywhere, and one icon has one meaning [S1 V2 10010/10011]. A new concept is one export line there, plus a row in the sheet.
 - **Defaults:** every icon is `aria-hidden` and 22 px. The word next to it, or the button's `aria-label`, carries the meaning. Sizes are 18 px in badges and pills, 20 px in navigation, 22 px in tiles and 30 px for the header "add".

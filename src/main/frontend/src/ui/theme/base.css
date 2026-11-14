@@ -417,6 +417,40 @@ ul.tile-grid {
   border-color: var(--color-accent);
 }
 
+/* Context pills under the header on every screen: connection, then ground link */
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pill-row > .pill {
+  align-self: center;
+}
+
+/* A context pill that opens a screen: the outline is the cue, so no underline; inverse when it is the current screen */
+.pill--link {
+  min-height: var(--target-min);
+  color: inherit;
+  text-decoration: none;
+}
+
+.pill--link:hover {
+  color: inherit;
+  border-color: var(--color-text);
+}
+
+.pill--link[aria-current='page'] {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+  border-color: transparent;
+}
+
+.pill--link b {
+  white-space: nowrap;
+}
+
 .tag {
   display: inline-block;
   padding: 0 var(--space-2);

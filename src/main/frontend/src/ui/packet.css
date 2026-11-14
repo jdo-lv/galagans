@@ -1,0 +1,239 @@
+/* Surgeon packet screen (issue #19, mock docs/features/img/19-mock.png). Colours and sizes: ideas/ui-guidelines.md.
+   The timeline is not a health status: neutral tokens only, never a level colour. */
+.packet-home {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+}
+
+.packet-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.packet-head h2:focus {
+  outline: none;
+}
+
+.packet-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* Centres the 18 px icon on the first line of text */
+.packet-privacy .tabler-icon {
+  margin-top: 2px;
+}
+
+/* Last packet timeline: four steps on one line joined by an edge-coloured rule, vertical on phones */
+ol.packet-steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-2) 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+/* The rule runs from the first dot's centre to the last one's, behind the dots */
+.packet-steps::before {
+  content: '';
+  position: absolute;
+  left: 12.5%;
+  right: 12.5%;
+  top: 17px;
+  border-top: 2px solid var(--color-edge);
+}
+
+.packet-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  text-align: center;
+}
+
+.packet-step__dot {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--color-text);
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+.packet-step__name {
+  font-weight: 700;
+}
+
+.packet-step--current .packet-step__dot {
+  border-style: dashed;
+}
+
+.packet-step--pending {
+  color: var(--color-text-muted);
+}
+
+.packet-step--pending .packet-step__dot {
+  border-color: var(--color-edge);
+}
+
+.packet-step--pending .packet-step__name {
+  font-weight: 500;
+}
+
+@media (max-width: 599px) {
+  ol.packet-steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .packet-steps::before {
+    left: 17px;
+    right: auto;
+    top: 18px;
+    bottom: 18px;
+    border-top: 0;
+    border-left: 2px solid var(--color-edge);
+  }
+
+  .packet-step {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    column-gap: var(--space-3);
+    align-items: center;
+    text-align: left;
+  }
+
+  .packet-step__dot {
+    grid-row: span 2;
+  }
+}
+
+/* Next packet contents: uppercase muted column labels, rows divided like the body-system list */
+.packet-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.packet-table th,
+.packet-table td {
+  padding: var(--space-3) var(--space-2) var(--space-3) 0;
+  border-bottom: 1px solid var(--color-divider);
+  text-align: left;
+  vertical-align: top;
+}
+
+.packet-table thead th {
+  padding-block: var(--space-2);
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.packet-table tbody th {
+  font-weight: 400;
+}
+
+.packet-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+/* Badge, rule tag and tier pill stacked */
+.packet-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+/* The tier is a label, not a target, so it keeps the pill shape at text height */
+.packet-tier {
+  min-height: 0;
+  padding: 0 var(--space-3);
+}
+
+/* Crew note: an inset field with the control edge (field tile rules, ui-guidelines §5) */
+.packet-note {
+  display: block;
+  width: 100%;
+  min-height: 140px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-edge);
+  border-radius: var(--radius-item);
+  background: var(--color-inset);
+  color: var(--color-text);
+  font: inherit;
+  resize: vertical;
+}
+
+.packet-counter {
+  margin-top: var(--space-1);
+  text-align: right;
+}
+
+.packet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-targets);
+}
+
+/* The primary button spans the width on phones only, like .stack > .button-primary */
+.packet-actions > button {
+  flex: 1 1 auto;
+}
+
+@media (min-width: 600px) {
+  .packet-actions > button {
+    flex: 0 1 auto;
+  }
+
+  .packet-actions > .button-primary {
+    min-width: 240px;
+  }
+}
+
+/* Phones: each row stacks, item and status, then value and source */
+@media (max-width: 599px) {
+  .packet-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .packet-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-divider);
+  }
+
+  .packet-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .packet-table tbody th,
+  .packet-table tbody td {
+    padding: 0;
+    border: 0;
+  }
+
+  .packet-table tbody tr > :nth-child(even) {
+    justify-self: end;
+  }
+
+  .packet-status {
+    align-items: flex-end;
+  }
+}

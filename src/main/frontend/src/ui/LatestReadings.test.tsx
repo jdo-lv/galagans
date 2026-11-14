@@ -12,7 +12,7 @@ import { mockReadings } from '../infrastructure/mockReadings'
 import rules from '../infrastructure/rules.json'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { mockStatuses } from '../infrastructure/mockStatuses'
-import { pvt, setup as setupApp } from '../test/renderApp'
+import { packetFakes, pvt, setup as setupApp } from '../test/renderApp'
 import { App } from './App'
 import { ServicesProvider } from './ServicesContext'
 
@@ -29,15 +29,17 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
   const gateway = new FakeGateway()
   const ruleSource = new FakeRuleSource(rules as Rule[])
   const synchronizer = new SyncService(repository, gateway, connectivity)
+  const readingsReader = new LatestReadingsReader(ruleSource, repository, () => clock.now, mockReadings)
   const services = {
     repository,
     connectivity,
     synchronizer,
     recorder: new CheckInRecorder(repository, synchronizer, undefined, () => clock.now),
     statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now),
-    readingsReader: new LatestReadingsReader(ruleSource, repository, () => clock.now, mockReadings),
+    readingsReader,
     routineReader: new RoutineReader(repository, () => clock.now),
     random: () => 0,
+    ...packetFakes(readingsReader, connectivity, () => clock.now).services,
   }
   return {
     clock,

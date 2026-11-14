@@ -6,11 +6,16 @@ export const systemHref = (system: string) => PREFIX + encodeURIComponent(system
 
 export const PVT_HASH = '#/pvt'
 
-export type Route = { kind: 'home' } | { kind: 'system'; system: string } | { kind: 'pvt' } | { kind: 'unknown' }
+export const PACKET_HREF = '#/packet'
+
+export type Route = { kind: 'home' } | { kind: 'system'; system: string } | { kind: 'pvt' } | { kind: 'packet' } | { kind: 'unknown' }
+
+const LEAVES_TO_HOME: Route['kind'][] = ['system', 'pvt', 'packet']
 
 export function parseHash(hash: string): Route {
   if (hash === '' || hash === '#' || hash === '#/') return { kind: 'home' }
   if (hash === PVT_HASH) return { kind: 'pvt' }
+  if (hash === PACKET_HREF) return { kind: 'packet' }
   const rest = hash.startsWith(PREFIX) ? hash.slice(PREFIX.length) : ''
   if (rest === '' || rest.includes('/')) return { kind: 'unknown' }
   try {
@@ -21,7 +26,7 @@ export function parseHash(hash: string): Route {
 }
 
 /**
- * The screen from `location.hash`. `returnedHome` is true when the user came back from a detail or the PVT,
+ * The screen from `location.hash`. `returnedHome` is true when the user came back from a detail, the PVT or the packet,
  * so Home can move focus; a redirect from an unknown route doesn't count.
  */
 export function useHashRoute(): { route: Route; returnedHome: boolean; goHome: () => void } {
@@ -31,7 +36,7 @@ export function useHashRoute(): { route: Route; returnedHome: boolean; goHome: (
     const onChange = () =>
       setState((previous) => {
         const route = parseHash(window.location.hash)
-        return { route, returnedHome: route.kind === 'home' && (previous.route.kind === 'system' || previous.route.kind === 'pvt') }
+        return { route, returnedHome: route.kind === 'home' && LEAVES_TO_HOME.includes(previous.route.kind) }
       })
     window.addEventListener('hashchange', onChange)
     return () => window.removeEventListener('hashchange', onChange)
