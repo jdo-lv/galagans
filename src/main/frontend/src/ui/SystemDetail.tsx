@@ -52,10 +52,10 @@ function DetailBody({ detail, now, headingRef }: { detail: Detail; now: Date; he
         )}
         {!rule && <p>No caution or warning now.</p>}
       </div>
-      {rule ? (
-        <div className="layout">
-          <div className="stack">
-            {chart}
+      <div className="layout">
+        <div className="stack">
+          {chart}
+          {rule && (
             <Card title="Explanation">
               <dl className="status-explanation">
                 {(
@@ -78,7 +78,9 @@ function DetailBody({ detail, now, headingRef }: { detail: Detail; now: Date; he
                 </div>
               </dl>
             </Card>
-          </div>
+          )}
+        </div>
+        {rule && (
           <div className="stack">
             <Card title="What next">
               <p className="detail-next">{rule.next}</p>
@@ -93,10 +95,8 @@ function DetailBody({ detail, now, headingRef }: { detail: Detail; now: Date; he
               </ol>
             </Card>
           </div>
-        </div>
-      ) : (
-        chart
-      )}
+        )}
+      </div>
     </>
   )
 }
