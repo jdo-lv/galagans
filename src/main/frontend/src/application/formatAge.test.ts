@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatAge, formatOldAge, formatStaleAge } from './formatAge'
+import { formatAge, formatOldAge, formatStaleAge, formatTime } from './formatAge'
 
 const now = new Date('2026-11-14T12:00:00Z')
 const before = (seconds: number) => new Date(now.getTime() - seconds * 1000).toISOString()
@@ -26,5 +26,12 @@ describe('formatAge', () => {
     expect(formatOldAge(before(24 * 3600), now)).toBe('1 d old')
     expect(formatOldAge(before(2 * 3600), now)).toBe('2 h old')
     expect(formatStaleAge(before(24 * 3600), now)).toBe('data 1 d old')
+  })
+})
+
+describe('formatTime', () => {
+  it('AC23: local time as zero-padded 24-h HH:MM', () => {
+    expect(formatTime(new Date(2026, 10, 14, 7, 5).toISOString())).toBe('07:05')
+    expect(formatTime(new Date(2026, 10, 14, 23, 59).toISOString())).toBe('23:59')
   })
 })

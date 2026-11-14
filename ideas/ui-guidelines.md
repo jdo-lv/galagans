@@ -63,7 +63,7 @@ Components use these names, not the hex values.
 | `--color-inset` | `#CFCFCF` | `#1B1B1B` | Recessed areas inside a surface: field tiles in a card, explanations |
 | `--color-text-muted-on-inset` | `#52574E` | `#868375` | Muted text on an inset inside a card: stale values on metric tiles (the "Muted on background" pair in §2.4) |
 | `--color-ring` | `#726F6C` | `#868375` | Brand ring track, nominal ring segments |
-| `--color-accent` | `#1651B6` | `#7FA6F0` | Brand arc, links on the background, focus ring, "due" counter, selection in charts |
+| `--color-accent` | `#1651B6` | `#7FA6F0` | Brand arc, links on the background, focus ring, "due" counter, due routine row outline, selection in charts |
 | `--color-link-on-surface` | `#1651B6` | `#DADADA` | Links on a surface (always underlined) |
 | `--color-inverse-bg` / `--color-inverse-text` | `#1B1B1B` / `#DADADA` | `#DADADA` / `#1B1B1B` | Primary button, selected nav item, selected tier on the detail screen |
 | `--color-feature-1` / `--color-on-feature-1` | `#868375` / `#1B1B1B` | same | Featured tile 1 (exercise) |
@@ -117,7 +117,7 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 - **Why 16 px minimum.** On an iPad-class screen one CSS pixel is about 0.19 mm (our assumption: 132 CSS px per inch). Inter's capital letters are 0.727 em tall, so 16 px gives 2.2 mm, about 0.25° at 50 cm, which is NASA's minimum character height [S1 Table 21]. The canvas labels at 11–13 px are below it.
 - **Why 28 px values.** DM Mono at 28 px gives capitals of about 3.7 mm, over 0.4° at 50 cm: the preferred size, which NASA asks for labels and critical values [S1 V2 10049, V2 10050, V2 10066].
 - **Uppercase** only for labels of three words or fewer. Sentences use sentence case. **Units keep their own case** ("HEART RATE / bpm", "WATER / mL", "SLEEP / h"): uppercasing turns h into H and mL into ML.
-- **Numbers** always in DM Mono with `font-variant-numeric: tabular-nums`, so columns line up and digits don't jump. Inside running text, wrap the number in `.num` ("SpO₂ <span class=num>96</span> %").
+- **Numbers** always in DM Mono with `font-variant-numeric: tabular-nums`, so columns line up and digits don't jump. Inside running text, wrap the number in `.num` ("SpO₂ <span class=num>96</span> %"). Exception: a routine row's right-hand text sits whole in `.num`, words included ("done 08:05"), so the column lines up like a schedule (issue #10).
 
 ## 4. Layout, spacing and shape
 
@@ -125,7 +125,7 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 - **Gaps:** 16 px between static cards (canvas 14 px, moved onto the 4 px grid); **18 px between touch targets**.
 - **Touch targets:** at least 52 × 52 px. On an iPad-class screen that is 10 mm, and 18 px is 3.4 mm, meeting NASA's 9.5 mm targets with 3.2 mm gaps [S2 §10.4.2.21]. The canvas's 44 px icon buttons keep their look but get a 52 px hit area.
 - **Radii:** 16 px cards and tiles, 12 px items inside a card (nav items), fully round pills and badges.
-- **Grid:** phone, one or two columns (canvas). Tablet and laptop, content at most 1200 px wide; the home screen puts the body-systems card beside a 380 px column that holds Latest readings above the Check-in card (mockup 01), and stacks them below 860 px. Tile grids use tiles at least 150 px wide (two columns on a phone, like the canvas).
+- **Grid:** phone, one or two columns (canvas). Tablet and laptop, content at most 1200 px wide; the home screen puts the body-systems card beside a 380 px column that holds Today's routine, Latest readings and the Check-in card, in that order (mockup 01), and stacks them below 860 px. Tile grids use tiles at least 150 px wide (two columns on a phone, like the canvas).
 - **Critical information is visible without scrolling** [S1 V2 10037]; navigation is at most 2–3 levels deep.
 - **Motion:** 0.25 s colour transitions on theme change (canvas), none with `prefers-reduced-motion`. Nothing blinks or pulses.
 
@@ -153,6 +153,13 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Missing:** "—" with the accessible text "No reading", and no unit, age or tag. **Stale** (older than the metric's expected interval): the value and unit in `--color-text-muted-on-inset` and the age spelled out ("8 d old"), with the icon and no status colour.
 - **Placeholder tile:** a reading the app can't take yet shows synthetic text and unit with the tag "synthetic", no data age and no badge (issue #7).
 - **Status:** an off-nominal tile shows a status badge in place of the icon. The tile surface itself never changes colour.
+
+### Today's routine (built: issue #10)
+- **Card:** a `card` with the uppercase `card-heading` "Today's routine"; one row per item, separated by `--color-divider`. The right-hand text, words included, is one `.num` span.
+- **Upcoming and missed:** muted row with the window ("07:00–09:00") or "not answered", and no button.
+- **Due:** a 1 px `--color-accent` outline in `--radius-item`, no fill, and a secondary "Start · ~<estimate>" button (the screen's one primary button stays "Save check-in"). Never red or yellow.
+- **Done:** "done HH:MM" with no glyph; ✓ stays Nominal.
+- **Placeholder row:** the label with a "synthetic" tag under it and the muted detail on the right; no state, button or glyph, the same at every time of day.
 
 ### Featured tile
 - **Use:** a tall tile on `--color-feature-1` or `--color-feature-2` with title, day and up to three value + unit lines, for process summaries such as exercise minutes and sleep hours.

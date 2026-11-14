@@ -2,9 +2,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CheckInRecorder } from '../application/CheckInRecorder'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
+import { RoutineReader } from '../application/RoutineReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import type { CheckIn } from '../domain/checkIn'
+import type { RoutinePlaceholder } from '../domain/routine'
 import type { Placeholder, Rule } from '../domain/rules'
 import ruleRows from '../infrastructure/rules.json'
 import { App } from '../ui/App'
@@ -25,6 +27,7 @@ export function setup({
   online = true,
   placeholders = [] as Placeholder[],
   rules = ruleRows as Rule[],
+  routinePlaceholders = [] as RoutinePlaceholder[],
 } = {}) {
   const clock = { now: new Date(now) }
   const repository = new FakeRepository()
@@ -41,6 +44,7 @@ export function setup({
     recorder: new CheckInRecorder(repository, synchronizer, undefined, () => clock.now),
     statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now, placeholders),
     readingsReader: new LatestReadingsReader(ruleSource, repository, () => clock.now),
+    routineReader: new RoutineReader(repository, () => clock.now, routinePlaceholders),
   }
   return {
     clock,
@@ -48,6 +52,7 @@ export function setup({
     gateway,
     ruleSource,
     statusReader: services.statusReader,
+    routineReader: services.routineReader,
     renderApp: () =>
       render(
         <ServicesProvider services={services}>
