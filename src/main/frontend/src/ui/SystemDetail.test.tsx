@@ -2,12 +2,11 @@ import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
-import type { Rule } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
-import ruleRows from '../infrastructure/rules.json'
+import { RULES } from '../test/rules'
 import { pvt, reading, setup as baseSetup, submitSpo2 } from '../test/renderApp'
 
-const [SPO01, SPO02] = ruleRows as Rule[]
+const [SPO01, SPO02] = RULES
 const NOW = '2026-11-14T09:30:00Z'
 const MIN = 60_000
 
@@ -372,7 +371,7 @@ describe('Cognition detail (#17)', () => {
   const cog = (name: string) => within(detail('Cognition')).getByRole('region', { name })
   const cogChart = () => detail('Cognition').querySelector('svg[role="img"]') as SVGSVGElement
   const cogPoints = () => [...cogChart().querySelectorAll('circle.chart-point')]
-  const COG01 = (ruleRows as Rule[]).find((r) => r.id === 'COG-01')!
+  const COG01 = RULES.find((r) => r.id === 'COG-01')!
   const week = () => [at('2026-11-10T09:00:00Z', 268), at('2026-11-14T09:20:00Z', 312)]
 
   it('AC12: caution header, explanation, what next and the CMO tier', async () => {
@@ -401,7 +400,7 @@ describe('Cognition detail (#17)', () => {
       '268 ms · nominal · 10 Nov 09:00 UTC · in-app test',
       '312 ms · caution · 14 Nov 09:20 UTC · in-app test',
     ])
-    expect(cogChart()).toHaveTextContent('COG-01 · > 305 ms caution')
+    expect(cogChart()).toHaveTextContent('COG-01 · > 304.75 ms caution')
     expect([...cogChart().querySelectorAll('line.chart-grid')].map((l) => l.getAttribute('data-value'))).toEqual([
       '200', '250', '300', '350', '400',
     ])

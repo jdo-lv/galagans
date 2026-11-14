@@ -41,7 +41,7 @@
     "unit": "ms",
     "validMin": 130,
     "validMax": 10000,
-    "above": 305,
+    "aboveBaselinePercent": 15,
     "status": "caution",
     "tier": "CMO",
     "what": "Your PVT median is above 305 ms (synthetic baseline 265 ms + 15 %).",
