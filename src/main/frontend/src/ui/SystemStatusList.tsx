@@ -1,7 +1,8 @@
 import { useId } from 'react'
 import { formatAge, formatStaleAge } from '../application/formatAge'
 import type { SystemStatus } from '../domain/rules'
-import { WarningIcon } from './icons'
+import { ChevronIcon, WarningIcon } from './icons'
+import { systemHref } from './useHashRoute'
 import './status.css'
 import type { StatusListState } from './useSystemStatuses'
 
@@ -25,48 +26,37 @@ export function Badge({ state }: { state: SystemStatus['state'] }) {
   }
 }
 
-// Routing is a neutral pill and the rule id a tag (ui-guidelines §5); urgency stays on the badge.
-const CHIP_CLASS: Partial<Record<string, string>> = { 'Who to involve': 'pill', Rule: 'tag' }
-
 function StatusRow({ status, now }: { status: SystemStatus; now: Date }) {
-  const { state, rule, recordedAt } = status
+  const { state, recordedAt } = status
   const age = recordedAt && (state === 'stale' ? formatStaleAge(recordedAt, now) : formatAge(recordedAt, now))
+  const head = (
+    <div className="status-head">
+      <div>
+        <div className="status-system">{status.system}</div>
+        {status.value !== undefined && (
+          <div className="status-sub">
+            <span>
+              {status.label} <span className="num">{status.value}</span> {status.unit}
+            </span>
+            {' · '}
+            <span>{`${age} · ${status.source}`}</span>
+          </div>
+        )}
+        {status.detail !== undefined && <div className="status-sub">{`${status.detail} · ${status.source}`}</div>}
+      </div>
+      <Badge state={state} />
+    </div>
+  )
+  // Only flagged rows open the detail (F5); quiet rows stay plain.
   return (
     <li className={`status-${state}`}>
-      <div className="status-head">
-        <div>
-          <div className="status-system">{status.system}</div>
-          {status.value !== undefined && (
-            <div className="status-sub">
-              <span>
-                {status.label} <span className="num">{status.value}</span> {status.unit}
-              </span>
-              {' · '}
-              <span>{`${age} · ${status.source}`}</span>
-            </div>
-          )}
-          {status.detail !== undefined && <div className="status-sub">{`${status.detail} · ${status.source}`}</div>}
-        </div>
-        <Badge state={state} />
-      </div>
-      {rule && (
-        <dl className="status-explanation">
-          {(
-            [
-              ['What', rule.what],
-              ['Why it matters', rule.why],
-              ['How decided', rule.howDecided],
-              ['What next', rule.next],
-              ['Who to involve', rule.tier],
-              ['Rule', rule.id],
-            ] as const
-          ).map(([term, text]) => (
-            <div key={term}>
-              <dt>{term}</dt>
-              <dd>{CHIP_CLASS[term] ? <span className={CHIP_CLASS[term]}>{text}</span> : text}</dd>
-            </div>
-          ))}
-        </dl>
+      {status.rule ? (
+        <a className="status-link" href={systemHref(status.system)}>
+          {head}
+          <ChevronIcon className="status-chevron" />
+        </a>
+      ) : (
+        head
       )}
     </li>
   )

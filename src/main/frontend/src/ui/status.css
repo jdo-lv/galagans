@@ -80,3 +80,27 @@
   padding: var(--space-3) 0;
   color: var(--color-text-muted);
 }
+
+/* A flagged row opens its detail: the whole row is the target, the chevron is the link cue (ui-guidelines §5 exception to underlined links) */
+.status-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-item);
+}
+
+.status-link .status-head {
+  flex: 1;
+}
+
+.status-link:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.card a.status-link {
+  color: inherit;
+}
