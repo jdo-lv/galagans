@@ -9,6 +9,8 @@ The crew app now interprets a check-in. Each saved SpO₂ value is checked on th
 ### No data (nothing stored yet)
 ![No data](img/1-no-data.png)
 
+Since [#9](9-detail-screen.md) the explanation is no longer inline: a caution or warning row links to the detail screen, which shows it. The screenshots below predate that change.
+
 ### Nominal (SpO₂ 96)
 Quiet: muted "✓ Nominal", no fill, no explanation.
 ![Nominal](img/1-nominal.png)

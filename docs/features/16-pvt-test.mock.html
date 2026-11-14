@@ -1,0 +1,59 @@
+<!doctype html>
+<!-- Static mock for issue #16 (PVT reaction test), built on the app's tokens and classes. Screenshot: tools/cdp.mjs at 1280 px. -->
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/tokens.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/base.css">
+<style>
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gap-cards);align-items:start}
+.cap{color:var(--color-text-muted);margin-bottom:var(--space-2)}
+.target{display:grid;place-items:center;width:100%;min-height:300px;border:1px solid var(--color-edge);border-radius:var(--radius-card);background:var(--color-inset);color:var(--color-text);font:inherit}
+.target .value{font-size:var(--text-hero)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:var(--space-3)}
+.metric-tile{list-style:none;background:var(--color-inset);border-radius:var(--radius-card);padding:var(--space-4) var(--space-5);display:flex;flex-direction:column;gap:var(--space-2)}
+dl.result{display:grid;grid-template-columns:auto auto;gap:var(--space-2) var(--space-4);margin:0}
+dl.result dt{color:var(--color-text-muted)} dl.result dd{margin:0;text-align:right}
+</style></head>
+<body><div class="app">
+<header class="app-header"><span></span><h1 class="wordmark">Health</h1><span></span></header>
+<div class="cols">
+  <div class="stack">
+    <p class="cap">Home: new card and tile</p>
+    <section class="card stack">
+      <h2 class="card-heading">Reaction test</h2>
+      <p>3 minutes. Every 4th day.</p>
+      <button class="button-secondary">Start reaction test</button>
+    </section>
+    <section class="card">
+      <h2 class="card-heading">Latest readings</h2>
+      <ul style="padding:0;margin:0"><li class="metric-tile">
+        <div class="row"><span><span class="value">268</span> <b>ms</b></span><span>⏱</span></div>
+        <div class="tile-label">Reaction time <span class="tile-label__suffix">/ 2 min ago</span></div>
+        <div><span class="tag">in-app test</span></div>
+      </li></ul>
+    </section>
+  </div>
+  <div class="stack">
+    <p class="cap">#/pvt while running</p>
+    <section class="card stack">
+      <div class="row"><h2 class="card-heading" style="margin:0">Reaction test</h2><span class="num">2:41 left</span></div>
+      <button class="target" aria-label="Respond"><span class="value">312</span></button>
+      <p class="muted">Tap the box or press Space as soon as the counter appears.</p>
+      <button class="button-secondary">Stop</button>
+    </section>
+  </div>
+  <div class="stack">
+    <p class="cap">#/pvt when finished (saved)</p>
+    <section class="card stack">
+      <h2 class="card-heading">Reaction test result</h2>
+      <dl class="result">
+        <dt>Median reaction time</dt><dd><span class="num">268</span> ms</dd>
+        <dt>Lapses (≥ 355 ms)</dt><dd class="num">1</dd>
+        <dt>False starts</dt><dd class="num">0</dd>
+        <dt>Responses</dt><dd class="num">41</dd>
+      </dl>
+      <p class="muted">Saved on this device · in-app test</p>
+      <button class="button-primary">Back to Home</button>
+    </section>
+  </div>
+</div>
+</div></body></html>

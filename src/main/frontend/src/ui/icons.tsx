@@ -11,6 +11,7 @@ import {
   IconCalendarEvent,
   IconCamera,
   IconChartLine,
+  IconChevronRight,
   IconCircleCheck,
   IconCircleDashed,
   IconCirclePlus,
@@ -158,5 +159,7 @@ export const PrivateIcon = /* @__PURE__ */ decorative(IconLock)
 export const OfflineIcon = /* @__PURE__ */ decorative(IconCloudOff)
 export const SyncIcon = /* @__PURE__ */ decorative(IconRefresh)
 export const AddIcon = /* @__PURE__ */ decorative(IconCirclePlus)
+/** "Opens the detail" on a list row. */
+export const ChevronIcon = /* @__PURE__ */ decorative(IconChevronRight)
 export const LightThemeIcon = /* @__PURE__ */ decorative(IconSun)
 export const DarkThemeIcon = /* @__PURE__ */ decorative(IconMoon)

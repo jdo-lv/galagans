@@ -1,7 +1,9 @@
-import { useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { formatAge, formatStaleAge } from '../application/formatAge'
+import { lensMark, type Hazard } from '../domain/hazards'
 import type { SystemStatus } from '../domain/rules'
-import { WarningIcon } from './icons'
+import { ChevronIcon, WarningIcon } from './icons'
+import { systemHref } from './useHashRoute'
 import './status.css'
 import type { StatusListState } from './useSystemStatuses'
 
@@ -25,67 +27,79 @@ export function Badge({ state }: { state: SystemStatus['state'] }) {
   }
 }
 
-// Routing is a neutral pill and the rule id a tag (ui-guidelines §5); urgency stays on the badge.
-const CHIP_CLASS: Partial<Record<string, string>> = { 'Who to involve': 'pill', Rule: 'tag' }
-
-function StatusRow({ status, now }: { status: SystemStatus; now: Date }) {
-  const { state, rule, recordedAt } = status
+function StatusRow({ status, now, lens }: { status: SystemStatus; now: Date; lens: Hazard | null }) {
+  const { state, recordedAt } = status
+  const mark = lensMark(lens, status.system, state)
   const age = recordedAt && (state === 'stale' ? formatStaleAge(recordedAt, now) : formatAge(recordedAt, now))
-  return (
-    <li className={`status-${state}`}>
-      <div className="status-head">
-        <div>
-          <div className="status-system">{status.system}</div>
-          {status.value !== undefined && (
-            <div className="status-sub">
-              <span>
-                {status.label} <span className="num">{status.value}</span> {status.unit}
-              </span>
-              {' · '}
-              <span>{`${age} · ${status.source}`}</span>
-            </div>
-          )}
-          {status.detail !== undefined && <div className="status-sub">{`${status.detail} · ${status.source}`}</div>}
-        </div>
-        <Badge state={state} />
+  const head = (
+    <div className="status-head">
+      <div>
+        <div className="status-system">{status.system}</div>
+        {status.value !== undefined && (
+          <div className="status-sub">
+            <span>
+              {status.label} <span className="num">{status.value}</span> {status.unit}
+            </span>
+            {' · '}
+            <span>{`${age} · ${status.source}`}</span>
+          </div>
+        )}
+        {status.detail !== undefined && <div className="status-sub">{`${status.detail} · ${status.source}`}</div>}
       </div>
-      {rule && (
-        <dl className="status-explanation">
-          {(
-            [
-              ['What', rule.what],
-              ['Why it matters', rule.why],
-              ['How decided', rule.howDecided],
-              ['What next', rule.next],
-              ['Who to involve', rule.tier],
-              ['Rule', rule.id],
-            ] as const
-          ).map(([term, text]) => (
-            <div key={term}>
-              <dt>{term}</dt>
-              <dd>{CHIP_CLASS[term] ? <span className={CHIP_CLASS[term]}>{text}</span> : text}</dd>
-            </div>
-          ))}
-        </dl>
+      <Badge state={state} />
+    </div>
+  )
+  // Only flagged rows open the detail (F5); quiet rows stay plain.
+  return (
+    <li className={mark ? `status-${state} lens-${mark}` : `status-${state}`}>
+      {status.rule ? (
+        <a className="status-link" href={systemHref(status.system)}>
+          {head}
+          <ChevronIcon className="status-chevron" />
+        </a>
+      ) : (
+        head
       )}
+      {mark === 'affected' && <span className="visually-hidden">Affected by {lens?.name}</span>}
     </li>
   )
 }
 
-export function SystemStatusList({ state }: { state: StatusListState }) {
+export function SystemStatusList({
+  state,
+  focusHeading = false,
+  lens = null,
+}: {
+  state: StatusListState
+  focusHeading?: boolean
+  lens?: Hazard | null
+}) {
   const headingId = useId()
+  const heading = useRef<HTMLHeadingElement>(null)
+
+  // Coming back from a detail lands on this heading.
+  useEffect(() => {
+    if (focusHeading) heading.current?.focus()
+  }, [focusHeading])
   return (
-    <section className="card" aria-labelledby={headingId}>
-      <h2 id={headingId} className="card-heading">
+    <section className="card systems" aria-labelledby={headingId}>
+      <h2 id={headingId} ref={heading} tabIndex={-1} className="card-heading">
         Body systems
       </h2>
       {state.kind === 'unavailable' && <p className="status-unavailable">Status unavailable</p>}
       {state.kind === 'ready' && (
         <ul className="status-list">
           {state.data.map((status) => (
-            <StatusRow key={status.system} status={status} now={state.now} />
+            <StatusRow key={status.system} status={status} now={state.now} lens={lens} />
           ))}
         </ul>
+      )}
+      {state.kind === 'ready' && lens && (
+        <p className="muted lens-note">
+          {lens.systems === 'all'
+            ? 'Lens on: all systems marked. Status is unchanged by the lens.'
+            : 'Lens on: affected systems marked, others dimmed. Status is unchanged by the lens.'}
+        </p>
       )}
     </section>
   )

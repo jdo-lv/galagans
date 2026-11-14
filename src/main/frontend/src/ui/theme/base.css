@@ -103,7 +103,7 @@ a:hover {
   color: var(--color-text-muted);
 }
 
-/* Home layout (mockup 01): systems panel beside a narrower check-in panel, stacked on narrow screens */
+/* Two-column screen layout (home, detail): main panel beside a 380 px panel, stacked on narrow screens */
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
@@ -114,6 +114,45 @@ a:hover {
 @media (max-width: 860px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Home (mockup 01): Body systems | Hazard lens | right column from 1200 px; below that the lens sits under
+   Body systems, and on phones everything stacks. Body systems always comes first. */
+.layout--home {
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'systems side'
+    'lens side';
+}
+
+.layout--home > .systems {
+  grid-area: systems;
+}
+
+.layout--home > .lens {
+  grid-area: lens;
+}
+
+.layout--home > .stack {
+  grid-area: side;
+}
+
+@media (min-width: 1200px) {
+  .layout--home {
+    grid-template-columns: minmax(0, 300px) minmax(0, 1fr) minmax(0, 380px);
+    grid-template-rows: auto;
+    grid-template-areas: 'systems lens side';
+  }
+}
+
+@media (max-width: 860px) {
+  .layout--home {
+    grid-template-rows: auto;
+    grid-template-areas:
+      'systems'
+      'lens'
+      'side';
   }
 }
 
@@ -416,4 +455,47 @@ ul.tile-grid {
 .badge--warning {
   background: var(--color-warning);
   color: var(--color-on-warning);
+}
+
+/* Today's routine rows (mockup 01) */
+ul.routine-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.routine-list > li {
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.routine-list > li:last-child {
+  border-bottom: 0;
+}
+
+.routine-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+}
+
+/* The outline replaces the divider; neutral accent, never red or yellow (ui-guidelines §2.3) */
+.routine-list > .routine-item--due {
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-item);
+  padding: var(--space-3);
+  margin: var(--space-2) 0;
+}
+
+/* On a narrow card the button drops under the label and stays on the right */
+.routine-item--due .button-secondary {
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.routine-item--upcoming,
+.routine-item--missed {
+  color: var(--color-text-muted);
 }

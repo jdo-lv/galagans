@@ -68,22 +68,23 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **What:** tapping a flagged item opens a screen with four answers: **what** changed, **why it matters**, **how the app decided** (the rule and its source), **what to do next**, plus the escalation tier with buttons "Share with CMO" / "Add to surgeon packet".
 - **Why:** it answers the challenge's five questions on every screen. NASA display guidance says to always explain what, why and what next.
 - **Needs:** F4. See mockup [02-detail.png](mockups/02-detail.png).
-- **Status:** a caution or warning row shows what, why, how decided, next, tier and rule id inline in the status list. Missing: the separate detail screen, trend chart and the "Share with CMO" / "Add to surgeon packet" buttons.
+- **Status:** a caution or warning row on home opens the system's detail screen (`#/systems/<system>`). It shows the status, a 7-day trend chart with the rule thresholds, what / why / how decided / source, what next, and the four escalation tiers with the rule's tier selected (issue #9). Missing: the adaptation corridor (F11) and the "Share with CMO" / "Add to surgeon packet" buttons.
 
 #### F6. Body map (home screen) · Must
 - **What:** a human figure plus a list of body systems, each with a status on the 0–5 [alert scale](alert-levels.md): nominal, to do, watch, check, treat or emergency.
 - **Why:** the challenge suggests a clickable human figure. One glance shows where attention is needed.
 - **How:** NASA display rules: quiet when all is fine; blue = input due, yellow/orange = caution band, red = emergency, **always with an icon and a word**, never color alone. Each value shows its unit, age and source ("4 min ago · simulated"). Missing data shows as "data 8 d old", never as a health alarm.
 - **Needs:** F4. See mockup [01-body-map.png](mockups/01-body-map.png).
-- **Status:** the "Body systems" list on home shows Respiratory (from SpO₂) as nominal, caution, warning, "No data", or "No recent data" with the data age when the reading is older than 24 h; source label "manual". The other nine systems of mockup 01 show synthetic nominal placeholder values labelled "synthetic" (`infrastructure/mockStatuses.ts`); a system drops its placeholder once a rule covers it. The "Latest readings" tiles show the newest heart rate, SpO₂, sleep and mood from manual check-ins with unit, data age and the tag "manual". SpO₂ carries the Respiratory caution or warning badge, a value older than 24 h looks stale, and a field never entered shows "—". Blood pressure and cabin CO₂ are synthetic tiles (`infrastructure/mockReadings.ts`). Missing: the human figure, rules for the other systems, hazard lens.
+- **Status:** the "Body systems" list on home shows Respiratory (from SpO₂) as nominal, caution, warning, "No data", or "No recent data" with the data age when the reading is older than 24 h; source label "manual". The other nine systems of mockup 01 show synthetic nominal placeholder values labelled "synthetic" (`infrastructure/mockStatuses.ts`); a system drops its placeholder once a rule covers it. The "Latest readings" tiles show the newest heart rate, SpO₂, sleep and mood from manual check-ins with unit, data age and the tag "manual". SpO₂ carries the Respiratory caution or warning badge, a value older than 24 h looks stale, and a field never entered shows "—". A seventh tile, "Reaction time", shows the latest PVT median tagged "in-app test" (F7, issue #16). Blood pressure and cabin CO₂ are synthetic tiles (`infrastructure/mockReadings.ts`). The human figure sits in the Hazard lens card (issue #14): six display-only labels (Cognition, Eyes, Lungs, Heart, Kidneys, Bone & muscle) that stay quiet when nominal and show the status badge for caution or warning. Missing: rules for the other systems, tapping a figure item to open its detail.
 
 ### Inputs for the demo
 
 #### F7. PVT reaction test · Must
 - **What:** the 3-minute reaction game, every 4th day.
 - **Why:** it's the only objective, in-app measure of thinking speed, and ISS crews already do it. It's also the live moment of the demo.
-- **How:** a target appears at random intervals; the app records reaction times, the median and "lapses" (> 500 ms).
+- **How:** a counter appears at random intervals (2–5 s) for 3 minutes; the app records reaction times, the median, "lapses" (≥ 355 ms) and false starts (< 130 ms) ([health-indicators.md](../research/health-indicators.md) §13 [S28][S30]).
 - **Needs:** F1 shell. Feeds F4.
+- **Status:** "Start reaction test" on home opens the 3-minute PVT-B at `#/pvt` (issue #16). It scores the median RT, lapses and false starts, and saves the result offline as a check-in labelled "in-app test", synced like any other. A "Reaction time" tile on home shows the latest median (stale after 4 days), and the routine's PVT row turns "done HH:MM". Stop, leaving the screen or going to the background saves nothing; a failed save offers "Try again". Missing: the Cognition rule (#17), KSS rating, ground-station storage of the PVT fields.
 
 #### F8. Device Simulator · Must (3 devices, 2 scenarios)
 - **What:** a second app that pretends to be every sensor: wrist bracelet (live heart rate, plus a "dock & export" batch of sleep, resting HR and HRV), pulse oximeter, environment node (cabin CO₂, temperature, humidity, noise), dosimeter (radiation). We use no real hardware.
@@ -119,6 +120,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **Why:** the five hazards are NASA's own framing and the first link judges published. It teaches the astronaut why each check exists.
 - **How:** a fixed table (hazard → systems → checks) and a highlight style on the body map. No new data.
 - **Needs:** F6.
+- **Status:** Implemented. A Hazard lens card on home (issue #14): five hazard toggles, a caption per hazard (what it does, the systems it affects, the checks that watch it, the source), and the body figure. The selected hazard marks its Body systems rows and figure labels and dims the rest, never dims a caution or warning, never changes a status, and is remembered on the device.
 
 #### F13. "Reporting is a win" · Must
 - **What:** logging a symptom counts as a completed check-in and never breaks a streak.
@@ -130,6 +132,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **What:** a summary for the doctor on Earth: flagged items, readings with sources, the astronaut's own notes, in standard FHIR format. A timeline shows when it leaves and when it arrives, e.g. "one-way delay 14 min 05 s".
 - **Why:** it makes the distance from Earth visible and shows the escalation path working.
 - **Needs:** F2, F5, F9. See mockup [03-surgeon-packet.png](mockups/03-surgeon-packet.png).
+- **Status:** The ground station receives packets at `POST /api/packets` (in memory, first write per id wins). Missing: crew screen and timeline (#19), ground view, FHIR format (F24).
 
 #### F15. Today's routine and smart questionnaires · Must (minimal)
 - **What:** one list of what's due today (check-in, PVT, exercise, fluids, evening workload). Rules can add a short step, always saying why: "Added because your PVT was slower than baseline".
@@ -137,6 +140,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **How (48 h):** the morning check-in, the PVT, and one rule-triggered KSS + sleep re-check.
 - **Needs:** F1, F4.
 - **More:** idea file "Questionnaires and how they're triggered"; mockup [06-questionnaire.png](mockups/06-questionnaire.png).
+- **Status:** The 'Today's routine' card on home shows the Morning check-in (07:00–09:00, device time) as upcoming, due with Start, done HH:MM or not answered, from the stored check-ins (a PVT result doesn't count as the morning check-in). The PVT row is real: "done HH:MM" when a PVT was done today, otherwise "every 4th day" (issue #16). Exercise, fluids and Bedford are synthetic placeholder rows (`infrastructure/mockRoutine.ts`). Missing: rule-triggered KSS + sleep re-check, windows on the mission clock and sleep shift, bundling, reminder banner, '● 1 due' counter, body-map data-age note for a missed check-in.
 
 #### F22. Check-and-act card · Must (4 cases)
 - **What:** on the detail screen of a flagged reading, three steps: (1) is the reading right? re-measure properly; (2) what in your own data may explain it (sleep, fluids, caffeine, cabin CO₂, symptoms); (3) what to do now, plus "Add to my next medical conference".

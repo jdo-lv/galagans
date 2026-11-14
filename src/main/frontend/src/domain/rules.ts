@@ -1,9 +1,12 @@
-export type Indicator = 'heartRateBpm' | 'spo2Percent' | 'sleepHours' | 'mood'
+export type Indicator = 'heartRateBpm' | 'spo2Percent' | 'sleepHours' | 'mood' | 'pvtMedianMs'
 
 export type Status = 'nominal' | 'caution' | 'warning'
 
 /** A value older than this shows as stale. Team heuristic from #1, not from a source. */
 export const STALE_AFTER_MS = 24 * 60 * 60 * 1000
+
+/** The detail chart shows readings from the last 7 days (issue #9). */
+export const CHART_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 
 /** One threshold row. Exactly one of `below` (value < below) or `above` (value > above). */
 export interface Rule {
@@ -45,4 +48,16 @@ export interface Placeholder {
   state: 'nominal'
   detail: string
   source: 'synthetic'
+}
+
+export interface ChartPoint {
+  recordedAt: string
+  value: number
+  status: Status | 'stale'
+}
+
+export interface SystemDetail {
+  status: SystemStatus
+  rules: Rule[]
+  points: ChartPoint[]
 }

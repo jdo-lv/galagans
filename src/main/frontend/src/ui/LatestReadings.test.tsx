@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CheckInRecorder } from '../application/CheckInRecorder'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
+import { RoutineReader } from '../application/RoutineReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import type { CheckIn } from '../domain/checkIn'
@@ -10,10 +11,12 @@ import type { Rule } from '../domain/rules'
 import { mockReadings } from '../infrastructure/mockReadings'
 import rules from '../infrastructure/rules.json'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
+import { mockStatuses } from '../infrastructure/mockStatuses'
+import { pvt, setup as setupApp } from '../test/renderApp'
 import { App } from './App'
 import { ServicesProvider } from './ServicesContext'
 
-const LABELS = ['SpO₂', 'Heart rate', 'Sleep', 'Mood', 'Blood pressure', 'Cabin CO₂']
+const LABELS = ['SpO₂', 'Heart rate', 'Sleep', 'Mood', 'Blood pressure', 'Cabin CO₂', 'Reaction time']
 
 const stored = (id: string, recordedAt: string, fields: Partial<CheckIn>): CheckIn => ({ id, recordedAt, symptoms: [], ...fields })
 
@@ -33,6 +36,8 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
     recorder: new CheckInRecorder(repository, synchronizer, undefined, () => clock.now),
     statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now),
     readingsReader: new LatestReadingsReader(ruleSource, repository, () => clock.now, mockReadings),
+    routineReader: new RoutineReader(repository, () => clock.now),
+    random: () => 0,
   }
   return {
     clock,
@@ -74,11 +79,11 @@ const tile = (label: string) => {
 describe('LatestReadings', () => {
   afterEach(() => vi.useRealTimers())
 
-  it('AC1: lists six tiles in READINGS order, Cabin CO₂ as a 1-h average', async () => {
+  it('AC1: lists the tiles in READINGS order (seven since #16), Cabin CO₂ as a 1-h average', async () => {
     setup().renderApp()
 
     const items = await tiles()
-    expect(items).toHaveLength(6)
+    expect(items).toHaveLength(7)
     expect(items.map((li) => LABELS.find((label) => li.textContent?.includes(label)))).toEqual(LABELS)
     expect(tile('Cabin CO₂').querySelector('.tile-label__suffix')).toHaveTextContent('(1-h avg)')
   })
@@ -250,7 +255,7 @@ describe('LatestReadings', () => {
     setFail(s, false)
     await submit({ spo2: 96 })
 
-    await waitFor(() => expect(within(panel()).getAllByRole('listitem')).toHaveLength(6))
+    await waitFor(() => expect(within(panel()).getAllByRole('listitem')).toHaveLength(7))
     expect(tile('SpO₂')).toHaveTextContent('96 %')
   })
 
@@ -286,16 +291,72 @@ describe('LatestReadings', () => {
     expect(s.gateway.sent).toHaveLength(0)
   })
 
-  it('AC20: the right column stacks Latest readings above the Check-in card', async () => {
+  it('AC19: the right column stacks Today\'s routine, Latest readings, the Reaction test card (#16) and the Check-in card', async () => {
     const { container } = setup().renderApp()
     await tiles()
 
     const layout = container.querySelector('main.layout')
-    const [systems, column, ...rest] = [...(layout?.children ?? [])]
+    // Hazard lens (#14) sits between Body systems and the right column.
+    const [systems, hazardLens, column, ...rest] = [...(layout?.children ?? [])]
     expect(rest).toHaveLength(0)
     expect(systems).toBe(screen.getByRole('region', { name: 'Body systems' }))
+    expect(hazardLens).toBe(screen.getByRole('region', { name: 'Hazard lens · NASA HRP five hazards' }))
     expect(column).toHaveClass('stack')
     expect(column.tagName).toBe('DIV')
-    expect([...column.children]).toEqual([panel(), screen.getByRole('region', { name: 'Check-in' })])
+    expect([...column.children]).toEqual([
+      screen.getByRole('region', { name: "Today's routine" }),
+      panel(),
+      screen.getByRole('region', { name: 'Reaction test' }),
+      screen.getByRole('region', { name: 'Check-in' }),
+    ])
+  })
+})
+
+describe('Reaction time tile (#16)', () => {
+  const DAY = 24 * 60 * 60_000
+  const NOW = '2026-11-14T09:30:00Z'
+  const ago = (ms: number) => new Date(Date.parse(NOW) - ms).toISOString()
+
+  it('AC29: shows the median, its age, the in-app test tag and an icon', async () => {
+    setup({ seed: [pvt('p', NOW, 268)] }).renderApp()
+
+    const items = await tiles()
+    expect(items).toHaveLength(7)
+    expect(items[6]).toBe(tile('Reaction time'))
+    expect(items[6]).toHaveTextContent('268 ms')
+    expect(items[6]).toHaveTextContent('Reaction time / just now')
+    expect(within(items[6]).getByText('in-app test')).toHaveClass('tag')
+    expect(items[6].querySelector('svg.metric-tile__icon')).not.toBeNull()
+  })
+
+  it('AC30: with no test shows "—" and "No reading"', async () => {
+    setup().renderApp()
+    await tiles()
+
+    expect(tile('Reaction time')).toHaveTextContent('—')
+    expect(within(tile('Reaction time')).getByText('No reading')).toHaveClass('visually-hidden')
+  })
+
+  it('AC31: older than 4 days looks stale', async () => {
+    setup({ seed: [pvt('p', ago(4 * DAY + 60_000), 268)] }).renderApp()
+    await tiles()
+
+    expect(tile('Reaction time')).toHaveClass('metric-tile--stale')
+    expect(tile('Reaction time')).toHaveTextContent('Reaction time / 4 d old')
+  })
+
+  it('AC32: exactly 4 days old is not stale', async () => {
+    setup({ seed: [pvt('p', ago(4 * DAY), 268)] }).renderApp()
+    await tiles()
+
+    expect(tile('Reaction time')).not.toHaveClass('metric-tile--stale')
+    expect(tile('Reaction time')).toHaveTextContent('Reaction time / 4 d ago')
+  })
+
+  it('AC33: the synthetic Cognition row stays until #17', async () => {
+    setupApp({ placeholders: mockStatuses, seed: [pvt('p', NOW, 300)] }).renderApp()
+
+    const list = await screen.findByRole('region', { name: 'Body systems' })
+    expect(await within(list).findByText('PVT 268 ms · within your baseline · synthetic')).toBeInTheDocument()
   })
 })
