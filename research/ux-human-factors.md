@@ -273,6 +273,7 @@ Applied in the restyled mockups (`ideas/mockups/src/base.css`, 2026-11-14; all 1
 - Card edge `#868375` (4.5:1 on `#1B1B1B`) fixes the 2.3:1 edge failure.
 - Selected and primary states use the design's pill (`#DADADA` on `#1B1B1B`), not yellow, so yellow only means caution. Rule-triggered items get a dashed tag, not yellow.
 - Simulator purple replaced by palette greys; nominal green dropped for the quiet muted style; architecture legend uses khaki / warm grey / blue tint / light grey (yellow left the legend on 2026-11-14: it means caution only, see [ui-guidelines.md](../ideas/ui-guidelines.md)).
+- Chart colours per health category (no yellow, orange, red or green), validated for colour-blind separation: [health-categories.md](../ideas/health-categories.md#chart-colours) (2026-11-14).
 
 ## Gaps and unverified items
 
