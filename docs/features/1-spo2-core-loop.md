@@ -40,6 +40,6 @@ Layout follows [01-body-map.png](../../ideas/mockups/01-body-map.png) ("Body sys
 | Red WARNING pill, not in the mockups | No mockup shows a warning; style from [ui-guidelines.md](../../ideas/ui-guidelines.md) §5 (status badge). |
 | Header with brand ring, "HEALTH" wordmark and theme toggle instead of the mockup's top bar of context pills | Canvas header from the guidelines; crew, mode and flight-day pills have no data yet. |
 | Text at least 16 px, inputs as field tiles, "Who to involve" as a pill and the rule id as a tag | Guidelines §3–§5 (NASA minimum text height; routing kept neutral and apart from urgency). The mockups use 11–14 px. |
-| One system (Respiratory), no body figure, hazard lens, routine or readings panels | Out of scope for #1. |
+| Only Respiratory has rules; no body figure, hazard lens, routine or readings panels | Out of scope for #1. The nine synthetic rows below Respiratory in these screenshots come from [#4](4-body-systems-list.md). |
 | Explanation inline in the row, not a separate detail screen; tier shown as a value, not the 4-step ladder | The issue puts the texts in the row (AC4, AC6); the detail screen is out of scope. |
 | Check-in form in a right-hand "Check-in" panel with all fields on one screen | No mockup for the current form; 06-questionnaire (one question per screen) is a later feature. Fields use the guidelines' field tile and primary button. |

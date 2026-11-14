@@ -5,7 +5,8 @@ import { CheckInRecorder } from '../application/CheckInRecorder'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import type { CheckIn } from '../domain/checkIn'
-import type { Rule } from '../domain/rules'
+import type { Placeholder, Rule } from '../domain/rules'
+import { mockStatuses } from '../infrastructure/mockStatuses'
 import rules from '../infrastructure/rules.json'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { App } from './App'
@@ -18,7 +19,7 @@ const HOUR = 60 * MIN
 
 const reading = (id: string, recordedAt: string, spo2Percent?: number): CheckIn => ({ id, recordedAt, spo2Percent, symptoms: [] })
 
-function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = true } = {}) {
+function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = true, placeholders = [] as Placeholder[] } = {}) {
   const clock = { now: new Date(now) }
   const repository = new FakeRepository()
   seed.forEach((c) => repository.items.set(c.id, { checkIn: c, pending: false }))
@@ -32,7 +33,7 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
     connectivity,
     synchronizer,
     recorder: new CheckInRecorder(repository, synchronizer, undefined, () => clock.now),
-    statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now),
+    statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now, placeholders),
   }
   return {
     clock,
@@ -234,5 +235,81 @@ describe('SystemStatusList', () => {
     expect(row()).toHaveClass('status-stale')
     expect(row()).toHaveTextContent('data 1 d old · manual')
     expectNoStatusIcon(row())
+  })
+})
+
+describe('Body systems with placeholders (#4)', () => {
+  const systemNames = (rows: HTMLElement[]) => rows.map((r) => r.querySelector('.status-system')?.textContent)
+
+  it('AC1: lists Respiratory (No data) then the nine placeholders in mockup order', async () => {
+    setup({ placeholders: mockStatuses }).renderApp()
+
+    const rows = await within(list()).findAllByRole('listitem')
+    expect(systemNames(rows)).toEqual([
+      'Respiratory',
+      'Cognition',
+      'Cabin air',
+      'Sleep',
+      'Immune',
+      'Cardiovascular',
+      'Bone & muscle',
+      'Vision (SANS)',
+      'Radiation',
+      'Kidney & hydration',
+    ])
+    expect(within(rows[0]).getByText('No data')).toBeInTheDocument()
+  })
+
+  it('AC2: SpO₂ 88 warns on Respiratory with SPO-02 while the placeholders stay nominal', async () => {
+    setup({ placeholders: mockStatuses }).renderApp()
+    await submitSpo2(88)
+
+    expect(await within(list()).findByText('WARNING')).toBeInTheDocument()
+    const [respiratory, ...others] = within(list()).getAllByRole('listitem')
+    expect(within(respiratory).getByText('SPO-02')).toBeInTheDocument()
+    texts(SPO02).forEach((text) => expect(respiratory).toHaveTextContent(text))
+    expect(others).toHaveLength(9)
+    others.forEach((r) => expect(within(r).getByText('✓ Nominal')).toBeInTheDocument())
+  })
+
+  it.each([
+    ['Cognition', 'PVT 268 ms · within your baseline'],
+    ['Cabin air', 'CO₂ 2.3 mmHg (1-h avg)'],
+    ['Sleep', '7.1 h last night'],
+    ['Immune', 'no new symptoms'],
+    ['Cardiovascular', 'HR 63 bpm · BP 108/70'],
+    ['Bone & muscle', 'Exercise 540/600 min/wk'],
+    ['Vision (SANS)', 'self-test done Wed · no changes'],
+    ['Radiation', '38% of 30-day limit'],
+    ['Kidney & hydration', 'Fluids 1.1/2.5 L today'],
+  ])('AC3: %s shows ✓ Nominal and "%s · synthetic"', async (system, detail) => {
+    setup({ placeholders: mockStatuses }).renderApp()
+
+    const rows = await within(list()).findAllByRole('listitem')
+    const row = rows[systemNames(rows).indexOf(system)]
+    expect(within(row).getByText('✓ Nominal')).toBeInTheDocument()
+    expect(within(row).getByText(`${detail} · synthetic`)).toBeInTheDocument()
+  })
+
+  it('AC4: placeholder rows show no explanation list and no data age', async () => {
+    setup({ placeholders: mockStatuses }).renderApp()
+
+    const [, ...placeholders] = await within(list()).findAllByRole('listitem')
+    placeholders.forEach((r) => {
+      expect(r.querySelector('dl')).toBeNull()
+      expect(r).not.toHaveTextContent(/ ago|just now| old\b/)
+    })
+  })
+
+  it.each([
+    ['rules', (s: ReturnType<typeof setup>) => void (s.ruleSource.fail = true)],
+    ['history', (s: ReturnType<typeof setup>) => void (s.repository.failList = true)],
+  ])('AC6: when the %s fail, shows "Status unavailable" and no placeholder rows', async (_, fail) => {
+    const s = setup({ placeholders: mockStatuses })
+    fail(s)
+    s.renderApp()
+
+    expect(await within(list()).findByText('Status unavailable')).toBeInTheDocument()
+    expect(within(list()).queryByRole('listitem')).toBeNull()
   })
 })

@@ -166,9 +166,10 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Icon button:** transparent, 52 px round hit area, icon 22–30 px, `aria-label` required.
 - **Consequential actions** (send packet, delete entry) get confirm or undo. No red buttons: red is a warning, not "dangerous".
 
-### Body-system list (built: issue #1)
+### Body-system list (built: issues #1, #4)
 - **Card:** a `card` with the uppercase `card-heading` "Body systems"; one row per system, rows separated by `--color-divider`.
 - **Row:** system name (weight 500), then a muted line with label, value (`.num`), unit, data age and source ("SpO₂ 96 % · just now · manual"); the status badge on the right. No-data and stale rows mute the system name.
+- **Placeholder row:** a system with no rules yet shows a synthetic value as the muted line `<detail> · synthetic` ("7.1 h last night · synthetic"), always "✓ Nominal", with no data age and no explanation.
 - **Explanation:** for caution and warning only, an inset (`--color-inset`) list of what / why it matters / how decided / what next / who to involve (routing pill) / rule (tag), with uppercase muted terms. Terms sit beside their text from 600 px up and above it on phones.
 
 ### Field tile (forms)

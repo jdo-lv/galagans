@@ -45,6 +45,8 @@ Three principles override speed:
 
    Style: Problem in 2–3 sentences; one line per AC, design note and touch point; link to the idea, features or `research/` instead of copying them; no background, intros or filler.
 
+   **Mock (UI issues).** Any change to what the crew or ground UI shows needs a mock screenshot embedded in the issue. Build the target state (prototype the change in the running app, or a mockup HTML in `ideas/mockups/src/` when the app can't show it yet), screenshot it with `tools/cdp.mjs` at 1280 px wide into `docs/features/img/<n>-mock.png` (`<n>` = next issue number, `gh issue list --state all --limit 1` and `gh pr list --state all --limit 1`), commit it on the branch `feat/<n>-<slug>`, push, and embed it as in [TRACKER.md](TRACKER.md#spec-sections). Show the screenshot to the user with the ACs. Done when the image URL in the draft loads (`gh api` on the blob path returns 200).
+
    **AC check with the user.** Before the skeptic, list the ACs to the user. For any AC you couldn't write with concrete values without assuming (a number, a label, a status, a unit, a wording), ask instead of picking. Done when the user has confirmed or corrected every AC that rested on a choice.
 
 6. **Skeptic pass.** Run the `spec-skeptic` agent on the draft file. Fix every finding, or ask the user when the fix is a decision. Repeat until it returns no findings.

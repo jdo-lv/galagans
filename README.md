@@ -22,7 +22,6 @@ Team workspace for the challenge **"Create Health Monitoring Software for Astron
 | [ideas/crew-health-companion.md](ideas/crew-health-companion.md) | Lead idea under evaluation: daily check-in, body map, rules engine, Device Simulator, surgeon packet, with mockups in `ideas/mockups/` |
 | [ideas/features.md](ideas/features.md) | Every feature of the lead idea in plain words for non-experts, a glossary, and the build order |
 | [ideas/ui-guidelines.md](ideas/ui-guidelines.md) | UI and UX guidelines from the palette canvas: tokens, type, components, status colours, contrast, checklist for UI pull requests |
-| [ai-log.md](ai-log.md) | Log of AI tool use for the submission's AI-use statement |
 
 ## What the research says (shapes every idea)
 
@@ -44,4 +43,3 @@ Team workspace for the challenge **"Create Health Monitoring Software for Astron
 
 1. Each teammate writes their idea with the template in [ideas/viability-checklist.md](ideas/viability-checklist.md); we test them against the gates and the research.
 2. Nov 13: read the challenge Resources tab and the Judging & Awards guide; update this folder.
-3. Keep a short log of AI tool use for the submission in [ai-log.md](ai-log.md).

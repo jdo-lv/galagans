@@ -75,7 +75,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **Why:** the challenge suggests a clickable human figure. One glance shows where attention is needed.
 - **How:** NASA display rules: quiet when all is fine; yellow = caution, red = warning, **always with an icon and a word**, never color alone. Each value shows its unit, age and source ("4 min ago · simulated"). Missing data shows as "data 8 d old", never as a health alarm.
 - **Needs:** F4. See mockup [01-body-map.png](mockups/01-body-map.png).
-- **Status:** the "Body systems" list on home shows Respiratory (from SpO₂) as nominal, caution, warning, "No data", or "No recent data" with the data age when the reading is older than 24 h; source label "manual". Missing: the human figure, other systems, hazard lens.
+- **Status:** the "Body systems" list on home shows Respiratory (from SpO₂) as nominal, caution, warning, "No data", or "No recent data" with the data age when the reading is older than 24 h; source label "manual". The other nine systems of mockup 01 show synthetic nominal placeholder values labelled "synthetic" (`infrastructure/mockStatuses.ts`); a system drops its placeholder once a rule covers it. Missing: the human figure, rules for the other systems, hazard lens.
 
 ### Inputs for the demo
 
