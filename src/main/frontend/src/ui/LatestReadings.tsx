@@ -70,6 +70,7 @@ export function LatestReadings({ state }: { state: LatestReadingsState }) {
       <h2 id={headingId} className="card-heading">
         Latest readings
       </h2>
+      {state.kind === 'unavailable' && <p className="muted">Readings unavailable</p>}
       {state.kind === 'ready' && (
         <ul className="tile-grid">
           {state.data.map((reading) => (

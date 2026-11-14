@@ -215,4 +215,51 @@ describe('LatestReadings', () => {
     expect(tile('SpO₂')).toHaveTextContent('88 %')
     expect(tile('SpO₂')).toHaveTextContent('WARNING')
   })
+
+  const failures = [
+    ['rules', (s: ReturnType<typeof setup>, fail: boolean) => void (s.ruleSource.fail = fail)],
+    ['history', (s: ReturnType<typeof setup>, fail: boolean) => void (s.repository.failList = fail)],
+  ] as const
+
+  it.each(failures)('AC14: when the %s fail, shows "Readings unavailable" and no tiles', async (_, setFail) => {
+    const s = setup()
+    setFail(s, true)
+    s.renderApp()
+
+    expect(await within(panel()).findByText('Readings unavailable')).toBeInTheDocument()
+    expect(within(panel()).queryByRole('listitem')).toBeNull()
+  })
+
+  it.each(failures)('AC15: when the %s fail, a check-in is still saved', async (_, setFail) => {
+    const s = setup()
+    setFail(s, true)
+    s.renderApp()
+    await within(panel()).findByText('Readings unavailable')
+
+    await submit({ spo2: 96 })
+
+    await waitFor(() => expect(s.repository.items.size).toBe(1))
+  })
+
+  it.each(failures)('AC16: when the %s recover, the next check-in brings the tiles back', async (_, setFail) => {
+    const s = setup()
+    setFail(s, true)
+    s.renderApp()
+    await within(panel()).findByText('Readings unavailable')
+
+    setFail(s, false)
+    await submit({ spo2: 96 })
+
+    await waitFor(() => expect(within(panel()).getAllByRole('listitem')).toHaveLength(6))
+    expect(tile('SpO₂')).toHaveTextContent('96 %')
+  })
+
+  it('AC17: shows the heading with no tiles while the reader is pending', () => {
+    const s = setup()
+    vi.spyOn(s.readingsReader, 'read').mockReturnValue(new Promise(() => {}))
+    s.renderApp()
+
+    expect(screen.getByRole('heading', { name: 'Latest readings' })).toBeInTheDocument()
+    expect(within(panel()).queryByRole('listitem')).toBeNull()
+  })
 })
