@@ -2,6 +2,7 @@
 // Run from the repo root: target/node/node docs/features/10-todays-routine.shots.mjs
 // CDP_PORT picks another DevTools port when 9333 is taken.
 import { openPage } from '../../tools/cdp.mjs'
+import { saveCheckIn } from '../../tools/checkin-shots.mjs'
 
 const img = (name) => `docs/features/img/10-${name}.png`
 const page = await openPage(process.env.APP_URL ?? 'http://localhost:8080/', { height: 1100, port: Number(process.env.CDP_PORT ?? 9333) })
@@ -40,8 +41,7 @@ await page.shot(img('upcoming'))
 
 await setClock(8)
 await page.shot(img('due'))
-await page.fill('input[name=mood]', 3)
-await page.click('button[type=submit]')
+await saveCheckIn(page, { mood: 3 }) // through the check-in steps since #29
 await page.shot(img('done'))
 
 await setClock(10)

@@ -1,5 +1,4 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CheckInRecorder } from '../application/CheckInRecorder'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
@@ -11,7 +10,7 @@ import { mockReadings } from '../infrastructure/mockReadings'
 import { RULES } from '../test/rules'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { mockStatuses } from '../infrastructure/mockStatuses'
-import { observationFakes, packetFakes, pvt, setup as setupApp } from '../test/renderApp'
+import { observationFakes, packetFakes, pvt, saveCheckIn, setup as setupApp } from '../test/renderApp'
 import { App } from './App'
 import { ServicesProvider } from './ServicesContext'
 
@@ -57,17 +56,7 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
   }
 }
 
-const FIELD_LABELS = { heartRate: /heart rate/i, spo2: /spo[2₂]/i, sleep: /sleep/i, mood: /mood/i }
-
-async function submit(fields: Partial<Record<keyof typeof FIELD_LABELS, number>>) {
-  for (const [name, value] of Object.entries(fields)) {
-    const input = screen.getByLabelText(FIELD_LABELS[name as keyof typeof FIELD_LABELS])
-    // user-event keeps its own copy of the typed value, which form.reset() doesn't clear.
-    await userEvent.clear(input)
-    await userEvent.type(input, String(value))
-  }
-  await userEvent.click(screen.getByRole('button', { name: /save check-in/i }))
-}
+const submit = saveCheckIn
 
 const panel = () => screen.getByRole('region', { name: 'Latest readings' })
 const tiles = () => within(panel()).findAllByRole('listitem')
@@ -294,7 +283,7 @@ describe('LatestReadings', () => {
     expect(s.gateway.sent).toHaveLength(0)
   })
 
-  it('AC19: the right column stacks Today\'s routine, Latest readings, the Reaction test card (#16) and the Check-in card', async () => {
+  it('AC19: the right column stacks Today\'s routine, Latest readings and the Reaction test card (#16); the Check-in card is gone (#29)', async () => {
     const { container } = setup().renderApp()
     await tiles()
 
@@ -310,8 +299,8 @@ describe('LatestReadings', () => {
       screen.getByRole('region', { name: "Today's routine" }),
       panel(),
       screen.getByRole('region', { name: 'Reaction test' }),
-      screen.getByRole('region', { name: 'Check-in' }),
     ])
+    expect(screen.queryByRole('region', { name: 'Check-in' })).toBeNull()
   })
 })
 

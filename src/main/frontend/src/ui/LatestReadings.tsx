@@ -1,20 +1,9 @@
-import { useId, type ComponentType } from 'react'
+import { useId } from 'react'
 import { formatAge, formatOldAge } from '../application/formatAge'
 import type { LatestReading } from '../domain/readings'
-import { BloodPressureIcon, CabinAirIcon, HeartRateIcon, MoodIcon, PvtIcon, SleepIcon, Spo2Icon } from './icons'
+import { READING_ICONS } from './readingIcons'
 import { Badge } from './SystemStatusList'
 import type { LatestReadingsState } from './useLatestReadings'
-
-// The first four are the icons of the same fields in CheckInForm.tsx.
-const ICONS: Record<string, ComponentType<{ className?: string }>> = {
-  spo2: Spo2Icon,
-  heartRate: HeartRateIcon,
-  sleep: SleepIcon,
-  mood: MoodIcon,
-  bloodPressure: BloodPressureIcon,
-  cabinCo2: CabinAirIcon,
-  pvt: PvtIcon,
-}
 
 function Reading({ reading }: { reading: LatestReading }) {
   const shown = reading.value !== undefined ? String(reading.value) : reading.text
@@ -37,7 +26,7 @@ function Reading({ reading }: { reading: LatestReading }) {
 
 function ReadingTile({ reading, now }: { reading: LatestReading; now: Date }) {
   const { spec, state, recordedAt, source } = reading
-  const Icon = ICONS[spec.key]
+  const Icon = READING_ICONS[spec.key]
   const age = recordedAt && (state === 'stale' ? formatOldAge(recordedAt, now) : formatAge(recordedAt, now))
   const suffix = [spec.labelSuffix, age && `/ ${age}`].filter(Boolean).join(' ')
   return (

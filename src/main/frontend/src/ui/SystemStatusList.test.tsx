@@ -157,7 +157,6 @@ describe('SystemStatusList', () => {
 
     await submitSpo2(96)
     await vi.waitFor(() => expect(s.repository.items.size).toBe(1))
-    await vi.waitFor(() => expect(screen.getByLabelText(/spo[2₂]/i)).toHaveValue(null))
     expect(within(list()).getByText('Status unavailable')).toBeInTheDocument()
 
     setFail(s, false)
