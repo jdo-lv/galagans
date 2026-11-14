@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
 import { READINGS, type ReadingPlaceholder } from '../domain/readings'
+import { toPacketItem } from '../application/packetItems'
 import { mockReadings } from '../infrastructure/mockReadings'
 import { setup } from '../test/renderApp'
 
@@ -41,6 +42,12 @@ async function openWithContents(options: Options = {}, before?: (s: Setup) => vo
   await within(contents()).findByRole('table')
   return s
 }
+
+const note = () => screen.getByRole('textbox', { name: 'Crew note (optional)' }) as HTMLTextAreaElement
+const noteCard = () => screen.getByRole('region', { name: 'Crew note (optional)' })
+const confirmButton = () => screen.getByRole('button', { name: /^Confirm send/ })
+const cancelButton = () => screen.getByRole('button', { name: 'Cancel' })
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 /** Status, Value and Source cells of the row whose Item is `label`. */
 function cells(label: string) {
@@ -260,5 +267,158 @@ describe('Next packet contents', () => {
 
     expect(await within(contents()).findByText('▲ CAUTION')).toBeInTheDocument()
     expect(cells('SpO₂').value).toHaveTextContent('just now')
+  })
+})
+
+describe('Crew note and send', () => {
+  it('AC18: the counter shows the untrimmed length and the note stops at 500', async () => {
+    await openWithContents()
+    const user = userEvent.setup({ delay: null })
+
+    expect(note()).toHaveAttribute('maxlength', '500')
+    expect(within(noteCard()).getByText('0 / 500')).toBeInTheDocument()
+    await user.type(note(), '  ab  ')
+    expect(within(noteCard()).getByText('6 / 500')).toBeInTheDocument()
+
+    await user.clear(note())
+    await user.type(note(), 'x'.repeat(501))
+    expect(note().value).toHaveLength(500)
+    expect(within(noteCard()).getByText('500 / 500')).toBeInTheDocument()
+  })
+
+  it('AC19: online at 07:31, Send packet asks "Confirm send · arrives ~07:45" with focus, and Cancel; nothing is stored', async () => {
+    const s = await openWithContents()
+
+    await userEvent.click(sendButton())
+
+    const confirm = screen.getByRole('button', { name: 'Confirm send · arrives ~07:45' })
+    expect(confirm).toHaveClass('button-primary')
+    expect(confirm).toHaveFocus()
+    expect(cancelButton()).toHaveClass('button-secondary')
+    expect(screen.queryByRole('button', { name: 'Send packet' })).toBeNull()
+    expect(s.packets.items.size).toBe(0)
+  })
+
+  it('AC19: offline, the confirm text is "Confirm send · waits for ground link"', async () => {
+    await openWithContents({ online: false })
+
+    await userEvent.click(sendButton())
+
+    expect(confirmButton()).toHaveAccessibleName('Confirm send · waits for ground link')
+  })
+
+  it('AC19: the confirm text is fixed at the click, whatever the clock or the connection do', async () => {
+    const s = await openWithContents()
+    await userEvent.click(sendButton())
+
+    s.clock.now = at(7, 40)
+    act(() => s.connectivity.set(false))
+
+    expect(screen.getByRole('status')).toHaveTextContent('Offline')
+    expect(confirmButton()).toHaveAccessibleName('Confirm send · arrives ~07:45')
+  })
+
+  it('AC20: Cancel brings Send packet back with focus, keeps the note and stores nothing', async () => {
+    const s = await openWithContents()
+    await userEvent.type(note(), 'Headache')
+    await userEvent.click(sendButton())
+
+    await userEvent.click(cancelButton())
+
+    expect(sendButton()).toHaveFocus()
+    expect(note()).toHaveValue('Headache')
+    expect(screen.queryByRole('button', { name: /^Confirm send/ })).toBeNull()
+    expect(s.packets.items.size).toBe(0)
+  })
+
+  it('AC21: offline, Confirm send stores one queued packet with the trimmed note and the readings, then resets', async () => {
+    const s = await openWithContents({ online: false, seed: [stored('a', ago(10), { spo2Percent: 92 })], readingPlaceholders: mockReadings })
+    await userEvent.type(note(), '  Slept badly.  ')
+    await userEvent.click(sendButton())
+    const items = (await s.readingsReader.read()).map(toPacketItem)
+
+    await userEvent.click(confirmButton())
+
+    await waitFor(() => expect(sendButton()).toHaveFocus())
+    const packets = [...s.packets.items.values()]
+    expect(packets).toEqual([
+      { id: expect.stringMatching(UUID), builtAt: at(7, 31).toISOString(), oneWayDelayMs: 845_000, note: 'Slept badly.', items, state: 'queued' },
+    ])
+    expect(items.find((i) => i.key === 'spo2')).toMatchObject({ state: 'caution', ruleId: 'SPO-01', tier: 'CMO' })
+    expect(note()).toHaveValue('')
+    expect(within(noteCard()).getByText('0 / 500')).toBeInTheDocument()
+  })
+
+  it('AC22: Confirm send and Cancel are disabled while saving, and a double click stores one packet', async () => {
+    const s = await openWithContents({ online: false })
+    let release!: () => void
+    const add = s.packets.add.bind(s.packets)
+    vi.spyOn(s.packets, 'add').mockImplementation((p) => new Promise((resolve) => (release = () => resolve(add(p)))))
+    await userEvent.click(sendButton())
+
+    await userEvent.dblClick(confirmButton())
+    await waitFor(() => expect(s.packets.add).toHaveBeenCalled())
+
+    expect(confirmButton()).toBeDisabled()
+    expect(cancelButton()).toBeDisabled()
+    await act(async () => release())
+    await waitFor(() => expect(sendButton()).toHaveFocus())
+    expect(s.packets.add).toHaveBeenCalledTimes(1)
+    expect(s.packets.items.size).toBe(1)
+  })
+
+  it.each([
+    ['the packet store rejects', (s: Setup) => (s.packets.failAdd = true)],
+    ['the readings fail to load at confirm', (s: Setup) => (s.ruleSource.fail = true)],
+  ])('AC24: when %s, "Packet not saved. Try again." shows under the buttons; the note stays; nothing is stored', async (_, fail) => {
+    const s = await openWithContents()
+    await userEvent.type(note(), 'Headache')
+    await userEvent.click(sendButton())
+    fail(s)
+
+    await userEvent.click(confirmButton())
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Packet not saved. Try again.')
+    expect(sendButton().compareDocumentPosition(alert) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(sendButton()).toHaveFocus()
+    expect(note()).toHaveValue('Headache')
+    expect(s.packets.items.size).toBe(0)
+
+    await userEvent.click(sendButton())
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('AC15: contents failing during the confirm step disable Confirm send', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    const s = await openWithContents()
+    await userEvent.click(sendButton())
+
+    s.ruleSource.fail = true
+    act(() => vi.advanceTimersByTime(60_000))
+
+    expect(await within(contents()).findByText('Packet contents unavailable')).toBeInTheDocument()
+    expect(confirmButton()).toBeDisabled()
+  })
+
+  it('AC34: online, a confirmed packet is sent at once and marked sent', async () => {
+    const s = await openWithContents()
+    await userEvent.click(sendButton())
+
+    await userEvent.click(confirmButton())
+
+    await waitFor(() => expect(s.packetGateway.sent).toHaveLength(1))
+    await waitFor(() => expect([...s.packets.items.values()][0]).toMatchObject({ state: 'sent', sentAt: at(7, 31).toISOString() }))
+  })
+
+  it('AC37: offline, a confirmed packet is not sent and stays queued', async () => {
+    const s = await openWithContents({ online: false })
+    await userEvent.click(sendButton())
+
+    await userEvent.click(confirmButton())
+
+    await waitFor(() => expect(s.packets.items.size).toBe(1))
+    expect(s.packetGateway.calls).toBe(0)
+    expect([...s.packets.items.values()][0].state).toBe('queued')
   })
 })
