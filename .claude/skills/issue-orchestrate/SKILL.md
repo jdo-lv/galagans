@@ -20,7 +20,7 @@ Runs in the main session because only it can launch agents; subagents can't laun
 
 5. **Claim.** For each issue in the wave: `gh issue edit <n> --add-label agent-in-progress`. Done when every wave issue has the label.
 
-6. **Launch.** In one message, one `Agent` call per issue: `subagent_type: issue-implementer`, `isolation: worktree`, `run_in_background: true`, `model: <model from step 4>`, description `Implement #<n>`, prompt `Implement issue #<n> of billygk/galagans. Return the RESULT block.` Done when all are launched; don't poll, the notifications arrive on their own.
+6. **Launch.** In one message, one `Agent` call per issue: `subagent_type: issue-implementer`, `isolation: worktree`, `run_in_background: true`, `model: <model from step 4>`, description `Implement #<n>`, prompt `Implement issue #<n> of jdo-lv/galagans. Return the RESULT block.` Done when all are launched; don't poll, the notifications arrive on their own.
 
 7. **Collect results.** As each agent finishes, read its RESULT block. Never write or guess a result for an agent that hasn't reported. For `failed` or a missing block, check the issue's labels and remove a leftover `agent-in-progress`. Done when every agent of the wave has reported.
 

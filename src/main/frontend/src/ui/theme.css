@@ -1,0 +1,152 @@
+/* Tokens copied from ideas/mockups/src/base.css (team palette, dark). Use only these. */
+:root {
+  --bg: #1b1b1b;
+  --text: #dadada;
+  --text-2: #cfcfcf;
+  --muted: #868375;
+  --panel: #52574e;
+  --edge: #868375;
+  --inset: #3d403b;
+  --rule: #2e2f2c;
+  --accent: #7fa6f0;
+  --caution: #ffc72c;
+  --caution-ink: #1b1b1b;
+  --warning: #c61e37;
+  --warning-ink: #dadada;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Inter only if installed; no CDN fonts in an offline-first app. */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+}
+
+.top {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dot {
+  position: relative;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+}
+
+.dot::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: var(--text);
+}
+
+.pill {
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  padding: 6px 10px;
+  color: var(--text-2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+  align-items: start;
+  padding: 16px 22px;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.ph {
+  margin-bottom: 6px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.btn {
+  border: 0;
+  border-radius: 20px;
+  padding: 10px 16px;
+  background: var(--text);
+  color: var(--bg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+}
+
+.checkin {
+  display: grid;
+  gap: 12px;
+}
+
+.checkin label {
+  display: grid;
+  gap: 4px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.checkin input {
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: var(--inset);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+
+.checkin input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.checkin .btn {
+  justify-self: end;
+}

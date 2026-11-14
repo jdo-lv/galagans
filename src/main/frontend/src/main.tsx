@@ -4,6 +4,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { createServices } from './container'
 import { App } from './ui/App'
 import { ServicesProvider } from './ui/ServicesContext'
+import './ui/theme.css'
 
 const services = createServices()
 services.startSync()

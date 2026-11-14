@@ -1,6 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
 import type { CheckIn } from '../domain/checkIn'
-import type { CheckInRepository } from '../domain/ports'
+import type { CheckInHistory, CheckInRepository } from '../domain/ports'
 
 type SyncStatus = 'pending' | 'synced'
 type StoredCheckIn = CheckIn & { syncStatus: SyncStatus }
@@ -15,7 +15,9 @@ interface CrewHealthDb extends DBSchema {
 
 const STORE = 'checkIns'
 
-export class IndexedDbCheckInRepository implements CheckInRepository {
+const withoutSyncStatus = ({ syncStatus: _syncStatus, ...checkIn }: StoredCheckIn): CheckIn => checkIn
+
+export class IndexedDbCheckInRepository implements CheckInRepository, CheckInHistory {
   private db: Promise<IDBPDatabase<CrewHealthDb>>
 
   constructor(dbName = 'crew-health') {
@@ -31,9 +33,12 @@ export class IndexedDbCheckInRepository implements CheckInRepository {
     await (await this.db).put(STORE, { ...checkIn, syncStatus: 'pending' })
   }
 
+  async list(): Promise<CheckIn[]> {
+    return (await (await this.db).getAll(STORE)).map(withoutSyncStatus)
+  }
+
   async listPending(): Promise<CheckIn[]> {
-    const stored = await (await this.db).getAllFromIndex(STORE, 'bySyncStatus', 'pending')
-    return stored.map(({ syncStatus: _syncStatus, ...checkIn }) => checkIn)
+    return (await (await this.db).getAllFromIndex(STORE, 'bySyncStatus', 'pending')).map(withoutSyncStatus)
   }
 
   async countPending(): Promise<number> {
