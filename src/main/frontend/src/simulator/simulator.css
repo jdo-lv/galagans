@@ -48,10 +48,6 @@
   margin: 0;
 }
 
-.sim-device .value {
-  white-space: nowrap;
-}
-
 .sim-device__top {
   display: flex;
   justify-content: space-between;
@@ -115,6 +111,20 @@
 
 .sim-inject .field-tile {
   min-height: 0;
+}
+
+.sim-select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.sim-select:focus {
+  outline: none;
 }
 
 .sim-log {
