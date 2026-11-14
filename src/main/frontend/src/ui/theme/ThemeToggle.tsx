@@ -1,8 +1,8 @@
 import { DarkThemeIcon, LightThemeIcon } from '../icons'
 import { useTheme } from './useTheme'
 
-export function ThemeToggle() {
-  const { theme, toggle } = useTheme()
+export function ThemeToggle({ storageKey }: { storageKey?: string }) {
+  const { theme, toggle } = useTheme(storageKey)
   const dark = theme === 'dark'
 
   return (
