@@ -34,8 +34,6 @@ function ItemStatus({ item }: { item: PacketItem }) {
   switch (item.state) {
     case 'unrated':
       return <Dash meaning="Not rated" />
-    case 'synthetic':
-      return <Dash meaning="No status" />
     case 'caution':
     case 'warning':
       return (
@@ -51,7 +49,7 @@ function ItemStatus({ item }: { item: PacketItem }) {
 }
 
 function ItemValue({ item, now }: { item: PacketItem; now: Date }) {
-  const shown = item.value !== undefined ? String(item.value) : item.text
+  const shown = item.text ?? (item.value !== undefined ? String(item.value) : undefined)
   if (shown === undefined) return <Dash meaning="No reading" />
   const age = item.recordedAt && (item.state === 'stale' ? formatStaleAge(item.recordedAt, now) : formatAge(item.recordedAt, now))
   return (

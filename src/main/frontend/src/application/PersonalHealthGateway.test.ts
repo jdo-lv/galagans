@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
 import { FakeObservationRepository, FakeReadingSource } from '../test/fakes'
+import { DEVICES } from '../domain/devices'
 import { PersonalHealthGateway } from './PersonalHealthGateway'
 
 const NOW = new Date('2026-11-14T10:00:00Z')
@@ -115,5 +116,46 @@ describe('PersonalHealthGateway', () => {
 
     expect(repository.items.has('oximeter:m2:spo2Percent')).toBe(true)
     expect(listener).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('PersonalHealthGateway for the other devices', () => {
+  const device = (id: string) => DEVICES.find((d) => d.id === id)!
+
+  async function store(deviceId: string, fields: Record<string, unknown>) {
+    const source = new FakeReadingSource()
+    const repository = new FakeObservationRepository()
+    new PersonalHealthGateway(source, repository, () => NOW, device(deviceId)).start()
+    source.emit({ id: 'm1', t: '2026-11-14T09:59:30Z', src: 'synthetic', ...fields })
+    await flush()
+    return [...repository.items.values()].map((o) => [o.id, o.valueQuantity.value, o.valueQuantity.unit, o.device.display])
+  }
+
+  it('a BP cuff message becomes systolic, diastolic and pulse Observations labelled BP cuff', async () => {
+    expect(await store('bp-cuff', { systolic_mmhg: 108, diastolic_mmhg: 70, pulse_bpm: 64 })).toEqual([
+      ['bp-cuff:m1:systolicMmHg', 108, 'mmHg', 'BP cuff · synthetic'],
+      ['bp-cuff:m1:diastolicMmHg', 70, 'mmHg', 'BP cuff · synthetic'],
+      ['bp-cuff:m1:heartRateBpm', 64, 'bpm', 'BP cuff · synthetic'],
+    ])
+  })
+
+  it('drops a message whose required field is missing or out of range', async () => {
+    expect(await store('bp-cuff', { systolic_mmhg: 108 })).toEqual([])
+    expect(await store('thermometer', { temp_c: 45 })).toEqual([])
+  })
+
+  it('keeps decimals and skips an invalid optional field', async () => {
+    expect(await store('env-node', { co2_mmhg_1h: 2.3, temp_c: 22.5, rh_pct: 140 })).toEqual([
+      ['env-node:m1:cabinCo2MmHg', 2.3, 'mmHg', 'environment node · synthetic'],
+      ['env-node:m1:cabinTempC', 22.5, '°C', 'environment node · synthetic'],
+    ])
+  })
+
+  it.each([
+    ['bracelet', { hr_bpm: 63 }, ['bracelet:m1:heartRateBpm', 63, 'bpm', 'bracelet · synthetic']],
+    ['thermometer', { temp_c: 36.8 }, ['thermometer:m1:bodyTempC', 36.8, '°C', 'thermometer · synthetic']],
+    ['dosimeter', { dose_rate_msv_day: 0.5 }, ['dosimeter:m1:doseRateMsvDay', 0.5, 'mSv/day', 'dosimeter · synthetic']],
+  ])('a %s message is stored with its label', async (id, fields, expected) => {
+    expect(await store(id, fields)).toEqual([expected])
   })
 })

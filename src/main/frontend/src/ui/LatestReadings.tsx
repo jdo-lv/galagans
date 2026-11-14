@@ -6,7 +6,7 @@ import { Badge } from './SystemStatusList'
 import type { LatestReadingsState } from './useLatestReadings'
 
 function Reading({ reading }: { reading: LatestReading }) {
-  const shown = reading.value !== undefined ? String(reading.value) : reading.text
+  const shown = reading.text ?? (reading.value !== undefined ? String(reading.value) : undefined)
   if (shown === undefined) {
     return (
       <span className="metric-tile__reading">

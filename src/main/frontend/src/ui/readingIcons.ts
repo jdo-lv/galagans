@@ -1,5 +1,16 @@
 import type { ComponentType } from 'react'
-import { BloodPressureIcon, CabinAirIcon, HeartRateIcon, MoodIcon, PvtIcon, SleepIcon, Spo2Icon } from './icons'
+import {
+  BloodPressureIcon,
+  CabinAirIcon,
+  HeartRateIcon,
+  HumidityIcon,
+  MoodIcon,
+  PvtIcon,
+  RadiationIcon,
+  SleepIcon,
+  Spo2Icon,
+  TemperatureIcon,
+} from './icons'
 
 /** Icon per READINGS key, shared by the Latest readings tiles and the check-in steps. */
 export const READING_ICONS: Record<string, ComponentType<{ className?: string }>> = {
@@ -8,6 +19,10 @@ export const READING_ICONS: Record<string, ComponentType<{ className?: string }>
   sleep: SleepIcon,
   mood: MoodIcon,
   bloodPressure: BloodPressureIcon,
+  bodyTemp: TemperatureIcon,
   cabinCo2: CabinAirIcon,
+  cabinTemp: TemperatureIcon,
+  cabinHumidity: HumidityIcon,
+  doseRate: RadiationIcon,
   pvt: PvtIcon,
 }

@@ -1,41 +1,56 @@
 import { describe, expect, it } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
-import { READINGS, type ReadingPlaceholder } from '../domain/readings'
+import type { Observation } from '../domain/observation'
+import { READINGS } from '../domain/readings'
 import { STALE_AFTER_MS, type Rule } from '../domain/rules'
-import { mockReadings } from '../infrastructure/mockReadings'
 import { RULES } from '../test/rules'
-import { combinedHistory, FakeRepository, FakeRuleSource } from '../test/fakes'
+import { combinedHistory, FakeObservationRepository, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { LatestReadingsReader } from './LatestReadingsReader'
 
 const now = new Date('2026-11-14T12:00:00Z')
 
-async function read(checkIns: CheckIn[], { ruleRows = RULES, placeholders = [] as ReadingPlaceholder[] } = {}) {
+async function read(checkIns: CheckIn[], { ruleRows = RULES, devices = [] as Observation[] } = {}) {
   const repository = new FakeRepository()
   checkIns.forEach((c) => repository.items.set(c.id, { checkIn: c, pending: false }))
-  return new LatestReadingsReader(new FakeRuleSource(ruleRows), combinedHistory(repository), () => now, placeholders).read()
+  const observations = new FakeObservationRepository()
+  devices.forEach((o) => observations.items.set(o.id, o))
+  return new LatestReadingsReader(new FakeRuleSource(ruleRows), combinedHistory(repository, observations), () => now).read()
 }
+
+const device = (id: string, indicator: Observation['code']['text'], value: number, unit = 'mmHg'): Observation => ({
+  resourceType: 'Observation',
+  id: `bp-cuff:${id}:${indicator}`,
+  status: 'final',
+  code: { text: indicator },
+  valueQuantity: { value, unit },
+  effectiveDateTime: '2026-11-14T11:00:00Z',
+  device: { display: 'BP cuff · synthetic' },
+})
 
 const byKey = async (key: string, ...args: Parameters<typeof read>) => (await read(...args)).find((r) => r.spec.key === key)
 const checkIn = (fields: Partial<CheckIn>, recordedAt: string): CheckIn => ({ id: 'a', recordedAt, symptoms: [], ...fields })
 
 describe('LatestReadingsReader', () => {
-  it('AC24: returns one reading per READINGS row, with the synthetic placeholders', async () => {
-    const readings = await read([], { placeholders: mockReadings })
-
-    expect(readings.map((r) => r.spec)).toEqual(READINGS)
-    expect(readings.slice(4, 6)).toEqual([
-      { spec: READINGS[4], state: 'synthetic', text: '108/70', source: 'synthetic' },
-      { spec: READINGS[5], state: 'synthetic', text: '2.3', source: 'synthetic' },
-    ])
-  })
-
-  it('AC24: a row with no input and no placeholder has no data', async () => {
+  it('returns one reading per READINGS row; device-only tiles have no data until a device sends', async () => {
     const readings = await read([])
 
-    expect(readings.slice(4, 6).map((r) => [r.spec.key, r.state])).toEqual([
-      ['bloodPressure', 'no-data'],
-      ['cabinCo2', 'no-data'],
-    ])
+    expect(readings.map((r) => r.spec)).toEqual(READINGS)
+    expect(readings.filter((r) => r.state === 'no-data').map((r) => r.spec.key)).toEqual(READINGS.map((r) => r.key))
+  })
+
+  it('Blood pressure shows "systolic/diastolic" from the same measurement, unrated', async () => {
+    const reading = await byKey('bloodPressure', [], {
+      devices: [device('m1', 'systolicMmHg', 108), device('m1', 'diastolicMmHg', 70), device('m0', 'diastolicMmHg', 99)],
+    })
+
+    expect(reading).toMatchObject({ state: 'nominal', value: 108, text: '108/70', source: 'BP cuff · synthetic', unrated: true })
+  })
+
+  it('Blood pressure without its diastolic shows the systolic value only', async () => {
+    const reading = await byKey('bloodPressure', [], { devices: [device('m1', 'systolicMmHg', 108)] })
+
+    expect(reading).toMatchObject({ value: 108 })
+    expect(reading?.text).toBeUndefined()
   })
 
   it.each([

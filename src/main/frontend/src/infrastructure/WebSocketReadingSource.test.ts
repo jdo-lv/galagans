@@ -56,3 +56,24 @@ describe('WebSocketReadingSource', () => {
     expect(listener).not.toHaveBeenCalled()
   })
 })
+
+describe('WebSocketReadingSource for another topic', () => {
+  it('passes on only the payloads of its own topic', () => {
+    const source = new WebSocketReadingSource(new DeviceLink('ws://h/ws/devices', fakeWebSocketCtor), 'crew/a1/bp')
+    const listener = vi.fn()
+    source.subscribe(listener)
+
+    FakeWebSocket.last.message('{"topic":"crew/a1/oximeter","payload":{"a":1}}')
+    FakeWebSocket.last.message('{"topic":"crew/a1/bp","payload":{"b":2}}')
+
+    expect(listener).toHaveBeenCalledExactlyOnceWith({ b: 2 })
+  })
+
+  it('several sources share one link and one socket', () => {
+    const link = new DeviceLink('ws://h/ws/devices', fakeWebSocketCtor)
+    new WebSocketReadingSource(link, 'crew/a1/oximeter').subscribe(() => {})
+    new WebSocketReadingSource(link, 'crew/a1/bp').subscribe(() => {})
+
+    expect(FakeWebSocket.instances).toHaveLength(1)
+  })
+})
