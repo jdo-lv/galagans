@@ -1,5 +1,5 @@
 import type { CheckIn } from '../domain/checkIn'
-import { STALE_AFTER_MS, type Indicator, type Rule, type Status, type SystemStatus } from '../domain/rules'
+import { CHART_WINDOW_MS, STALE_AFTER_MS, type ChartPoint, type Indicator, type Rule, type Status, type SystemStatus } from '../domain/rules'
 
 const SEVERITY: Record<Status, number> = { nominal: 0, caution: 1, warning: 2 }
 
@@ -29,6 +29,23 @@ function compare(a: IndicatorReading, b: IndicatorReading): number {
   return b.time - a.time || SEVERITY[b.status] - SEVERITY[a.status] || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
 }
 
+/** Finite values of `indicator` within [validMin, validMax], classified against `rows`. */
+function validReadings(
+  checkIns: CheckIn[],
+  indicator: Indicator,
+  validMin: number,
+  validMax: number,
+  rows: Rule[],
+): IndicatorReading[] {
+  const readings: IndicatorReading[] = []
+  for (const checkIn of checkIns) {
+    const value = checkIn[indicator]
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < validMin || value > validMax) continue
+    readings.push({ id: checkIn.id, recordedAt: checkIn.recordedAt, time: Date.parse(checkIn.recordedAt), value, ...classify(rows, value) })
+  }
+  return readings
+}
+
 /** Newest finite value of `indicator` within [validMin, validMax], classified against `rows`. */
 export function latestReading(
   checkIns: CheckIn[],
@@ -37,13 +54,21 @@ export function latestReading(
   validMax: number,
   rows: Rule[],
 ): IndicatorReading | undefined {
-  const readings: IndicatorReading[] = []
-  for (const checkIn of checkIns) {
-    const value = checkIn[indicator]
-    if (typeof value !== 'number' || !Number.isFinite(value) || value < validMin || value > validMax) continue
-    readings.push({ id: checkIn.id, recordedAt: checkIn.recordedAt, time: Date.parse(checkIn.recordedAt), value, ...classify(rows, value) })
-  }
-  return readings.sort(compare)[0]
+  return validReadings(checkIns, indicator, validMin, validMax, rows).sort(compare)[0]
+}
+
+/** Valid readings of the last 7 days, oldest first; the newest is 'stale' when the system status is. */
+export function chartPoints(rows: Rule[], checkIns: CheckIn[], now: Date, stale: boolean): ChartPoint[] {
+  const from = now.getTime() - CHART_WINDOW_MS
+  const { indicator, validMin, validMax } = rows[0]
+  const readings = validReadings(checkIns, indicator, validMin, validMax, rows)
+    .filter((r) => r.time >= from && r.time <= now.getTime())
+    .sort((a, b) => compare(b, a))
+  return readings.map((r, i) => ({
+    recordedAt: r.recordedAt,
+    value: r.value,
+    status: stale && i === readings.length - 1 ? 'stale' : r.status,
+  }))
 }
 
 function evaluateSystem(system: string, rows: Rule[], checkIns: CheckIn[], now: Date): SystemStatus {

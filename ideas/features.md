@@ -68,7 +68,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **What:** tapping a flagged item opens a screen with four answers: **what** changed, **why it matters**, **how the app decided** (the rule and its source), **what to do next**, plus the escalation tier with buttons "Share with CMO" / "Add to surgeon packet".
 - **Why:** it answers the challenge's five questions on every screen. NASA display guidance says to always explain what, why and what next.
 - **Needs:** F4. See mockup [02-detail.png](mockups/02-detail.png).
-- **Status:** a caution or warning row shows what, why, how decided, next, tier and rule id inline in the status list. Missing: the separate detail screen, trend chart and the "Share with CMO" / "Add to surgeon packet" buttons.
+- **Status:** a caution or warning row on home opens the system's detail screen (`#/systems/<system>`). It shows the status, a 7-day trend chart with the rule thresholds, what / why / how decided / source, what next, and the four escalation tiers with the rule's tier selected (issue #9). Missing: the adaptation corridor (F11) and the "Share with CMO" / "Add to surgeon packet" buttons.
 
 #### F6. Body map (home screen) · Must
 - **What:** a human figure plus a list of body systems, each with a status: nominal, caution or warning.

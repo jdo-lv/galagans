@@ -1,67 +1,17 @@
-import { act, render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { act, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { CheckInRecorder } from '../application/CheckInRecorder'
-import { LatestReadingsReader } from '../application/LatestReadingsReader'
-import { RoutineReader } from '../application/RoutineReader'
-import { SyncService } from '../application/SyncService'
-import { SystemStatusReader } from '../application/SystemStatusReader'
-import type { CheckIn } from '../domain/checkIn'
-import type { Placeholder, Rule } from '../domain/rules'
+import type { Rule } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
 import rules from '../infrastructure/rules.json'
-import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
-import { App } from './App'
-import { ServicesProvider } from './ServicesContext'
+import { reading, setup, submitSpo2 } from '../test/renderApp'
 
 const [SPO01, SPO02] = rules as Rule[]
 const texts = (rule: Rule) => [rule.what, rule.why, rule.howDecided, rule.next]
 const MIN = 60_000
 const HOUR = 60 * MIN
 
-const reading = (id: string, recordedAt: string, spo2Percent?: number): CheckIn => ({ id, recordedAt, spo2Percent, symptoms: [] })
-
-function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = true, placeholders = [] as Placeholder[] } = {}) {
-  const clock = { now: new Date(now) }
-  const repository = new FakeRepository()
-  seed.forEach((c) => repository.items.set(c.id, { checkIn: c, pending: false }))
-  const connectivity = new FakeConnectivity()
-  connectivity.online = online
-  const gateway = new FakeGateway()
-  const ruleSource = new FakeRuleSource(rules as Rule[])
-  const synchronizer = new SyncService(repository, gateway, connectivity)
-  const services = {
-    repository,
-    connectivity,
-    synchronizer,
-    recorder: new CheckInRecorder(repository, synchronizer, undefined, () => clock.now),
-    statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now, placeholders),
-    readingsReader: new LatestReadingsReader(ruleSource, repository, () => clock.now),
-    routineReader: new RoutineReader(repository, () => clock.now),
-  }
-  return {
-    clock,
-    repository,
-    gateway,
-    ruleSource,
-    renderApp: () =>
-      render(
-        <ServicesProvider services={services}>
-          <App />
-        </ServicesProvider>,
-      ),
-  }
-}
-
 const list = () => screen.getByRole('region', { name: 'Body systems' })
 const row = () => within(list()).getByRole('listitem')
-
-async function submitSpo2(value: number) {
-  // user-event keeps its own copy of the typed value, which form.reset() doesn't clear.
-  await userEvent.clear(screen.getByLabelText(/spo[2₂]/i))
-  await userEvent.type(screen.getByLabelText(/spo[2₂]/i), String(value))
-  await userEvent.click(screen.getByRole('button', { name: /save check-in/i }))
-}
 
 function expectNoStatusIcon(element: HTMLElement) {
   expect(element.querySelector('svg')).toBeNull()
@@ -102,15 +52,13 @@ describe('SystemStatusList', () => {
     expect(await within(list()).findByText('✓ Nominal')).toBeInTheDocument()
   })
 
-  it('AC4: 92 is caution with the SPO-01 explanation', async () => {
+  it('AC4: 92 is caution; the explanation lives on the detail screen (#9)', async () => {
     setup().renderApp()
     await submitSpo2(92)
 
     expect(await within(list()).findByText('▲ CAUTION')).toBeInTheDocument()
     expect(row()).toHaveClass('status-caution')
-    expect(within(row()).getByText('SPO-01')).toBeInTheDocument()
-    expect(within(row()).getByText('CMO')).toBeInTheDocument()
-    texts(SPO01).forEach((text) => expect(row()).toHaveTextContent(text))
+    expectNoExplanation(row())
   })
 
   it('AC5: 90 is caution', async () => {
@@ -120,19 +68,14 @@ describe('SystemStatusList', () => {
     expect(await within(list()).findByText('▲ CAUTION')).toBeInTheDocument()
   })
 
-  it('AC6: 88 is warning with an octagon icon and only the SPO-02 explanation', async () => {
+  it('AC6: 88 is warning with an octagon icon; the explanation lives on the detail screen (#9)', async () => {
     setup().renderApp()
     await submitSpo2(88)
 
     expect(await within(list()).findByText('WARNING')).toBeInTheDocument()
     expect(row()).toHaveClass('status-warning')
-    expect(row().querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
-    expect(within(row()).getByText('SPO-02')).toBeInTheDocument()
-    expect(within(row()).getByText('Urgent ground')).toBeInTheDocument()
-    texts(SPO02).forEach((text) => expect(row()).toHaveTextContent(text))
-    expect(within(row()).queryByText('SPO-01')).toBeNull()
-    expect(within(row()).queryByText('CMO')).toBeNull()
-    ;[SPO01.what, SPO01.howDecided, SPO01.next].forEach((text) => expect(row()).not.toHaveTextContent(text))
+    expect(row().querySelector('.badge svg')).toHaveAttribute('aria-hidden', 'true')
+    expectNoExplanation(row())
   })
 
   it('AC7: a later check-in without SpO₂ keeps the warning', async () => {
@@ -264,14 +207,13 @@ describe('Body systems with placeholders (#4)', () => {
     expect(within(rows[0]).getByText('No data')).toBeInTheDocument()
   })
 
-  it('AC2: SpO₂ 88 warns on Respiratory with SPO-02 while the placeholders stay nominal', async () => {
+  it('AC2: SpO₂ 88 warns on Respiratory while the placeholders stay nominal', async () => {
     setup({ placeholders: mockStatuses }).renderApp()
     await submitSpo2(88)
 
     expect(await within(list()).findByText('WARNING')).toBeInTheDocument()
     const [respiratory, ...others] = within(list()).getAllByRole('listitem')
-    expect(within(respiratory).getByText('SPO-02')).toBeInTheDocument()
-    texts(SPO02).forEach((text) => expect(respiratory).toHaveTextContent(text))
+    expectNoExplanation(respiratory)
     expect(others).toHaveLength(9)
     others.forEach((r) => expect(within(r).getByText('✓ Nominal')).toBeInTheDocument())
   })
@@ -315,5 +257,45 @@ describe('Body systems with placeholders (#4)', () => {
 
     expect(await within(list()).findByText('Status unavailable')).toBeInTheDocument()
     expect(within(list()).queryByRole('listitem')).toBeNull()
+  })
+})
+
+describe('Body systems rows link to the detail (#9)', () => {
+  const link = () => within(row()).getByRole('link')
+
+  it.each([
+    [92, '▲ CAUTION', SPO01],
+    [88, 'WARNING', SPO02],
+  ])('AC1/AC2: SpO₂ %s makes the row a link to the detail, without the explanation', async (value, word, rule) => {
+    setup().renderApp()
+    await submitSpo2(value)
+
+    await within(list()).findByText(word)
+    expect(link()).toHaveAttribute('href', '#/systems/Respiratory')
+    expect(link()).toHaveTextContent('Respiratory')
+    expect(link()).toHaveTextContent(word)
+    expect(link().querySelector('.status-chevron')).toHaveAttribute('aria-hidden', 'true')
+    texts(rule).forEach((text) => expect(row()).not.toHaveTextContent(text))
+    expect(row().querySelector('dl')).toBeNull()
+  })
+
+  it.each([
+    ['an empty store', [], undefined, 'No data'],
+    ['SpO₂ 96', [], 96, '✓ Nominal'],
+    ['a stale SpO₂ 88', [reading('a', '2026-11-13T09:29:00Z', 88)], undefined, 'No recent data'],
+  ])('AC3: no link for %s', async (_, seed, submit, text) => {
+    setup({ seed }).renderApp()
+    if (submit !== undefined) await submitSpo2(submit)
+
+    await within(list()).findByText(text)
+    expect(within(list()).queryByRole('link')).toBeNull()
+  })
+
+  it('AC4: placeholder rows have no link', async () => {
+    setup({ placeholders: mockStatuses }).renderApp()
+
+    const [, ...placeholders] = await within(list()).findAllByRole('listitem')
+    expect(placeholders).toHaveLength(9)
+    placeholders.forEach((r) => expect(within(r).queryByRole('link')).toBeNull())
   })
 })
