@@ -1,7 +1,9 @@
 import { useId, type ComponentType } from 'react'
 import { HAZARDS, type Hazard, type HazardId } from '../domain/hazards'
+import { BodyFigure } from './BodyFigure'
 import './hazard.css'
 import { DistanceFromEarthIcon, GravityIcon, HostileEnvironmentIcon, IsolationIcon, RadiationIcon } from './icons'
+import type { StatusListState } from './useSystemStatuses'
 
 const ICONS: Record<HazardId, ComponentType> = {
   radiation: RadiationIcon,
@@ -27,7 +29,15 @@ function Caption({ hazard }: { hazard: Hazard | null }) {
 }
 
 /** Hazard lens (F12, mockup 01): pick one of NASA's five HRP hazards to see which body systems it affects. */
-export function HazardLens({ selected, onToggle }: { selected: Hazard | null; onToggle: (id: HazardId) => void }) {
+export function HazardLens({
+  selected,
+  onToggle,
+  statuses,
+}: {
+  selected: Hazard | null
+  onToggle: (id: HazardId) => void
+  statuses: StatusListState
+}) {
   const headingId = useId()
   return (
     <section className="card lens" aria-labelledby={headingId}>
@@ -54,6 +64,7 @@ export function HazardLens({ selected, onToggle }: { selected: Hazard | null; on
       <div className="lens-caption" aria-live="polite">
         <Caption hazard={selected} />
       </div>
+      <BodyFigure statuses={statuses} lens={selected} />
     </section>
   )
 }

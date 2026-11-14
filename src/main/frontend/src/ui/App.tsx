@@ -46,7 +46,11 @@ export function App() {
             focusHeading={returnedHome}
             lens={lens.selected}
           />
-          <HazardLens selected={lens.selected} onToggle={lens.toggle} />
+          <HazardLens
+            selected={lens.selected}
+            onToggle={lens.toggle}
+            statuses={statuses.state}
+          />
           <div className="stack">
             <LatestReadings state={readings.state} />
             <section className="card" aria-labelledby="checkin-heading">
