@@ -23,4 +23,17 @@ describe('IndexedDbCheckInRepository', () => {
 
     expect(await repository.listPending()).toEqual([checkIn('b')])
   })
+
+  it('lists pending and synced check-ins without storage fields', async () => {
+    const repository = newRepository()
+    await repository.add(checkIn('a'))
+    await repository.add(checkIn('b'))
+    await repository.markSynced(['a'])
+
+    const listed = await repository.list()
+
+    expect(listed).toHaveLength(2)
+    expect(listed).toEqual(expect.arrayContaining([checkIn('a'), checkIn('b')]))
+    listed.forEach((c) => expect(c).not.toHaveProperty('syncStatus'))
+  })
 })
