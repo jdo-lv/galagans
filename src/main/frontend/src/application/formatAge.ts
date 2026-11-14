@@ -17,3 +17,9 @@ export function formatOldAge(recordedAt: string, now: Date): string {
 export function formatStaleAge(recordedAt: string, now: Date): string {
   return `data ${formatOldAge(recordedAt, now)}`
 }
+
+/** Local time as zero-padded 24-h "HH:MM". */
+export function formatTime(recordedAt: string): string {
+  const d = new Date(recordedAt)
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}

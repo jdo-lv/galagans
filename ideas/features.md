@@ -138,6 +138,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **How (48 h):** the morning check-in, the PVT, and one rule-triggered KSS + sleep re-check.
 - **Needs:** F1, F4.
 - **More:** idea file "Questionnaires and how they're triggered"; mockup [06-questionnaire.png](mockups/06-questionnaire.png).
+- **Status:** The 'Today's routine' card on home shows the Morning check-in (07:00–09:00, device time) as upcoming, due with Start, done HH:MM or not answered, from the stored check-ins; PVT, exercise, fluids and Bedford are synthetic placeholder rows (`infrastructure/mockRoutine.ts`). Missing: PVT, rule-triggered KSS + sleep re-check, windows on the mission clock and sleep shift, bundling, reminder banner, '● 1 due' counter, body-map data-age note for a missed check-in.
 
 #### F22. Check-and-act card · Must (4 cases)
 - **What:** on the detail screen of a flagged reading, three steps: (1) is the reading right? re-measure properly; (2) what in your own data may explain it (sleep, fluids, caffeine, cabin CO₂, symptoms); (3) what to do now, plus "Add to my next medical conference".

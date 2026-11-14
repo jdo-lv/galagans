@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CheckInRecorder } from '../application/CheckInRecorder'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
+import { RoutineReader } from '../application/RoutineReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import type { CheckIn } from '../domain/checkIn'
@@ -33,6 +34,7 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
     recorder: new CheckInRecorder(repository, synchronizer, undefined, () => clock.now),
     statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now),
     readingsReader: new LatestReadingsReader(ruleSource, repository, () => clock.now, mockReadings),
+    routineReader: new RoutineReader(repository, () => clock.now),
   }
   return {
     clock,
@@ -286,7 +288,7 @@ describe('LatestReadings', () => {
     expect(s.gateway.sent).toHaveLength(0)
   })
 
-  it('AC20: the right column stacks Latest readings above the Check-in card', async () => {
+  it('AC19: the right column stacks Today\'s routine, Latest readings and the Check-in card', async () => {
     const { container } = setup().renderApp()
     await tiles()
 
@@ -298,6 +300,10 @@ describe('LatestReadings', () => {
     expect(hazardLens).toBe(screen.getByRole('region', { name: 'Hazard lens · NASA HRP five hazards' }))
     expect(column).toHaveClass('stack')
     expect(column.tagName).toBe('DIV')
-    expect([...column.children]).toEqual([panel(), screen.getByRole('region', { name: 'Check-in' })])
+    expect([...column.children]).toEqual([
+      screen.getByRole('region', { name: "Today's routine" }),
+      panel(),
+      screen.getByRole('region', { name: 'Check-in' }),
+    ])
   })
 })
