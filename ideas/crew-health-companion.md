@@ -109,7 +109,7 @@ A reading inside the corridor stays quiet and the explanation says "expected for
 
 ### Hazard lens (body-map filter)
 
-**What it shows.** A row of five toggles above the body map, one per HRP hazard: Radiation, Isolation & confinement, Distance from Earth, Gravity fields, Hostile/closed environment. Choosing a hazard highlights the body systems and indicators it affects and dims the rest. Each highlighted system shows one line: what this hazard does to it and which check in the app watches it.
+**What it shows.** A row of five toggles above the body map, one per HRP hazard: Radiation, Isolation & confinement, Distance from Earth, Gravity fields, Hostile/closed environment. Choosing a hazard highlights the body systems it affects and dims the rest. One caption per hazard says what it does, which systems it affects and which checks in the app watch it, with its source. Built in issue #14; marking the Latest readings tiles ("indicators") is a follow-up.
 
 **Why.** The five hazards are NASA's own framing and the first link in the challenge's Resources tab ([challenge.md](../challenge.md)). The lens shows the judges their framing working in the product.
 
@@ -123,7 +123,17 @@ A reading inside the corridor stays quiet and the explanation says "expected for
 | Gravity fields | Bone, muscle, eyes (fluid shift), kidney, cardiovascular, balance | BP, fluids, vision self-test, body mass, exercise minutes |
 | Hostile/closed environment | Cognition, headache, immune, sleep | Cabin CO2, temperature, humidity, noise |
 
-**Build:** a static mapping table plus a CSS class on the SVG body map. No new data.
+**App rows** (issue #14, the table above renamed to the Body systems rows):
+
+| Hazard | Rows marked |
+|---|---|
+| Radiation | Radiation, Immune, Vision (SANS), Cardiovascular, Cognition (Immune and Vision (SANS) map the [V1 4031] blood-forming-organ and lens limits, [nasa-hrp.md](../research/nasa-hrp.md) §3) |
+| Isolation & confinement | Sleep, Cognition (mood stays in the caption) |
+| Distance from Earth | All rows |
+| Gravity fields | Bone & muscle, Vision (SANS), Kidney & hydration, Cardiovascular (balance stays in the caption) |
+| Hostile/closed environment | Cognition, Cabin air, Sleep, Immune (headache has no row) |
+
+**Build:** a static table (`domain/hazards.ts`) and a lens class on the Body systems rows and the body figure. No new data.
 
 ### Systems schematic ("Body | Systems" toggle)
 

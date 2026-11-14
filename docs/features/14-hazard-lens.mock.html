@@ -1,0 +1,139 @@
+<!doctype html>
+<!-- Static mock for issue #14 (hazard lens + body figure), built on the app's tokens and classes.
+     State: "Hostile/closed environment" selected, Respiratory in caution (SpO₂ 92 %), the nine placeholders nominal.
+     Screenshots: docs/features/14-hazard-lens.mock.mjs (tools/cdp.mjs, 1280 px dark and 390 px light). -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/tokens.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/base.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/status.css">
+<style>
+/* Home grid: Body systems | Hazard lens | Latest readings + Check-in (mockup 01) */
+.layout{grid-template-areas:"systems" "lens" "side"}
+.layout>.systems{grid-area:systems}.layout>.lens{grid-area:lens}.layout>.stack{grid-area:side}
+@media (min-width:860px){.layout{grid-template-columns:minmax(0,1fr) minmax(0,380px);grid-template-rows:auto 1fr;grid-template-areas:"systems side" "lens side"}}
+@media (min-width:1100px){.layout{grid-template-columns:minmax(0,300px) minmax(0,1fr) minmax(0,380px);grid-template-rows:auto;grid-template-areas:"systems lens side"}}
+
+/* Lens marks on body-system rows */
+.status-list>li.lens-affected{box-shadow:inset 4px 0 0 var(--color-accent);padding-left:var(--space-4)}
+.lens-dimmed :is(.status-system,.status-sub,.badge){color:var(--color-text-muted)}
+.lens-note{margin-top:var(--space-3)}
+.status-link{display:flex;align-items:center;gap:var(--space-2);color:inherit;text-decoration:none}
+.card .status-link{color:inherit;text-decoration:none}
+.status-link .status-head{flex:1}
+
+/* Hazard lens card */
+.lens-sub{font-weight:400;letter-spacing:0;text-transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:var(--gap-targets);margin-bottom:var(--space-4)}
+.chip{display:inline-flex;align-items:center;gap:var(--space-2);min-height:var(--target-min);padding:0 var(--space-3);border:1px solid var(--color-edge);border-radius:var(--radius-pill);background:transparent;color:var(--color-text);font:inherit;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--color-inverse-bg);color:var(--color-inverse-text);border-color:transparent;font-weight:700}
+.chip svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:var(--icon-stroke);stroke-linecap:round;stroke-linejoin:round;flex:none}
+.lens-caption{display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-3) var(--space-4);border-radius:var(--radius-item);background:var(--color-inset);--color-text-muted:var(--color-text-muted-on-inset)}
+.lens-caption p{margin:0}
+
+/* Body figure: SVG drawing + HTML labels over it (>= 600 px) or listed under it (< 600 px) */
+.figure{position:relative;margin-top:var(--space-4)}
+.figure svg{display:block;width:100%;height:auto}
+.figure .silhouette{fill:var(--color-inset);stroke:var(--color-edge);stroke-width:1.6}
+.figure .organ{fill:none;stroke:var(--color-text-muted);stroke-width:1.4}
+.figure .organ--affected{stroke:var(--color-accent);stroke-width:2.5}
+.figure .leader{stroke:var(--color-edge);stroke-width:1;stroke-dasharray:3 3}
+.figure .leader--affected{stroke:var(--color-accent);stroke-dasharray:none;stroke-width:1.5}
+.hotspots{list-style:none;margin:0;padding:0}
+.hotspot{display:flex;flex-direction:column;align-items:flex-start;gap:2px;font-weight:500;color:var(--color-text-muted)}
+.hotspot.lens-affected{color:var(--color-text);font-weight:700;box-shadow:inset 4px 0 0 var(--color-accent);padding-left:var(--space-3)}
+.hotspot.flagged{color:var(--color-text)}
+@media (min-width:600px){
+  .hotspot{position:absolute;left:var(--x);top:var(--y);transform:translateY(-50%)}
+  .hotspot.left{left:auto;right:calc(100% - var(--x));align-items:flex-end;text-align:right}
+  .hotspot.left.lens-affected{box-shadow:inset -4px 0 0 var(--color-accent);padding-left:0;padding-right:var(--space-3)}
+}
+@media (max-width:599px){
+  .figure svg{max-width:220px;margin:0 auto}
+  .figure .leader{display:none}
+  .hotspots{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2) var(--space-4);margin-top:var(--space-3)}
+  .hotspot{min-height:44px;justify-content:center;padding-left:var(--space-3)}
+}
+.mock-note{color:var(--color-text-muted)}
+</style></head>
+<body><div class="app">
+<header class="app-header"><span></span><h1 class="wordmark">Health</h1><span></span></header>
+<p class="pill pill--quiet"><span>Online</span></p>
+<main class="layout">
+
+<section class="card systems" aria-labelledby="sys-h">
+  <h2 id="sys-h" class="card-heading">Body systems</h2>
+  <ul class="status-list">
+    <li class="status-caution"><a class="status-link" href="#"><div class="status-head"><div><div class="status-system">Respiratory</div><div class="status-sub">SpO₂ <span class="num">92</span> % · 10 min ago · manual</div></div><span class="badge badge--caution">▲ CAUTION</span></div><span aria-hidden="true">›</span></a></li>
+    <li class="status-nominal lens-affected"><div class="status-head"><div><div class="status-system">Cognition</div><div class="status-sub">PVT 268 ms · within your baseline · synthetic</div></div><span class="badge badge--nominal">✓ Nominal</span></div><span class="visually-hidden">Affected by Hostile/closed environment</span></li>
+    <li class="status-nominal lens-affected"><div class="status-head"><div><div class="status-system">Cabin air</div><div class="status-sub">CO₂ 2.3 mmHg (1-h avg) · synthetic</div></div><span class="badge badge--nominal">✓ Nominal</span></div></li>
+    <li class="status-nominal lens-affected"><div class="status-head"><div><div class="status-system">Sleep</div><div class="status-sub">7.1 h last night · synthetic</div></div><span class="badge badge--nominal">✓ Nominal</span></div></li>
+    <li class="status-nominal lens-affected"><div class="status-head"><div><div class="status-system">Immune</div><div class="status-sub">no new symptoms · synthetic</div></div><span class="badge badge--nominal">✓ Nominal</span></div></li>
+    <li class="status-nominal lens-dimmed"><div class="status-head"><div><div class="status-system">Cardiovascular</div><div class="status-sub">HR 63 bpm · BP 108/70 · synthetic</div></div><span class="badge badge--nominal">✓ Nominal</span></div></li>
+    <li class="status-nominal lens-dimmed"><div class="status-head"><div><div class="status-system">Bone &amp; muscle</div><div class="status-sub">Exercise 540/600 min/wk · synthetic</div></div><span class="badge badge--nominal">✓ Nominal</span></div></li>
+    <li class="status-nominal lens-dimmed"><div class="status-head"><div><div class="status-system">Vision (SANS)</div><div class="status-sub">self-test done Wed · no changes · synthetic</div></div><span class="badge badge--nominal">✓ Nominal</span></div></li>
+    <li class="status-nominal lens-dimmed"><div class="status-head"><div><div class="status-system">Radiation</div><div class="status-sub">38% of 30-day limit · synthetic</div></div><span class="badge badge--nominal">✓ Nominal</span></div></li>
+    <li class="status-nominal lens-dimmed"><div class="status-head"><div><div class="status-system">Kidney &amp; hydration</div><div class="status-sub">Fluids 1.1/2.5 L today · synthetic</div></div><span class="badge badge--nominal">✓ Nominal</span></div></li>
+  </ul>
+  <p class="muted lens-note">Lens on: affected systems marked, others dimmed. Status is unchanged by the lens.</p>
+</section>
+
+<section class="card lens" aria-labelledby="lens-h">
+  <h2 id="lens-h" class="card-heading">Hazard lens <span class="lens-sub">· NASA HRP five hazards</span></h2>
+  <div class="chips" role="group" aria-label="Hazards">
+    <button type="button" class="chip" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 14.6l3 5.19a9 9 0 0 0 4.5 -7.79h-6a3 3 0 0 1 -1.5 2.6"/><path d="M13.5 9.4l3 -5.19a9 9 0 0 0 -9 0l3 5.19a3 3 0 0 1 3 0"/><path d="M10.5 14.6l-3 5.19a9 9 0 0 1 -4.5 -7.790h6a3 3 0 0 0 1.5 2.6"/></svg>Radiation</button>
+    <button type="button" class="chip" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M8 21v-1a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v1"/><path d="M15 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M17 10h2a2 2 0 0 1 2 2v1"/><path d="M5 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M3 13v-1a2 2 0 0 1 2 -2h2"/></svg>Isolation &amp; confinement</button>
+    <button type="button" class="chip" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M3.6 9h16.8"/><path d="M3.6 15h16.8"/><path d="M11.5 3a17 17 0 0 0 0 18"/><path d="M12.5 3a17 17 0 0 1 0 18"/></svg>Distance from Earth</button>
+    <button type="button" class="chip" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l16 0"/><path d="M12 14l0 -10"/><path d="M12 14l4 -4"/><path d="M12 14l-4 -4"/></svg>Gravity fields</button>
+    <button type="button" class="chip" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M11.939 14c0 .173 .048 .351 .056 .533l0 .217a4.75 4.75 0 0 1 -4.533 4.745l-.217 0m-4.75 -4.75a4.75 4.75 0 0 1 7.737 -3.693m6.513 8.443a4.750 4.75 0 0 1 -4.69 -5.503l-.06 0m1.764 -2.944a4.75 4.75 0 0 1 7.731 3.477l0 .217m-11.195 -3.813a4.75 4.75 0 0 1 -1.828 -7.624l.164 -.172m6.718 0a4.75 4.75 0 0 1 -1.665 7.798"/></svg>Hostile/closed environment</button>
+  </div>
+  <div class="lens-caption" aria-live="polite">
+    <p><b>Hostile/closed environment:</b> Altered microbes, raised stress hormones, immune dysregulation, CO₂, noise, toxic contaminants.</p>
+    <p>Affects: Cognition · Cabin air · Sleep · Immune</p>
+    <p>Watched by: cabin CO₂ · temperature · humidity · noise</p>
+    <p class="muted">Source: NASA HRP five hazards (research/nasa-hrp.md §1)</p>
+  </div>
+  <div class="figure">
+    <svg viewBox="0 0 532 362" aria-hidden="true">
+      <path class="silhouette" d="M255,72 L255,88 C240,90 214,92 204,104 C196,112 194,128 192,146 L182,232 C180,246 184,256 192,256 C199,256 202,248 201,236 L208,150 C209,140 212,132 216,128 C218,160 220,182 220,200 C220,214 216,226 216,240 L226,336 C226,346 234,350 246,348 C252,347 252,340 250,334 L256,252 C258,246 262,244 266,244 C270,244 274,246 276,252 L282,334 C280,340 280,347 286,348 C298,350 306,346 306,336 L316,240 C316,226 312,214 312,200 C312,182 314,160 316,128 C320,132 323,140 324,150 L331,236 C330,248 333,256 340,256 C348,256 352,246 350,232 L340,146 C338,128 336,112 328,104 C318,92 292,90 277,88 L277,72 Z"/>
+      <ellipse class="silhouette" cx="266" cy="40" rx="26" ry="32"/>
+      <path class="organ organ--affected" d="M245 34 C245 18 256 10 266 10 C278 10 288 18 288 32 C288 42 282 48 274 48 L258 48 C250 48 245 42 245 34Z"/>
+      <g class="organ"><ellipse cx="257" cy="56" rx="4" ry="3"/><ellipse cx="275" cy="56" rx="4" ry="3"/></g>
+      <g class="organ"><path d="M244 132 C236 150 236 176 246 186 C254 184 258 170 258 150 C258 138 252 130 244 132Z"/><path d="M288 132 C296 150 296 176 286 186 C278 184 274 170 274 150 C274 138 280 130 288 132Z"/></g>
+      <path class="organ" d="M276 146 C272 140 264 142 266 150 C268 158 276 162 278 166 C280 162 288 158 290 150 C292 142 284 140 280 146Z"/>
+      <g class="organ"><path d="M248 194 C242 196 242 208 248 210 C252 210 252 204 250 202 C252 198 252 194 248 194Z"/><path d="M284 194 C290 196 290 208 284 210 C280 210 280 204 282 202 C280 198 280 194 284 194Z"/></g>
+      <path class="organ" d="M292 262 L288 300 M240 262 L244 300"/>
+      <line class="leader leader--affected" x1="290" y1="30" x2="352" y2="30"/>
+      <line class="leader" x1="252" y1="56" x2="180" y2="64"/>
+      <line class="leader" x1="240" y1="158" x2="180" y2="158"/>
+      <line class="leader" x1="290" y1="152" x2="352" y2="120"/>
+      <line class="leader" x1="288" y1="202" x2="352" y2="210"/>
+      <line class="leader" x1="292" y1="290" x2="352" y2="300"/>
+    </svg>
+    <ul class="hotspots" aria-label="Body figure">
+      <li class="hotspot lens-affected" style="--x:67%;--y:8.3%">Cognition<span class="visually-hidden">Affected by Hostile/closed environment</span></li>
+      <li class="hotspot left lens-dimmed" style="--x:33%;--y:17.7%">Eyes</li>
+      <li class="hotspot left flagged" style="--x:33%;--y:43.6%">Lungs<span class="badge badge--caution">▲ CAUTION</span></li>
+      <li class="hotspot lens-dimmed" style="--x:67%;--y:33.1%">Heart</li>
+      <li class="hotspot lens-dimmed" style="--x:67%;--y:58%">Kidneys</li>
+      <li class="hotspot lens-dimmed" style="--x:67%;--y:82.9%">Bone &amp; muscle</li>
+    </ul>
+  </div>
+</section>
+
+<div class="stack">
+  <section class="card" aria-labelledby="rd-h">
+    <h2 id="rd-h" class="card-heading">Latest readings</h2>
+    <ul class="tile-grid">
+      <li class="metric-tile"><div class="metric-tile__top"><span class="badge badge--caution">▲ CAUTION</span></div><span class="metric-tile__reading"><span class="value">92</span> <span class="metric-tile__unit">%</span></span><div class="tile-label">SpO₂ <span class="tile-label__suffix">/ 10 min ago</span></div><span class="tag">manual</span></li>
+      <li class="metric-tile"><div class="metric-tile__top"></div><span class="metric-tile__reading"><span class="value">63</span> <span class="metric-tile__unit">bpm</span></span><div class="tile-label">Heart rate <span class="tile-label__suffix">/ 10 min ago</span></div><span class="tag">manual</span></li>
+    </ul>
+  </section>
+  <section class="card" aria-labelledby="ci-h">
+    <h2 id="ci-h" class="card-heading">Check-in</h2>
+    <p class="muted">Fill in what you measured. Leave the rest as —.</p>
+  </section>
+  <p class="mock-note">Mock for issue #14 · example values. Respiratory row drawn as after #9 (explanation on the detail screen).</p>
+</div>
+
+</main>
+</div></body></html>

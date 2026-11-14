@@ -65,3 +65,17 @@
 .card a.status-link {
   color: inherit;
 }
+
+/* Hazard lens (issue #14): a bar on affected rows, quiet text on the rest. A flagged row outside the hazard gets neither. */
+.status-list > li.lens-affected {
+  padding-left: var(--space-4);
+  box-shadow: inset 4px 0 0 var(--color-text);
+}
+
+.lens-dimmed :is(.status-system, .status-sub, .badge) {
+  color: var(--color-text-muted);
+}
+
+.lens-note {
+  margin-top: var(--space-3);
+}

@@ -293,9 +293,11 @@ describe('LatestReadings', () => {
     await tiles()
 
     const layout = container.querySelector('main.layout')
-    const [systems, column, ...rest] = [...(layout?.children ?? [])]
+    // Hazard lens (#14) sits between Body systems and the right column.
+    const [systems, hazardLens, column, ...rest] = [...(layout?.children ?? [])]
     expect(rest).toHaveLength(0)
     expect(systems).toBe(screen.getByRole('region', { name: 'Body systems' }))
+    expect(hazardLens).toBe(screen.getByRole('region', { name: 'Hazard lens · NASA HRP five hazards' }))
     expect(column).toHaveClass('stack')
     expect(column.tagName).toBe('DIV')
     expect([...column.children]).toEqual([
