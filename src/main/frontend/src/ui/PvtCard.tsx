@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import { PVT_HASH } from './useHashRoute'
 
-/** Home entry to the PVT; secondary, because the Check-in card keeps the screen's one primary button. */
+/** Home entry to the PVT; secondary, like the routine's Start, so nothing on Home outranks the other. */
 export function PvtCard() {
   const headingId = useId()
   return (

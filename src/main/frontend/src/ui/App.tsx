@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { AppHeader } from "./AppHeader";
-import { CheckInForm } from "./CheckInForm";
+import { CheckInScreen } from "./CheckInScreen";
 import { GroundLinkPill } from "./GroundLinkPill";
 import { HazardLens } from "./HazardLens";
 import { LatestReadings } from "./LatestReadings";
@@ -12,7 +12,7 @@ import { SystemDetail } from "./SystemDetail";
 import { SystemStatusList } from "./SystemStatusList";
 import { TodaysRoutine } from "./TodaysRoutine";
 import { useServices } from "./ServicesContext";
-import { useHashRoute } from "./useHashRoute";
+import { CHECK_IN_HASH, useHashRoute } from "./useHashRoute";
 import { useHazardLens } from "./useHazardLens";
 import { useLatestReadings } from "./useLatestReadings";
 import { useOnlineStatus } from "./useOnlineStatus";
@@ -21,7 +21,7 @@ import { usePeriodicRead } from "./usePeriodicRead";
 import { useSystemStatuses } from "./useSystemStatuses";
 
 export function App() {
-  const { recorder, routineReader } = useServices();
+  const { routineReader } = useServices();
   const online = useOnlineStatus();
   const { pending, refresh } = usePendingCount();
   const statuses = useSystemStatuses();
@@ -43,12 +43,22 @@ export function App() {
 
   return (
     <div className="app">
-      <AppHeader />
+      <AppHeader showAdd={route.kind === "home"} />
       <div className="pill-row">
         <StatusBar online={online} pending={pending} />
         <GroundLinkPill current={route.kind === "packet"} />
       </div>
-      {route.kind === "packet" ? (
+      {route.kind === "check-in" ? (
+        <main>
+          <CheckInScreen
+            onSaved={() => {
+              refreshAll();
+              goHome({ returned: true });
+            }}
+            onExit={() => goHome({ returned: true })}
+          />
+        </main>
+      ) : route.kind === "packet" ? (
         <main>
           <SurgeonPacket />
         </main>
@@ -79,25 +89,12 @@ export function App() {
           <div className="stack">
             <TodaysRoutine
               state={routine.state}
-              onStart={() =>
-                document
-                  .querySelector<HTMLInputElement>('input[name="heartRate"]')
-                  ?.focus()
-              }
+              onStart={() => {
+                window.location.hash = CHECK_IN_HASH;
+              }}
             />
             <LatestReadings state={readings.state} />
             <PvtCard />
-            <section className="card" aria-labelledby="checkin-heading">
-              <h2 id="checkin-heading" className="card-heading">
-                Check-in
-              </h2>
-              <CheckInForm
-                onSubmit={async (draft) => {
-                  await recorder.record(draft);
-                  refreshAll();
-                }}
-              />
-            </section>
           </div>
         </main>
       )}

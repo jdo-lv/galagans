@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
 import { mockRoutine } from '../infrastructure/mockRoutine'
-import { pvt, setup } from '../test/renderApp'
+import { pvt, saveCheckIn, setup } from '../test/renderApp'
 
 const at = (h: number, m = 0, day = 14) => new Date(2026, 10, day, h, m)
 const stored = (id: string, recordedAt: Date): CheckIn => ({ id, recordedAt: recordedAt.toISOString(), symptoms: [] })
@@ -17,14 +17,7 @@ const items = () => within(card()).findAllByRole('listitem')
 const row = async () => (await items())[0]
 const timeText = (li: HTMLElement) => li.querySelector('.num')
 
-async function saveMood(value?: number) {
-  if (value !== undefined) {
-    // user-event keeps its own copy of the typed value, which form.reset() doesn't clear.
-    await userEvent.clear(screen.getByLabelText(/mood/i))
-    await userEvent.type(screen.getByLabelText(/mood/i), String(value))
-  }
-  await userEvent.click(screen.getByRole('button', { name: /save check-in/i }))
-}
+const saveMood = (value?: number) => saveCheckIn(value === undefined ? {} : { mood: value })
 
 describe('TodaysRoutine', () => {
   afterEach(() => vi.useRealTimers())
@@ -47,13 +40,14 @@ describe('TodaysRoutine', () => {
     expect(li).not.toHaveTextContent(/07:00–09:00|done|not answered/)
   })
 
-  it('AC3: Start focuses the Heart rate field and saves nothing', async () => {
+  it('AC3: Start opens #/check-in and saves nothing (#29)', async () => {
     const s = setupAt()
     s.renderApp()
 
     await userEvent.click(within(await row()).getByRole('button', { name: 'Start · ~90 s' }))
 
-    expect(document.activeElement).toBe(screen.getByLabelText(/heart rate/i))
+    expect(await screen.findByRole('region', { name: 'Morning check-in' })).toBeInTheDocument()
+    expect(window.location.hash).toBe('#/check-in')
     expect(s.repository.items.size).toBe(0)
   })
 

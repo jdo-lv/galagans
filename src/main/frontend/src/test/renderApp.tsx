@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CheckInRecorder } from '../application/CheckInRecorder'
 import { LastPacketReader } from '../application/LastPacketReader'
@@ -105,9 +105,18 @@ export function setup({
   }
 }
 
-export async function submitSpo2(value: number) {
-  // user-event keeps its own copy of the typed value, which form.reset() doesn't clear.
-  await userEvent.clear(screen.getByLabelText(/spo[2₂]/i))
-  await userEvent.type(screen.getByLabelText(/spo[2₂]/i), String(value))
-  await userEvent.click(screen.getByRole('button', { name: /save check-in/i }))
+/** Saves one check-in through the steps (#29): types or taps each given value, "Next →" everywhere else, never "Skip". */
+export async function saveCheckIn(fields: { heartRate?: number; spo2?: number; sleep?: number; kss?: number; mood?: number } = {}) {
+  await userEvent.click(await screen.findByRole('link', { name: 'Add entry' }))
+  const checkIn = await screen.findByRole('region', { name: 'Morning check-in' })
+  for (const key of ['heartRate', 'spo2', 'sleep', 'kss', 'mood'] as const) {
+    const value = fields[key]
+    if (value !== undefined && (key === 'kss' || key === 'mood')) await userEvent.click(within(checkIn).getByRole('button', { name: String(value) }))
+    else if (value !== undefined) await userEvent.type(within(checkIn).getByRole('spinbutton'), String(value))
+    await userEvent.click(within(checkIn).getByRole('button', { name: 'Next →' }))
+  }
+  await userEvent.click(within(checkIn).getByRole('button', { name: 'Save check-in' }))
+  await screen.findByRole('region', { name: 'Body systems' })
 }
+
+export const submitSpo2 = (value: number) => saveCheckIn({ spo2: value })
