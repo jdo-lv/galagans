@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { READINGS, type LatestReading } from '../domain/readings'
-import type { Rule } from '../domain/rules'
-import rules from '../infrastructure/rules.json'
+import { RULES } from '../test/rules'
 import { toPacketItem } from './packetItems'
 
-const [SPO01, SPO02] = rules as Rule[]
+const [SPO01, SPO02] = RULES
 const spec = (key: string) => READINGS.find((s) => s.key === key)!
 const AT = '2026-11-14T07:21:00.000Z'
 
@@ -70,9 +69,18 @@ describe('toPacketItem', () => {
     expect(toPacketItem({ spec: spec('sleep'), state: 'no-data' })).toStrictEqual({ key: 'sleep', label: 'Sleep', unit: 'h', state: 'no-data' })
   })
 
-  it('AC14: a synthetic placeholder keeps its text and source', () => {
-    const item = toPacketItem({ spec: spec('bloodPressure'), state: 'synthetic', text: '108/70', source: 'synthetic' })
+  it('a paired reading keeps its value and its "108/70" text', () => {
+    const item = toPacketItem({ spec: spec('bloodPressure'), state: 'nominal', value: 108, text: '108/70', recordedAt: AT, source: 'BP cuff · synthetic', unrated: true })
 
-    expect(item).toStrictEqual({ key: 'bloodPressure', label: 'Blood pressure', unit: 'mmHg', state: 'synthetic', text: '108/70', source: 'synthetic' })
+    expect(item).toStrictEqual({
+      key: 'bloodPressure',
+      label: 'Blood pressure',
+      unit: 'mmHg',
+      state: 'unrated',
+      value: 108,
+      text: '108/70',
+      recordedAt: AT,
+      source: 'BP cuff · synthetic',
+    })
   })
 })

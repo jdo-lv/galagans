@@ -1,0 +1,190 @@
+/* Morning check-in at #/check-in (mockup 06, issue #29). Colours and sizes: ideas/ui-guidelines.md tokens. */
+.check-in {
+  display: flex;
+  flex-direction: column;
+}
+
+.check-in__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.check-in__top .card-heading {
+  margin: 0;
+}
+
+.check-in__top .pill {
+  align-self: center;
+}
+
+/* Progress, not navigation: the current step is outlined, earlier answered steps are ticked. */
+.step-tabs {
+  list-style: none;
+  margin: 0 0 var(--space-6);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.step-tabs li {
+  padding: 10px var(--space-3);
+  border: 1px solid var(--color-edge);
+  border-radius: var(--radius-item);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.step-tabs li[aria-current='step'] {
+  border: 2px solid var(--color-text);
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.step-instrument {
+  margin-bottom: var(--space-1);
+}
+
+.step-prompt {
+  font-size: var(--text-value);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.step-prompt:focus {
+  outline: none;
+}
+
+.step-hint {
+  margin-top: var(--space-2);
+}
+
+.step-body {
+  margin-top: var(--space-6);
+}
+
+.step-body .field-tile {
+  max-width: 240px;
+}
+
+/* Big number buttons, a word under some of them (KSS 1/3/5/7/9, mood 1/5). */
+.scale,
+.choices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--gap-targets);
+}
+
+.scale {
+  grid-template-columns: repeat(auto-fill, minmax(var(--target-min), 82px));
+}
+
+.scale li {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  justify-items: center;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.scale button,
+.choices button {
+  width: 100%;
+  border: 1px solid var(--color-edge);
+  border-radius: var(--radius-item);
+  background: var(--color-inset);
+  cursor: pointer;
+}
+
+.scale button {
+  height: 82px;
+  font-family: var(--font-data);
+  font-size: var(--text-value);
+}
+
+.choices {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.choices button {
+  min-height: var(--target-min);
+  padding: 0 var(--space-4);
+  font-weight: 500;
+}
+
+/* "None of these" on its own line, sized to its words. */
+.choices li:last-child {
+  grid-column: 1 / -1;
+}
+
+.choices li:last-child button {
+  width: auto;
+}
+
+/* Selection is neutral (ui-guidelines rule 1): the inverse fill, never a status colour. */
+.check-in [aria-pressed='true'] {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+  border-color: var(--color-inverse-bg);
+}
+
+.check-in button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.field-error,
+.check-in__alert {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  color: var(--color-text);
+}
+
+.step-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-targets);
+  margin-top: var(--space-7);
+}
+
+.step-actions__note {
+  flex: 1;
+  text-align: center;
+}
+
+@media (max-width: 599px) {
+  .check-in__top {
+    flex-wrap: wrap;
+  }
+
+  /* Two columns keep "4 · Sleepiness" whole at 390 px. */
+  .step-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Top to bottom: the Skip line, Next or Save full width, then Back and Skip side by side. */
+  .step-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .step-actions__note {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .step-actions .button-primary {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

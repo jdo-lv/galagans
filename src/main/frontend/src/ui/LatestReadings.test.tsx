@@ -1,5 +1,4 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CheckInRecorder } from '../application/CheckInRecorder'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
@@ -7,30 +6,29 @@ import { RoutineReader } from '../application/RoutineReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import type { CheckIn } from '../domain/checkIn'
-import type { Rule } from '../domain/rules'
-import { mockReadings } from '../infrastructure/mockReadings'
-import rules from '../infrastructure/rules.json'
+import type { Observation } from '../domain/observation'
+import { RULES } from '../test/rules'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { mockStatuses } from '../infrastructure/mockStatuses'
-import { observationFakes, packetFakes, pvt, setup as setupApp } from '../test/renderApp'
+import { observationFakes, packetFakes, pvt, saveCheckIn, setup as setupApp } from '../test/renderApp'
 import { App } from './App'
 import { ServicesProvider } from './ServicesContext'
 
-const LABELS = ['SpO₂', 'Heart rate', 'Sleep', 'Mood', 'Blood pressure', 'Cabin CO₂', 'Reaction time']
+const LABELS = ['SpO₂', 'Heart rate', 'Sleep', 'Mood', 'Blood pressure', 'Temperature', 'Cabin CO₂', 'Cabin temp', 'Cabin humidity', 'Dose rate', 'Reaction time']
 
 const stored = (id: string, recordedAt: string, fields: Partial<CheckIn>): CheckIn => ({ id, recordedAt, symptoms: [], ...fields })
 
-function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = true } = {}) {
+function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = true, observationSeed = [] as Observation[] } = {}) {
   const clock = { now: new Date(now) }
   const repository = new FakeRepository()
   seed.forEach((c) => repository.items.set(c.id, { checkIn: c, pending: false }))
   const connectivity = new FakeConnectivity()
   connectivity.online = online
   const gateway = new FakeGateway()
-  const ruleSource = new FakeRuleSource(rules as Rule[])
+  const ruleSource = new FakeRuleSource(RULES)
   const synchronizer = new SyncService(repository, gateway, connectivity)
-  const device = observationFakes(repository, () => clock.now)
-  const readingsReader = new LatestReadingsReader(ruleSource, device.history, () => clock.now, mockReadings)
+  const device = observationFakes(repository, () => clock.now, observationSeed)
+  const readingsReader = new LatestReadingsReader(ruleSource, device.history, () => clock.now)
   const services = {
     repository,
     connectivity,
@@ -58,17 +56,7 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
   }
 }
 
-const FIELD_LABELS = { heartRate: /heart rate/i, spo2: /spo[2₂]/i, sleep: /sleep/i, mood: /mood/i }
-
-async function submit(fields: Partial<Record<keyof typeof FIELD_LABELS, number>>) {
-  for (const [name, value] of Object.entries(fields)) {
-    const input = screen.getByLabelText(FIELD_LABELS[name as keyof typeof FIELD_LABELS])
-    // user-event keeps its own copy of the typed value, which form.reset() doesn't clear.
-    await userEvent.clear(input)
-    await userEvent.type(input, String(value))
-  }
-  await userEvent.click(screen.getByRole('button', { name: /save check-in/i }))
-}
+const submit = saveCheckIn
 
 const panel = () => screen.getByRole('region', { name: 'Latest readings' })
 const tiles = () => within(panel()).findAllByRole('listitem')
@@ -83,11 +71,11 @@ const tile = (label: string) => {
 describe('LatestReadings', () => {
   afterEach(() => vi.useRealTimers())
 
-  it('AC1: lists the tiles in READINGS order (seven since #16), Cabin CO₂ as a 1-h average', async () => {
+  it('AC1: lists the tiles in READINGS order (eleven since #25), Cabin CO₂ as a 1-h average', async () => {
     setup().renderApp()
 
     const items = await tiles()
-    expect(items).toHaveLength(7)
+    expect(items).toHaveLength(LABELS.length)
     expect(items.map((li) => LABELS.find((label) => li.textContent?.includes(label)))).toEqual(LABELS)
     expect(tile('Cabin CO₂').querySelector('.tile-label__suffix')).toHaveTextContent('(1-h avg)')
   })
@@ -105,20 +93,24 @@ describe('LatestReadings', () => {
     expect(t.textContent).not.toMatch(/ago|old/)
   })
 
-  it.each([
-    ['Blood pressure', '108/70 mmHg'],
-    ['Cabin CO₂', '2.3 mmHg'],
-  ])('AC3: %s shows the synthetic %s with its tag, no badge and no age', async (label, shown) => {
-    setup().renderApp()
+  it('Blood pressure shows a BP cuff reading as "108/70 mmHg" with its device tag and no badge', async () => {
+    const at = '2026-11-14T09:29:00Z'
+    const bp = (indicator: 'systolicMmHg' | 'diastolicMmHg', value: number): Observation => ({
+      resourceType: 'Observation',
+      id: `bp-cuff:m1:${indicator}`,
+      status: 'final',
+      code: { text: indicator },
+      valueQuantity: { value, unit: 'mmHg' },
+      effectiveDateTime: at,
+      device: { display: 'BP cuff · synthetic' },
+    })
+    setup({ observationSeed: [bp('systolicMmHg', 108), bp('diastolicMmHg', 70)] }).renderApp()
     await tiles()
 
-    const t = tile(label)
-    expect(t).toHaveTextContent(shown)
-    const tags = t.querySelectorAll('.tag')
-    expect(tags).toHaveLength(1)
-    expect(tags[0]).toHaveTextContent('synthetic')
+    const t = tile('Blood pressure')
+    expect(t).toHaveTextContent('108/70 mmHg')
+    expect(t.querySelector('.tag')).toHaveTextContent('BP cuff · synthetic')
     expect(t.querySelector('.badge')).toBeNull()
-    expect(t.textContent).not.toMatch(/ago|old/)
   })
 
   it.each(LABELS)('AC4: %s has an icon with no data', async (label) => {
@@ -259,7 +251,7 @@ describe('LatestReadings', () => {
     setFail(s, false)
     await submit({ spo2: 96 })
 
-    await waitFor(() => expect(within(panel()).getAllByRole('listitem')).toHaveLength(7))
+    await waitFor(() => expect(within(panel()).getAllByRole('listitem')).toHaveLength(LABELS.length))
     expect(tile('SpO₂')).toHaveTextContent('96 %')
   })
 
@@ -295,7 +287,7 @@ describe('LatestReadings', () => {
     expect(s.gateway.sent).toHaveLength(0)
   })
 
-  it('AC19: the right column stacks Today\'s routine, Latest readings, the Reaction test card (#16) and the Check-in card', async () => {
+  it('AC19: the right column stacks Today\'s routine, Latest readings and the Reaction test card (#16); the Check-in card is gone (#29)', async () => {
     const { container } = setup().renderApp()
     await tiles()
 
@@ -311,8 +303,8 @@ describe('LatestReadings', () => {
       screen.getByRole('region', { name: "Today's routine" }),
       panel(),
       screen.getByRole('region', { name: 'Reaction test' }),
-      screen.getByRole('region', { name: 'Check-in' }),
     ])
+    expect(screen.queryByRole('region', { name: 'Check-in' })).toBeNull()
   })
 })
 
@@ -325,12 +317,12 @@ describe('Reaction time tile (#16)', () => {
     setup({ seed: [pvt('p', NOW, 268)] }).renderApp()
 
     const items = await tiles()
-    expect(items).toHaveLength(7)
-    expect(items[6]).toBe(tile('Reaction time'))
-    expect(items[6]).toHaveTextContent('268 ms')
-    expect(items[6]).toHaveTextContent('Reaction time / just now')
-    expect(within(items[6]).getByText('in-app test')).toHaveClass('tag')
-    expect(items[6].querySelector('svg.metric-tile__icon')).not.toBeNull()
+    const last = items[items.length - 1]
+    expect(last).toBe(tile('Reaction time'))
+    expect(last).toHaveTextContent('268 ms')
+    expect(last).toHaveTextContent('Reaction time / just now')
+    expect(within(last).getByText('in-app test')).toHaveClass('tag')
+    expect(last.querySelector('svg.metric-tile__icon')).not.toBeNull()
   })
 
   it('AC30: with no test shows "—" and "No reading"', async () => {

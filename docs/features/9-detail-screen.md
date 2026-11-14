@@ -2,7 +2,7 @@
 
 A body system in caution or warning on Home is now a link (whole row, with a chevron). It opens a detail screen with the status and latest reading, a 7-day SpO₂ trend chart with the rule thresholds, the explanation (what, why it matters, how decided, source), what to do next and who to involve. It works offline: the detail reads the same rules and local check-ins as Home. The inline explanation that #1 put in the Home row is gone. Feature F5 in [features.md](../../ideas/features.md); issue [#9](https://github.com/jdo-lv/galagans/issues/9).
 
-**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080. Enter SpO₂ 92, click "Save check-in", then click the Respiratory row. Or open http://localhost:8080/#/systems/Respiratory directly. **Retake the screenshots** with the app running: `target/node/node docs/features/9-detail-screen.shots.mjs` ([script](9-detail-screen.shots.mjs)). The script writes a week of SpO₂ check-ins into IndexedDB so the chart has history.
+**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080. Enter SpO₂ 92 through "+" (Add entry) and the check-in steps ([#29](29-check-in-questionnaire.md)), then click the Respiratory row. Or open http://localhost:8080/#/systems/Respiratory directly. **Retake the screenshots** with the app running: `target/node/node docs/features/9-detail-screen.shots.mjs` ([script](9-detail-screen.shots.mjs)). The script writes a week of SpO₂ check-ins into IndexedDB so the chart has history.
 
 ## Screens
 
@@ -43,7 +43,7 @@ Layout follows [02-detail.png](../../ideas/mockups/02-detail.png) and the issue 
 
 | Deviation | Reason |
 |---|---|
-| No adaptation corridor or baseline band; X axis is the last 7 days, not flight days; no flight-day scrubber | Personal baseline (F3) and corridor (F11) aren't built yet. |
+| No adaptation corridor or baseline band; X axis is the last 7 days, not flight days; no flight-day scrubber | Corridor (F11) isn't built yet. The Cognition chart shows the pre-flight baseline line since [#28](28-personal-baseline.md). |
 | No "Share with CMO" / "Add to surgeon packet" buttons, no tier sentence | Surgeon packet (F14) and conference agenda (F23) aren't built yet. |
 | Who to involve is a 2 × 2 grid, not four in a row | At the app's body text size "Medical conference" doesn't fit in a quarter of the 380 px column. |
 | One "What next" step, not a numbered list | Each rule row has a single `next` text. |

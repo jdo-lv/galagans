@@ -128,14 +128,14 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 - **Gaps:** 16 px between static cards (canvas 14 px, moved onto the 4 px grid); **18 px between touch targets**.
 - **Touch targets:** at least 52 × 52 px. On an iPad-class screen that is 10 mm, and 18 px is 3.4 mm, meeting NASA's 9.5 mm targets with 3.2 mm gaps [S2 §10.4.2.21]. The canvas's 44 px icon buttons keep their look but get a 52 px hit area.
 - **Radii:** 16 px cards and tiles, 12 px items inside a card (nav items), fully round pills and badges.
-- **Grid:** phone, one or two columns (canvas). Tablet and laptop, content at most 1200 px wide; the home screen shows three columns from 1200 px: the body-systems card (300 px), the Hazard lens card, and a 380 px column that holds Today's routine, Latest readings and the Check-in card, in that order (mockup 01). From 861 to 1199 px the Hazard lens card moves under the body-systems card, and at 860 px and below everything stacks, body systems first. Tile grids use tiles at least 150 px wide (two columns on a phone, like the canvas).
+- **Grid:** phone, one or two columns (canvas). Tablet and laptop, content at most 1200 px wide; the home screen shows three columns from 1200 px: the body-systems card (300 px), the Hazard lens card, and a 380 px column that holds Today's routine, Latest readings and the Reaction test card, in that order (mockup 01). From 861 to 1199 px the Hazard lens card moves under the body-systems card, and at 860 px and below everything stacks, body systems first. Tile grids use tiles at least 150 px wide (two columns on a phone, like the canvas).
 - **Critical information is visible without scrolling** [S1 V2 10037]; navigation is at most 2–3 levels deep.
 - **Motion:** 0.25 s colour transitions on theme change (canvas), none with `prefers-reduced-motion`. Nothing blinks or pulses.
 
 ## 5. Components
 
 ### App header
-Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, icon buttons on the right: theme toggle (moon in light, sun in dark) and "Add entry" (+). Context pills sit in one wrapping row under it on every layout and screen: the connection pill, then the ground-link pill (#19). Crew and flight-day pills are not built.
+Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, icon buttons on the right, 18 px apart: "Add entry" (+, Home only, opens the check-in; built: issue #29) and the theme toggle (moon in light, sun in dark). Context pills sit in one wrapping row under it on every layout and screen: the connection pill, then the ground-link pill (#19). Crew and flight-day pills are not built.
 
 ### Brand mark and splash
 - **Ring:** a 270° arc in `--color-ring` and a 60° arc in `--color-text`, round caps (canvas geometry). The arc was red on the canvas, then blue; blue now means level 1 only.
@@ -160,13 +160,13 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 ### Today's routine (built: issue #10)
 - **Card:** a `card` with the uppercase `card-heading` "Today's routine"; one row per item, separated by `--color-divider`. The right-hand text, words included, is one `.num` span.
 - **Upcoming and missed:** muted row with the window ("07:00–09:00") or "not answered", and no button.
-- **Due:** a 1 px `--color-todo` outline in `--radius-item`, no fill, and a secondary "Start · ~<estimate>" button (the screen's one primary button stays "Save check-in"). Never red or yellow.
+- **Due:** a 1 px `--color-todo` outline in `--radius-item`, no fill, and a secondary "Start · ~<estimate>" button that opens the check-in at `#/check-in`, where "Save check-in" is the primary (issue #29). Never red or yellow.
 - **Done:** "done HH:MM" with no glyph; ✓ stays Nominal.
 - **Placeholder row:** the label with a "synthetic" tag under it and the muted detail on the right; no state, button or glyph, the same at every time of day.
 - **PVT row** (issue #16): "done HH:MM" when a PVT was done today, otherwise muted "every 4th day"; no tag, no button (the Reaction test card starts it).
 
 ### Test screen (PVT, built: issue #16)
-- **Home card:** "Reaction test" between Latest readings and Check-in, with a secondary "Start reaction test" button (Check-in keeps the one primary).
+- **Home card:** "Reaction test" under Latest readings, with a secondary "Start reaction test" button; Home has no primary button since the check-in moved to its own screen (#29).
 - **Start screen:** what to do, "use the same device each time" (device latency affects RT, health-indicators §13), a primary "Start test" and an underlined "← Home".
 - **Running:** the time left ("2:41 left", `.num`) beside the heading; the target is an inset `button` at least 300 px high (`aria-label="Respond"`) with the counter in `.value` at `--text-hero`; "Too early" for a false start; a secondary "Stop". Space and a tap both respond.
 - **Result:** a two-column list (muted terms, numbers right) of median, lapses, false starts and responses, then the save line and one primary button.
@@ -226,7 +226,7 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Structure:** a tile is the field. Its `<label>` wraps the uppercase label, the "/ unit" suffix and the input. The input is transparent DM Mono at value size, so the tile reads like a metric tile being filled in.
 - **Edge and focus:** a 1 px `--color-edge` border (3.20:1 light, 4.53:1 dark), and focus shows a 2 px `--color-focus` ring around the whole tile. Inside a card the tile is inset (`--color-inset`) and the edge switches to `--color-edge-on-surface` (3.57:1 light, 4.76:1 dark).
 - **Errors:** an icon plus a sentence under the field in `--color-text`. Never red or yellow.
-- **Questionnaires:** one question per screen, the instrument's own anchors, progress and time left, and "Skip" always allowed (see [crew-health-companion.md](crew-health-companion.md), "Rendering rules").
+- **Questionnaires (built: issue #29):** one question per screen, the instrument's own anchors, progress and time left, and "Skip" always allowed (see [crew-health-companion.md](crew-health-companion.md), "Rendering rules"). Step tabs show progress, not navigation (current step: 2 px `--color-text` outline, bold). Number questions use the field tile; an invalid value shows an info icon and "Enter … , or skip." in `--color-text` under it. Scales and checklists are 52 px+ buttons 18 px apart; the selection is the inverse fill, never a status colour.
 
 ### Level badge
 
@@ -275,7 +275,7 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 
 ### Charts (for the detail screens)
 - **Plot area:** a `--color-inset` well inside the card, so the lines and the band keep contrast.
-- **Lines and bands:** data line in `--color-text`; the adaptation corridor is the only filled band (`--color-text` at about 20 % with a faint edge); the pre-flight baseline is a thin dashed `--color-text-muted` line at the baseline median, labelled "your pre-flight normal" ([mockup 02](mockups/02-detail.png)). No category colours: categories are told apart by name and icon ([health-categories.md](health-categories.md#how-categories-are-shown)).
+- **Lines and bands:** data line in `--color-text`; the adaptation corridor is the only filled band (`--color-text` at about 20 % with a faint edge); the pre-flight baseline is a thin dashed `--color-text-muted` line (`.chart-baseline`) at the baseline median, labelled "your pre-flight normal" with its value and source, bottom right ("your pre-flight normal · 265 ms · synthetic") ([mockup 02](mockups/02-detail.png)). No category colours: categories are told apart by name and icon ([health-categories.md](health-categories.md#how-categories-are-shown)).
 - **Points:** a point at level 2–5 takes its badge's fill and outline (a Watch point is a ring in `--color-text`), with the level icon (18 px, `--color-text`) above it as the marker; stale or missing points are hollow, and the newest point of a stale level is hollow with no marker. The line itself never takes a level colour. The marker shows icon + colour without the word (§2.3 exception); each point's title gives value, level, UTC time and source.
 - **Thresholds:** one dashed `--color-text-muted` line per rule row, labelled with the rule and its level ("SPO-01 · < 94 % check"). Never a level colour.
 - **Range:** a fixed Y range per indicator (SpO₂ 80–100 %, grid every 5) so the threshold lines always show; values outside it sit on the edge.

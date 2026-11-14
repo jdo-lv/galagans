@@ -4,18 +4,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { toPacketItem } from '../application/packetItems'
 import type { CheckIn } from '../domain/checkIn'
 import type { StoredPacket } from '../domain/packet'
-import { READINGS, type ReadingPlaceholder } from '../domain/readings'
+import type { Observation } from '../domain/observation'
+import { READINGS } from '../domain/readings'
 import type { Rule } from '../domain/rules'
-import { mockReadings } from '../infrastructure/mockReadings'
-import ruleRows from '../infrastructure/rules.json'
 import { setup } from '../test/renderApp'
+import { RULES } from '../test/rules'
 
 // Local times, so the tests pass in any TZ.
 const at = (h: number, m: number, s = 0, day = 14) => new Date(2026, 10, day, h, m, s)
 const go = (hash: string) => window.history.replaceState(null, '', hash)
 
-type Options = { now?: Date; seed?: CheckIn[]; online?: boolean; readingPlaceholders?: ReadingPlaceholder[]; rules?: Rule[] }
-const RULES = ruleRows as Rule[]
+type Options = { now?: Date; seed?: CheckIn[]; online?: boolean; observationSeed?: Observation[]; rules?: Rule[] }
 const setupAt = ({ now = at(7, 31), ...rest }: Options = {}) => setup({ ...rest, now: now.toISOString() })
 
 const PILL_NAME = 'Surgeon packet. Ground link: one-way delay 14 min 05 s (demo)'
@@ -255,18 +254,22 @@ describe('Next packet contents', () => {
     expect(source.querySelector('.tag')).toBeNull()
   })
 
-  it.each([
-    ['Blood pressure', '108/70 mmHg'],
-    ['Cabin CO₂ (1-h avg)', '2.3 mmHg'],
-  ])('AC14: synthetic %s → "—" No status, %s, no age, tag synthetic', async (label, shown) => {
-    await openWithContents({ readingPlaceholders: mockReadings })
+  it('a BP cuff reading → "—" Not rated, 108/70 mmHg, its age and the device tag', async () => {
+    const bp = (indicator: 'systolicMmHg' | 'diastolicMmHg', value: number): Observation => ({
+      resourceType: 'Observation',
+      id: `bp-cuff:m1:${indicator}`,
+      status: 'final',
+      code: { text: indicator },
+      valueQuantity: { value, unit: 'mmHg' },
+      effectiveDateTime: ago(5),
+      device: { display: 'BP cuff · synthetic' },
+    })
+    await openWithContents({ observationSeed: [bp('systolicMmHg', 108), bp('diastolicMmHg', 70)] })
 
-    const { status, value, source } = cells(label)
-    expect(within(status).getByText('—')).toHaveAttribute('aria-hidden', 'true')
-    expect(within(status).getByText('No status')).toHaveClass('visually-hidden')
-    expect(value).toHaveTextContent(shown)
-    expect(value).not.toHaveTextContent(/ago|old/)
-    expect(within(source).getByText('synthetic')).toHaveClass('tag')
+    const { status, value, source } = cells('Blood pressure')
+    expect(within(status).getByText('Not rated')).toHaveClass('visually-hidden')
+    expect(value).toHaveTextContent('108/70 mmHg')
+    expect(within(source).getByText('BP cuff · synthetic')).toHaveClass('tag')
   })
 
   it.each([
@@ -374,7 +377,7 @@ describe('Crew note and send', () => {
   })
 
   it('AC21: offline, Confirm send stores one queued packet with the trimmed note and the readings, then resets', async () => {
-    const s = await openWithContents({ online: false, seed: [stored('a', ago(10), { spo2Percent: 92 })], readingPlaceholders: mockReadings })
+    const s = await openWithContents({ online: false, seed: [stored('a', ago(10), { spo2Percent: 92 })] })
     await userEvent.type(note(), '  Slept badly.  ')
     await userEvent.click(sendButton())
     const items = (await s.readingsReader.read()).map(toPacketItem)

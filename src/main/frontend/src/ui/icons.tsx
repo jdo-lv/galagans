@@ -28,6 +28,7 @@ import {
   IconGauge,
   IconHeart,
   IconHeartbeat,
+  IconMist,
   IconInfoCircle,
   IconLock,
   IconLungs,
@@ -128,6 +129,7 @@ export const HeartRateIcon = /* @__PURE__ */ decorative(IconHeartbeat)
 export const Spo2Icon = /* @__PURE__ */ decorative(IconSpo2)
 export const BloodPressureIcon = /* @__PURE__ */ decorative(IconGauge)
 export const TemperatureIcon = /* @__PURE__ */ decorative(IconThermometer)
+export const HumidityIcon = /* @__PURE__ */ decorative(IconMist)
 export const BodyMassIcon = /* @__PURE__ */ decorative(IconScale)
 export const BraceletIcon = /* @__PURE__ */ decorative(IconDeviceWatch)
 export const CameraIcon = /* @__PURE__ */ decorative(IconCamera)

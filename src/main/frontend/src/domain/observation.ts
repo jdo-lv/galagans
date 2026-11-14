@@ -1,8 +1,9 @@
 import type { CheckIn } from './checkIn'
+import type { DeviceLabel } from './devices'
 import { READINGS } from './readings'
 import type { Indicator } from './rules'
 
-export type DeviceSource = `oximeter · ${'synthetic' | 'replay' | 'proxy'}`
+export type DeviceSource = `${DeviceLabel} · ${'synthetic' | 'replay' | 'proxy'}`
 export type ObservationSource = 'manual' | 'in-app test' | DeviceSource
 
 /** FHIR R4-shaped, not validated. */
@@ -22,8 +23,7 @@ const CHECK_IN_SOURCE: Partial<Record<Indicator, ObservationSource>> = { pvtMedi
 export function fromCheckIn(checkIn: CheckIn): Observation[] {
   const observations: Observation[] = []
   for (const spec of READINGS) {
-    if (spec.indicator === null) continue
-    const value = checkIn[spec.indicator]
+    const value = (checkIn as Partial<Record<Indicator, unknown>>)[spec.indicator]
     if (typeof value !== 'number') continue
     observations.push({
       resourceType: 'Observation',

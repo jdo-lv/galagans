@@ -11,17 +11,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build and run
 
-- Backend tests: `mvn test -DskipFrontend=true`. Full build with frontend: `mvn clean verify` (installs Node 22.13.0 under `target/`, runs `npm ci`, `npm run build` into `src/main/resources/static`, then `npm run test`).
-- Run: `mvn spring-boot:run` serves the built PWA and `/api` on :8080. Frontend dev: `cd src/main/frontend && npm run dev` (:5173, proxies `/api` to :8080).
+- Backend tests: `mvn test -DskipFrontend=true`. Full build with frontend: `mvn clean verify` (installs Node 22.13.0 under `target/`, runs `npm ci`, `npm run build` into `src/main/resources/static`, `npm run check-build`, then `npm run test`).
+- Run: `mvn spring-boot:run` serves the built PWA and `/api` on :8080. Frontend dev: `cd src/main/frontend && npm run dev` (:5173, proxies `/api` and `/ws` to :8080).
 - Frontend only: `cd src/main/frontend && npm run test` / `npm run build`.
-- Device broker (demo only, anonymous and unencrypted): `docker run -it --name crew-broker -p 1883:1883 -p 9001:9001 -v "$PWD/tools/mosquitto:/mosquitto/config" eclipse-mosquitto`. The app connects to `VITE_MQTT_URL` (default `ws://localhost:9001`) and works without it.
-- Test publish, with the container's own client: `docker exec crew-broker mosquitto_pub -t crew/a1/oximeter -m '{"id":"<uuid>","t":"<now ISO>","spo2_pct":91,"pulse_bpm":61,"src":"synthetic"}'`.
+- Device link (demo only, anonymous and unencrypted): the Spring Boot app relays WebSocket frames `{"topic","payload"}` at `/ws/devices`; both pages connect to `ws(s)://<page host>/ws/devices` and the crew app works without it. No broker or Docker.
+- Tablet: open `http://<machine IP>:8080` (Spring Boot listens on every interface). That's not a secure context, so there's no service worker or offline cache there; ids fall back to `crypto.getRandomValues`.
+- Device Simulator: `/simulator.html` (built `:8080/simulator.html`, dev `:5173/simulator.html`). Both demo machines use automatic network time: the gateway drops readings more than 60 s ahead of the tablet.
+- Test publish: `target/node/node tools/publish-reading.mjs 91 61` (`DEVICE_LINK_URL` to target another host).
 
 ## Code architecture
 
 - Backend: Kotlin + Spring Boot WebFlux, package `com.galagans.crewhealth`, one folder per domain with `api` (controller, DTOs), `application` (use cases behind interfaces), `domain` (models, repository ports), `infrastructure` (adapters). Public Spring libraries only, no LeoVegas/hyraco parent or libs.
 - Frontend (`src/main/frontend/src`): `domain` (types, ports), `application` (use cases depending on ports), `infrastructure` (IndexedDB, HTTP, browser adapters), `ui` (React, services via `ServicesContext`), `container.ts` is the only place that picks concrete classes.
-- Device readings: `MqttReadingSource` (infrastructure) feeds `PersonalHealthGateway`, which validates each message and stores FHIR-shaped Observations in their own IndexedDB database. The rules read `ObservationHistory` (check-ins mapped to Observations plus the device ones), and the screens re-read when the gateway stores a reading. Observations don't sync to the ground station yet.
+- Device readings: `domain/devices.ts` lists each device (topic, payload fields → indicators, input limits). `container.ts` creates one `PersonalHealthGateway` per device, each fed by a `WebSocketReadingSource` for its topic over one shared `DeviceLink` (infrastructure, one socket, 5 s reconnect, no queueing). A new device is a row there plus its `READINGS` tile; the gateway validates each message and stores FHIR-shaped Observations in their own IndexedDB database. The rules read `ObservationHistory` (check-ins mapped to Observations plus the device ones), and the screens re-read when the gateway stores a reading. Observations don't sync to the ground station yet. The relay (`com.galagans.crewhealth.device`) stands in for the spacecraft LAN: it stores nothing and runs no rules.
+- Device Simulator (`src/main/frontend/src/simulator/`): a second Vite entry, kept out of the crew service worker, that publishes through `DeviceLink`; it imports only `READINGS`, `newId`, `DeviceLink`, theme and icons from the crew app.
 - Offline-first flow: the check-in is written to IndexedDB as pending, `SyncService` posts pending items to `POST /api/checkins/sync` when online (on start, after each save, on the `online` event) and marks the accepted ids synced. The server upsert is idempotent by client-generated id.
 - Surgeon packet flow (#19): `PacketSender` snapshots the latest readings plus the crew note into a packet queued in its own IndexedDB database (`crew-health-packets`). `PacketUplink` POSTs each queued packet alone to `POST /api/packets`, oldest first, when online (on start, after each send, on the `online` event) and marks it sent; a failed POST stays queued. The timeline is computed on the tablet from `builtAt`, `sentAt` and the packet's stored one-way delay.
 - PWA icons in `public/pwa-*.png` are the brand ring on `#CFCFCF`. Fonts (Inter, DM Mono) are bundled via `@fontsource` and precached, so the app looks the same offline.

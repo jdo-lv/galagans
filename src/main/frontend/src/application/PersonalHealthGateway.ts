@@ -1,7 +1,6 @@
-import type { Observation } from '../domain/observation'
+import { DEVICES, type DeviceField, type DeviceSpec } from '../domain/devices'
+import type { DeviceSource, Observation } from '../domain/observation'
 import type { ObservationRepository, ReadingSource } from '../domain/ports'
-import { readingSpec } from '../domain/readings'
-import type { Indicator } from '../domain/rules'
 
 const SOURCES = ['synthetic', 'replay', 'proxy']
 const ISO_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/
@@ -10,12 +9,11 @@ const MAX_AHEAD_MS = 60_000
 
 const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value)
 
-function inRange(value: unknown, indicator: Indicator): value is number {
-  const { validMin, validMax } = readingSpec(indicator)
+function inRange(value: unknown, { validMin, validMax }: DeviceField): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= validMin && value <= validMax
 }
 
-/** Receives oximeter messages from a ReadingSource, stores valid ones as Observations and tells its listeners. */
+/** Receives one device's messages from a ReadingSource, stores valid ones as Observations and tells its listeners. */
 export class PersonalHealthGateway {
   private readonly listeners = new Set<() => void>()
 
@@ -23,6 +21,7 @@ export class PersonalHealthGateway {
     private readonly source: ReadingSource,
     private readonly repository: ObservationRepository,
     private readonly now: () => Date = () => new Date(),
+    private readonly device: DeviceSpec = DEVICES[0],
   ) {}
 
   start(): () => void {
@@ -47,25 +46,30 @@ export class PersonalHealthGateway {
 
   private toObservations(message: unknown): Observation[] {
     if (!isObject(message)) return []
-    const { id, t, spo2_pct: spo2, pulse_bpm: pulse, src } = message
+    const { id, t, src } = message
     if (typeof id !== 'string' || id === '') return []
     if (typeof t !== 'string' || !ISO_TIME.test(t)) return []
     const time = Date.parse(t)
     if (Number.isNaN(time) || time > this.now().getTime() + MAX_AHEAD_MS) return []
-    if (!inRange(spo2, 'spo2Percent')) return []
     if (typeof src !== 'string' || !SOURCES.includes(src)) return []
 
-    const observation = (indicator: Indicator, value: number): Observation => ({
-      resourceType: 'Observation',
-      id: `oximeter:${id}:${indicator}`,
-      status: 'final',
-      code: { text: indicator },
-      valueQuantity: { value, unit: readingSpec(indicator).unit },
-      effectiveDateTime: t,
-      device: { display: `oximeter · ${src as 'synthetic' | 'replay' | 'proxy'}` },
-    })
-    const observations = [observation('spo2Percent', spo2)]
-    if (inRange(pulse, 'heartRateBpm')) observations.push(observation('heartRateBpm', pulse))
+    const observations: Observation[] = []
+    for (const field of this.device.fields) {
+      const value = message[field.key]
+      if (!inRange(value, field)) {
+        if (field.required) return []
+        continue
+      }
+      observations.push({
+        resourceType: 'Observation',
+        id: `${this.device.id}:${id}:${field.indicator}`,
+        status: 'final',
+        code: { text: field.indicator },
+        valueQuantity: { value, unit: field.unit },
+        effectiveDateTime: t,
+        device: { display: `${this.device.label} · ${src}` as DeviceSource },
+      })
+    }
     return observations
   }
 }

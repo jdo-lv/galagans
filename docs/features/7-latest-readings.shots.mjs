@@ -2,15 +2,14 @@
 // Run from the repo root: target/node/node docs/features/7-latest-readings.shots.mjs
 // CDP_PORT picks another DevTools port when 9333 is taken.
 import { openPage } from '../../tools/cdp.mjs'
+import { saveCheckIn } from '../../tools/checkin-shots.mjs'
 
 const img = (name) => `docs/features/img/7-${name}.png`
 // Tall enough for all ten body-system rows and the whole right column.
 const page = await openPage(process.env.APP_URL ?? 'http://localhost:8080/', { height: 1100, port: Number(process.env.CDP_PORT ?? 9333) })
 
-const save = async (fields) => {
-  for (const [name, value] of Object.entries(fields)) await page.fill(`input[name=${name}]`, value)
-  await page.click('button[type=submit]')
-}
+// Since #29 values are entered through the check-in steps.
+const save = (fields) => saveCheckIn(page, fields)
 
 // Replaces the stored check-ins (written straight into the app's IndexedDB), then reloads.
 const seed = async (checkIns) => {

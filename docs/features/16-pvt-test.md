@@ -35,6 +35,6 @@ No mockup in `ideas/mockups/` shows the test itself. The screens follow the issu
 
 | Deviation | Reason |
 |---|---|
-| The Home card sits below Latest readings, not beside the tile as in the mock | Issue AC9: between Latest readings and Check-in in the right column. |
+| The Home card sits below Latest readings, not beside the tile as in the mock | Issue AC9: under Latest readings in the right column (the Check-in card that followed it left home in [#29](29-check-in-questionnaire.md)). |
 | No status colour on the counter or result | A slow response isn't a caution; the Cognition rule (#17) decides that. |
 | The Cognition row still shows its synthetic "PVT 268 ms · within your baseline" | Accepted until #17 replaces it (AC33). |

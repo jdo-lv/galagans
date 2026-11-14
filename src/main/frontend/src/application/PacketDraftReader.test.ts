@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { READINGS } from '../domain/readings'
-import type { Rule } from '../domain/rules'
-import rules from '../infrastructure/rules.json'
+import { RULES } from '../test/rules'
 import { combinedHistory, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { LatestReadingsReader } from './LatestReadingsReader'
 import { PacketDraftReader } from './PacketDraftReader'
@@ -12,7 +11,7 @@ describe('PacketDraftReader', () => {
   it('AC7: one item per READINGS row, in order, on the readings clock', async () => {
     const history = new FakeRepository()
     history.items.set('a', { checkIn: { id: 'a', recordedAt: '2026-11-14T07:21:00Z', spo2Percent: 88, symptoms: [] }, pending: false })
-    const draft = new PacketDraftReader(new LatestReadingsReader(new FakeRuleSource(rules as Rule[]), combinedHistory(history), () => NOW))
+    const draft = new PacketDraftReader(new LatestReadingsReader(new FakeRuleSource(RULES), combinedHistory(history), () => NOW))
 
     const items = await draft.read()
 

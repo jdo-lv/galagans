@@ -2,14 +2,14 @@
 
 The crew app now interprets a check-in. Each saved SpO₂ value is checked on the tablet against rules SPO-01 (< 94 % → caution) and SPO-02 (< 90 % → warning) in `src/main/frontend/src/infrastructure/rules.json`. The "Body systems" panel shows the Respiratory status with what, why, how it was decided, what to do next and who to involve. It works offline, and the list is re-read after each save and every 60 s. Features F4, F5 and F6 in [features.md](../../ideas/features.md); issue [#1](https://github.com/jdo-lv/galagans/issues/1).
 
-**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080, enter an SpO₂ value and click "Save check-in". **Retake the screenshots** with the app running: `target/node/node docs/features/1-spo2-core-loop.shots.mjs` (script: [1-spo2-core-loop.shots.mjs](1-spo2-core-loop.shots.mjs)).
+**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080, click "+" (Add entry) in the header, type an SpO₂ value on its step, click "Next →" through the other steps and "Save check-in" on the last ([#29](29-check-in-questionnaire.md)). **Retake the screenshots** with the app running: `target/node/node docs/features/1-spo2-core-loop.shots.mjs` (script: [1-spo2-core-loop.shots.mjs](1-spo2-core-loop.shots.mjs)).
 
 ## Screens
 
 ### No data (nothing stored yet)
 ![No data](img/1-no-data.png)
 
-Since [#9](9-detail-screen.md) the explanation is no longer inline: a caution or warning row links to the detail screen, which shows it. The screenshots below predate that change.
+Since [#9](9-detail-screen.md) the explanation is no longer inline: a caution or warning row links to the detail screen, which shows it. Since [#29](29-check-in-questionnaire.md) values are entered through the check-in steps, not a form on home. The screenshots below predate both changes.
 
 ### Nominal (SpO₂ 96)
 Quiet: muted "✓ Nominal", no fill, no explanation.
@@ -44,4 +44,4 @@ Layout follows [01-body-map.png](../../ideas/mockups/01-body-map.png) ("Body sys
 | Text at least 16 px, inputs as field tiles, "Who to involve" as a pill and the rule id as a tag | Guidelines §3–§5 (NASA minimum text height; routing kept neutral and apart from urgency). The mockups use 11–14 px. |
 | Only Respiratory has rules; no body figure, hazard lens, routine or readings panels | Out of scope for #1. The nine synthetic rows below Respiratory in these screenshots come from [#4](4-body-systems-list.md). |
 | Explanation inline in the row, not a separate detail screen; tier shown as a value, not the 4-step ladder | The issue puts the texts in the row (AC4, AC6); the detail screen is out of scope. |
-| Check-in form in a right-hand "Check-in" panel with all fields on one screen | No mockup for the current form; 06-questionnaire (one question per screen) is a later feature. Fields use the guidelines' field tile and primary button. |
+| Values were entered in a right-hand "Check-in" panel with all fields on one screen | Replaced by the one-question-per-screen check-in of mockup 06 in [#29](29-check-in-questionnaire.md). |

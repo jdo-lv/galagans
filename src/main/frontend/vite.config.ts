@@ -22,19 +22,25 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
-        navigateFallbackDenylist: [/^\/api\//],
+        // The simulator is an operator page: never cached by, or answered with, the crew app.
+        globIgnores: ['simulator.html', 'assets/simulator-*.js', 'assets/simulator-*.css'],
+        navigateFallbackDenylist: [/^\/api\//, /^\/ws\//, /simulator\.html$/],
       },
     }),
   ],
   build: {
     outDir: '../resources/static',
     emptyOutDir: true,
+    rolldownOptions: {
+      input: { index: 'index.html', simulator: 'simulator.html' },
+    },
   },
   server: {
     port: 5173,
     strictPort: true,
     proxy: {
       '/api': { target: 'http://localhost:8080', changeOrigin: true },
+      '/ws': { target: 'ws://localhost:8080', ws: true },
     },
   },
   test: {

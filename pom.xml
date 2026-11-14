@@ -150,6 +150,15 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>npm run check-build</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run check-build</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>npm run test</id>
                         <goals>
                             <goal>npm</goal>

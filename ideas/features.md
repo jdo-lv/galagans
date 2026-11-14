@@ -25,7 +25,7 @@ On a long mission an astronaut has to notice health changes in themselves, becau
 | CO₂ (mmHg) | Carbon dioxide in cabin air. Higher than on Earth; above about 3 mmHg it can cause headaches and slow thinking. |
 | SANS | Eye and brain changes caused by fluids moving toward the head in weightlessness. |
 | BLE | Bluetooth Low Energy: how a pulse oximeter or BP cuff would talk to the tablet. |
-| MQTT | A simple messaging system: devices "publish" readings, the app "subscribes". We use it to fake the sensors. |
+| Device link | A WebSocket relay in the Spring Boot app (`/ws/devices`): the simulator "publishes" readings on a topic, the crew app listens. It stands in for the spacecraft's radio and network. |
 | FHIR | The standard format hospitals use for health data. Every reading becomes a FHIR `Observation`. |
 | Store-and-forward | Save now, send when the link to Earth is up. Like email on a plane. |
 
@@ -41,7 +41,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **How:** one question per screen, big buttons (fingers are clumsy in weightlessness), skip always allowed. A value can be typed or come from a (simulated) device.
 - **Example:** "Sleep last night: 5.5 h", "Mood: 3", "Symptoms: headache".
 - **Needs:** nothing.
-- **Status:** `CheckInForm` saves HR, SpO₂, sleep and mood. Missing: BP, temperature, symptom checklist, one-question-per-screen layout.
+- **Status:** the morning check-in is six steps at `#/check-in`, one question per screen (issue #29): heart rate, SpO₂, sleep hours, Karolinska Sleepiness Scale (KSS 1–9), mood 1–5 and a symptom checklist (headache, congestion, rash, neck or face swelling, back pain, or none). It opens from Today's routine "Start" or the header "+", shows progress and time left, and always allows Skip, saved as "not answered". Missing: BP, temperature, the full sleep diary.
 - **More:** idea file "Questionnaires and how they're triggered".
 
 #### F2. Works offline, sends later · Must · done
@@ -56,19 +56,20 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **How:** pre-flight values (in the demo: a pre-loaded profile) set a band per indicator, e.g. "your PVT: 250–285 ms".
 - **Example:** 108/70 BP is fine for this astronaut even if it looks low on Earth.
 - **Needs:** F1.
+- **Status:** a pre-loaded synthetic pre-flight profile (`infrastructure/baseline.json`) gives the PVT baseline 265 ms (issue #28). COG-01 flags a median above baseline + 15 % (304.75 ms), and the Cognition chart draws the baseline as "your pre-flight normal · 265 ms · synthetic". SpO₂ keeps its absolute clinical guardrails. Missing: the band (min–max, with F11), other indicators.
 
 #### F4. Rules engine and rule table · Must
 - **What:** the "brain". A table of simple, readable rules: *if* this indicator does *this*, *then* status, action, who to involve, and the source that justifies it.
 - **Why:** judges and doctors can read every rule and see where it comes from. No AI makes medical decisions (a design constraint).
 - **How:** each rule is one row in a JSON file; the code evaluates them after every new reading. Rule example COG-02: "PVT median > corridor + 15% or ≥ 5 lapses → Cognition level 3 "check" → tell the CMO today. Source: Dev et al. 2024".
 - **Needs:** F3. The rule table itself must be written and checked by a person, with sources from `research/`.
-- **Status:** `rules.json` holds SPO-01 (SpO₂ < 94 % → caution), SPO-02 (< 90 % → warning) and COG-01 (PVT median > 305 ms → Cognition caution, issue #17), validated on load and evaluated on the tablet after each save and every 60 s. Data age and source label come per indicator from the reading spec (SpO₂ 24 h "manual", PVT 4 d "in-app test"). Runs without F3 for now: SpO₂ thresholds are the Earth clinical convention, and COG-01 uses a synthetic 265 ms baseline + 15 % (team heuristic). Missing: other indicators and rows, personal baseline.
+- **Status:** `rules.json` holds SPO-01 (SpO₂ < 94 % → caution), SPO-02 (< 90 % → warning) and COG-01 (PVT median > pre-flight baseline + 15 % = 304.75 ms → Cognition caution, issues #17 and #28), validated on load and evaluated on the tablet after each save and every 60 s. Data age and source label come per indicator from the reading spec (SpO₂ 24 h "manual", PVT 4 d "in-app test"). SpO₂ thresholds are the Earth clinical convention; COG-01 is relative to the F3 profile (synthetic 265 ms; +15 % is a team heuristic), and its texts are filled from it. Missing: other indicators and rows.
 
 #### F5. Explanation and next step (detail screen) · Must
 - **What:** tapping a flagged item opens a screen with four answers: **what** changed, **why it matters**, **how the app decided** (the rule and its source), **what to do next**, plus the escalation tier with buttons "Share with CMO" / "Add to surgeon packet".
 - **Why:** it answers the challenge's five questions on every screen. NASA display guidance says to always explain what, why and what next.
 - **Needs:** F4. See mockup [02-detail.png](mockups/02-detail.png).
-- **Status:** a caution or warning row on home opens the system's detail screen (`#/systems/<system>`). It shows the status, a 7-day trend chart with the rule thresholds, what / why / how decided / source, what next, and the four escalation tiers with the rule's tier selected (issue #9). Missing: the adaptation corridor (F11) and the "Share with CMO" / "Add to surgeon packet" buttons.
+- **Status:** a caution or warning row on home opens the system's detail screen (`#/systems/<system>`). It shows the status, a 7-day trend chart with the rule thresholds (and, for Cognition, the pre-flight baseline line, issue #28), what / why / how decided / source, what next, and the four escalation tiers with the rule's tier selected (issue #9). Missing: the adaptation corridor (F11) and the "Share with CMO" / "Add to surgeon packet" buttons.
 
 #### F6. Body map (home screen) · Must
 - **What:** a human figure plus a list of body systems, each with a status on the 0–5 [alert scale](alert-levels.md): nominal, to do, watch, check, treat or emergency.
@@ -84,21 +85,22 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **Why:** it's the only objective, in-app measure of thinking speed, and ISS crews already do it. It's also the live moment of the demo.
 - **How:** a counter appears at random intervals (2–5 s) for 3 minutes; the app records reaction times, the median, "lapses" (≥ 355 ms) and false starts (< 130 ms) ([health-indicators.md](../research/health-indicators.md) §13 [S28][S30]).
 - **Needs:** F1 shell. Feeds F4.
-- **Status:** "Start reaction test" on home opens the 3-minute PVT-B at `#/pvt` (issue #16). It scores the median RT, lapses and false starts, and saves the result offline as a check-in labelled "in-app test", synced like any other. A "Reaction time" tile on home shows the latest median (stale after 4 days), and the routine's PVT row turns "done HH:MM". Stop, leaving the screen or going to the background saves nothing; a failed save offers "Try again". The result feeds rule COG-01, so a slow median flags Cognition (issue #17). Missing: KSS rating, ground-station storage of the PVT fields.
+- **Status:** "Start reaction test" on home opens the 3-minute PVT-B at `#/pvt` (issue #16). It scores the median RT, lapses and false starts, and saves the result offline as a check-in labelled "in-app test", synced like any other. A "Reaction time" tile on home shows the latest median (stale after 4 days), and the routine's PVT row turns "done HH:MM". Stop, leaving the screen or going to the background saves nothing; a failed save offers "Try again". The result feeds rule COG-01, so a slow median flags Cognition (issue #17). Missing: the rule-triggered KSS re-check (the KSS itself is asked in the morning check-in, issue #29), ground-station storage of the PVT fields.
 
 #### F8. Device Simulator · Must (3 devices, 2 scenarios)
 - **What:** a second app that pretends to be every sensor: wrist bracelet (live heart rate, plus a "dock & export" batch of sleep, resting HR and HRV), pulse oximeter, environment node (cabin CO₂, temperature, humidity, noise), dosimeter (radiation). We use no real hardware.
 - **Why:** no hardware can fail on stage, and a teammate can "operate the spacecraft" live: press "CO₂ build-up" and the crew app reacts.
-- **How:** the simulator publishes readings over MQTT; the crew app subscribes. Scenarios are timelines of values (nominal day, CO₂ build-up). Every reading is labeled "simulated", "replay" or "synthetic".
+- **How:** the simulator publishes readings over the device link; the crew app listens. Scenarios are timelines of values (nominal day, CO₂ build-up). Every reading is labeled "simulated", "replay" or "synthetic".
 - **Needs:** the shared message format agreed on day 1 (F9). Can be built in parallel from hour 1.
 - **More:** idea file "Device Simulator: a second app"; mockup [04-simulator.png](mockups/04-simulator.png).
+- **Status:** `/simulator.html` shows the six virtual devices of mockup 04, all working (issue #25, then every device): pulse oximeter, wrist bracelet (HR), BP cuff (systolic/diastolic + pulse), thermometer, environment node (cabin CO₂ 1-h avg, temperature, humidity) and dosimeter (dose rate). "Nominal day" publishes every device at once and every 60 s; each card has an override slider for its main value; "Inject one reading" picks a device and publishes one reading; a traffic log shows each message or "not sent". Every reading is `synthetic`. Missing: the other 5 scenarios, GATT byte payloads, mission clock, device on/off, dropout and battery controls.
 
 #### F9. Personal Health Gateway · Must (simple version)
 - **What:** the part of the app that receives readings from any source (device, manual entry, replay) and turns them into one standard format (FHIR `Observation`) with source and timestamp.
 - **Why:** the rest of the app sees only one format, and swapping a fake device for a real one later only changes the connector.
-- **How (48 h):** one connector for MQTT JSON, one for manual entry, and one real Bluetooth heart-rate byte decoder (used by the bracelet) to show it's genuine. Nice-to-have: a "dock import" connector for the bracelet's batch file. Full standards stay on a slide.
+- **How (48 h):** one connector for JSON over the device link, one for manual entry, and one real Bluetooth heart-rate byte decoder (used by the bracelet) to show it's genuine. Nice-to-have: a "dock import" connector for the bracelet's batch file. Full standards stay on a slide.
 - **Needs:** F8's message format.
-- **Status:** oximeter JSON over MQTT (`crew/a1/oximeter`, issue #22) and manual entry reach one FHIR-shaped `Observation` store; a SpO₂ reading turns the Respiratory status and the SpO₂ / Heart rate tiles live, offline, with its source label. Missing: GATT byte decoders (oximeter `0x2A5E`, heart rate `0x2A37`), environment node, dosimeter, dock import, FHIR `Device` and `Patient` references.
+- **Status:** JSON over the device link from six devices (`domain/devices.ts`: oximeter `crew/a1/oximeter`, bracelet `crew/a1/wrist/hr`, BP cuff `crew/a1/bp`, thermometer `crew/a1/thermometer`, environment node `module/hab/env`, dosimeter `module/hab/dose`; payload `{id, t, <fields>, src}`) and manual entry reach one FHIR-shaped `Observation` store. Tiles for SpO₂, heart rate, blood pressure ("108/70"), temperature, cabin CO₂ / temperature / humidity and dose rate update live with their device source label; SpO₂ drives Respiratory (SPO-01/02) and cabin CO₂ drives Cabin air (CAB-01, > 3 mmHg 1-h avg). BP, temperature, cabin temperature/humidity and dose rate are shown unrated (no in-flight thresholds yet). Missing: GATT byte decoders, dock import, FHIR `Device` and `Patient` references, ground sync of Observations.
 
 #### F10. Real data replay · Must
 - **What:** the simulator replays **real** NASA data: ISS cabin CO₂/temperature/humidity (OSDR EDA) and radiation (RadLab).
@@ -141,7 +143,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **How (48 h):** the morning check-in, the PVT, and one rule-triggered KSS + sleep re-check.
 - **Needs:** F1, F4.
 - **More:** idea file "Questionnaires and how they're triggered"; mockup [06-questionnaire.png](mockups/06-questionnaire.png).
-- **Status:** The 'Today's routine' card on home shows the Morning check-in (07:00–09:00, device time) as upcoming, due with Start, done HH:MM or not answered, from the stored check-ins (a PVT result doesn't count as the morning check-in). The PVT row is real: "done HH:MM" when a PVT was done today, otherwise "every 4th day" (issue #16). Exercise, fluids and Bedford are synthetic placeholder rows (`infrastructure/mockRoutine.ts`). Missing: rule-triggered KSS + sleep re-check, windows on the mission clock and sleep shift, bundling, reminder banner, '● 1 due' counter, body-map data-age note for a missed check-in.
+- **Status:** The 'Today's routine' card on home shows the Morning check-in (07:00–09:00, device time) as upcoming, due with Start (which opens the check-in at `#/check-in`, issue #29), done HH:MM or not answered, from the stored check-ins (a PVT result doesn't count as the morning check-in). The PVT row is real: "done HH:MM" when a PVT was done today, otherwise "every 4th day" (issue #16). Exercise, fluids and Bedford are synthetic placeholder rows (`infrastructure/mockRoutine.ts`). Missing: rule-triggered KSS + sleep re-check, windows on the mission clock and sleep shift, bundling, reminder banner, '● 1 due' counter, body-map data-age note for a missed check-in.
 
 #### F22. Check-and-act card · Must (4 cases)
 - **What:** on the detail screen of a flagged reading, three steps: (1) is the reading right? re-measure properly; (2) what in your own data may explain it (sleep, fluids, caffeine, cabin CO₂, symptoms); (3) what to do now, plus "Add to my next medical conference".
@@ -208,11 +210,11 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 | # | Feature | Track | When (target) | Why at this point |
 |---|---|---|---|---|
 | 0 | F1 check-in (partial), F2 offline sync | App | Done | Already in `src/` |
-| 1 | Message format and reading model (FHIR-shaped `Observation`, MQTT topics) | All | Sat 09:00–10:00 | The contract every track builds against. Oximeter contract fixed in #22: topic `crew/a1/oximeter`, payload `{id, t, spo2_pct, pulse_bpm?, src}` |
+| 1 | Message format and reading model (FHIR-shaped `Observation`, device topics) | All | Sat 09:00–10:00 | The contract every track builds against. Oximeter contract fixed in #22: topic `crew/a1/oximeter`, payload `{id, t, spo2_pct, pulse_bpm?, src}` |
 | 2 | F8 Device Simulator: environment node + oximeter, nominal scenario | Simulator | Sat from 10:00 | Independent; the demo depends on it |
 | 3 | F3 baseline + F4 rules engine with ~10 sourced rules | Rules | Sat from 10:00 | The core; everything else needs a status |
 | 4 | F1 complete (BP, temperature, symptoms) | App | Sat morning | Inputs for the rules |
-| 5 | F9 gateway (MQTT + manual) | Gateway | Sat morning | Connects simulator and app |
+| 5 | F9 gateway (device link + manual) | Gateway | Sat morning | Connects simulator and app |
 | 6 | F6 body map with statuses | UI | Sat midday | First end-to-end view |
 | **✓** | **Milestone: one simulated reading flows to a status on the body map** | — | **Sat ~15:00** | Integration risk retired early |
 | 7 | F5 detail screen with explanation and tier | UI | Sat afternoon | Completes the core loop |
