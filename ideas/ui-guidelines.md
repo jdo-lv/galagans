@@ -8,8 +8,8 @@ Requirement tags such as `[S1 V2 10045]` are the source tags of [ux-human-factor
 
 ## The ten rules
 
-1. **Red means warning and yellow means caution, and nothing else uses them.** No red logo, heart, category colour, delete button or "due" marker [S1 V2 10118/10119].
-2. **Every status has an icon, a word and a colour** [S1 V2 10045]. Colour is never the only cue.
+1. **Colour means an alert level, and nothing else uses it.** Status follows the 0–5 scale in [alert-levels.md](alert-levels.md): blue = level 1 "to do", yellow = levels 2–3, orange = level 4, red = level 5. Everything else (brand, links, focus, selection, categories, charts) is palette greys and whites. No red logo, heart, category colour, delete button or yellow "due" marker [S1 V2 10118/10119].
+2. **Every level has an icon, a word and a colour** [S1 V2 10045]. Colour is never the only cue.
 3. **Quiet when nominal.** Nominal is muted text with no fill; only off-nominal items draw the eye [S3].
 4. **Every reading shows its value with the unit, its data age and its source** [S1 V2 10046, V2 10020]. Simulated, replayed and proxy data say so.
 5. **Missing data shows "—" and stale data looks stale.** Never show old data as current [S2 §10.12.4].
@@ -23,7 +23,7 @@ Requirement tags such as `[S1 V2 10045]` are the source tags of [ux-human-factor
 
 - **Crew device.** The crew app runs on a tablet or laptop at about 50 cm; the canvas is drawn on a 390 × 844 phone. Sizes below are set for the tablet and also work on a phone, which is held closer.
 - **Taken as is:** palette, Inter + DM Mono, flat cards with 16 px radius, uppercase tracked labels, the brand ring, the header layout, metric tiles, the two featured tiles, the inverse pill for the selected item, the theme toggle, "—" for missing values, the "(i)" explainer button.
-- **Changed:** see §9. In short: red leaves the brand and categories, the "health score" becomes a count of systems to check, "Stress" becomes self-reported mood, the NASA logotype leaves the splash, and small text and targets grow.
+- **Changed:** see §9. In short: colour leaves the brand, links and categories, the "health score" becomes a count of systems to check, "Stress" becomes self-reported mood, the NASA logotype leaves the splash, and small text and targets grow.
 
 ## 2. Colour
 
@@ -37,14 +37,14 @@ Requirement tags such as `[S1 V2 10045]` are the source tags of [ux-human-factor
 | `#726F6C` | Warm grey | Light edge and ring track |
 | `#868375` | Khaki | Dark edge and ring track; dark muted text; featured tile 1 |
 | `#52574E` | Olive | Light muted text; dark surface; featured tile 2 |
-| `#1651B6` | Blue | Light accent: brand arc, links, focus, "due" |
-| `#0032A0` | Deep blue | Light link hover only |
-| `#C61E37` | Red | Warning, light theme only |
-| `#E4002B` | Bright red | Warning, dark theme only |
+| `#1651B6` | Blue | Level 1 "to do", light theme only |
+| `#0032A0` | Deep blue | Not used (was link hover) |
+| `#C61E37` | Red | Level 5 emergency, light theme only |
+| `#E4002B` | Bright red | Level 5 emergency, dark theme only |
 
-Added for status and dark contrast (not on the canvas): `#FFC72C` caution yellow, `#FFFFFF` text on red, `#7FA6F0` blue tint (dark accent; `#1651B6` is 2.37:1 on `#1B1B1B`).
+Added for the alert levels and dark contrast (not on the canvas): `#FFC72C` caution yellow (levels 2–3), `#FFF0C2` pale yellow (level 2 fill, light theme), `#F28C28` orange (level 4), `#FFFFFF` text on red, `#7FA6F0` blue tint (level 1 in dark; `#1651B6` is 2.37:1 on `#1B1B1B`). Colour-blind separation of the level colours: [alert-levels.md](alert-levels.md#colours).
 
-Coding colours (colours that carry a meaning) are red, yellow and blue, well under NASA's limit of 9 [S2 §10.9.2.5.1]. No red/green pairs [S2 §10.6.19]. The greys and earth tones carry no meaning.
+Coding colours (colours that carry a meaning) are red, orange, yellow and blue, well under NASA's limit of 9 [S2 §10.9.2.5.1]. No red/green pairs [S2 §10.6.19]. The greys and earth tones carry no meaning.
 
 ### 2.2 Semantic tokens
 
@@ -63,18 +63,22 @@ Components use these names, not the hex values.
 | `--color-inset` | `#CFCFCF` | `#1B1B1B` | Recessed areas inside a surface: field tiles in a card, explanations |
 | `--color-text-muted-on-inset` | `#52574E` | `#868375` | Muted text on an inset inside a card: stale values on metric tiles (the "Muted on background" pair in §2.4) |
 | `--color-ring` | `#726F6C` | `#868375` | Brand ring track, nominal ring segments |
-| `--color-accent` | `#1651B6` | `#7FA6F0` | Brand arc, links on the background, focus ring, "due" counter, selection in charts |
-| `--color-link-on-surface` | `#1651B6` | `#DADADA` | Links on a surface (always underlined) |
+| `--color-focus` | `#1B1B1B` | `#DADADA` | 2 px keyboard focus ring (same as `--color-text`) |
+| Links | `--color-text` | `--color-text` | Always underlined, on background and surface; no link colour |
 | `--color-inverse-bg` / `--color-inverse-text` | `#1B1B1B` / `#DADADA` | `#DADADA` / `#1B1B1B` | Primary button, selected nav item |
 | `--color-feature-1` / `--color-on-feature-1` | `#868375` / `#1B1B1B` | same | Featured tile 1 (exercise) |
 | `--color-feature-2` / `--color-on-feature-2` | `#52574E` / `#DADADA` | same | Featured tile 2 (sleep) |
-| `--color-caution` / `--color-on-caution` | `#FFC72C` / `#1B1B1B` | same | Caution badge and caution segment |
-| `--color-warning` / `--color-on-warning` | `#C61E37` / `#FFFFFF` | `#E4002B` / `#FFFFFF` | Warning badge and warning segment |
+| `--color-todo` | `#1651B6` | `#7FA6F0` | Level 1 "to do": outline, icon and border only, never a fill |
+| `--color-watch-bg` / `--color-on-watch` | `#FFF0C2` / `#1B1B1B` | transparent / `#FFC72C` | Level 2 "watch": light = pale fill with ink outline; dark = yellow outline and text |
+| `--color-check` / `--color-on-check` | `#FFC72C` / `#1B1B1B` | same | Level 3 "check" badge, segment and chart marker |
+| `--color-treat` / `--color-on-treat` | `#F28C28` / `#1B1B1B` | same | Level 4 "treat" |
+| `--color-emergency` / `--color-on-emergency` | `#C61E37` / `#FFFFFF` | `#E4002B` / `#FFFFFF` | Level 5 "emergency" |
 
 ### 2.3 Rules
 
-- **Status colours** appear only on a status badge, a ring segment or a chart marker, and always next to the status icon and word.
-- **Not status:** "due", "offline", "waiting to sync", "rule-added", form errors and destructive actions use neutral styles (§5). A missing questionnaire is data age, not a caution.
+- **Level colours** appear only on a level badge, a ring segment, a chart marker or a level-1 "to do" outline, and always next to the level icon and word.
+- **Neutral:** links, focus, the brand arc, selected states (inverse pill), chart lines and bands, "offline", "waiting to sync", "rule-added", form errors and destructive actions use greys and whites (§5). A missing questionnaire is data age, not a level.
+- **Filled level badges** carry a 1.5 px outline in `--color-text`: yellow, pale yellow and orange vanish on the light background (1.00–1.58:1) and red on the dark surface (1.53:1).
 - **Featured tiles** (khaki, olive) are category surfaces for at most two summaries per screen. They never show status and never colour anything else.
 - **Khaki is never text on a surface** (2.72:1 light, 1.95:1 dark). On the dark background it is muted text (4.53:1).
 - **Ink on a fill** follows the canvas rule: dark ink `#1B1B1B` when the fill's relative luminance is above 0.164, otherwise `#DADADA`. Red is the exception: `#FFFFFF`.
@@ -92,14 +96,20 @@ Text needs 4.5:1 (3:1 at 24 px, or 19 px bold). The edges of controls and graphi
 | Muted on surface | 5.30 | 4.76 | Pass |
 | Edge on background | 3.20 | 4.53 | Pass (controls) |
 | Edge on surface | 3.57 | **1.95** with khaki; 4.76 with `--color-edge-on-surface` | Dark: controls inside a card use the on-surface edge |
-| Accent on background | 4.67 | 7.07 | Pass |
-| Accent on surface | 5.20 | 3.04 | Dark: shapes only, so links on surfaces use `--color-link-on-surface` |
+| Level 1 blue on background | 4.67 | 7.07 | Pass |
+| Level 1 blue on surface | 5.20 | 3.04 | Dark: outline and icon only; the word stays `--color-text` |
+| Focus ring on background / surface | 11.06 / 12.32 | 12.32 / 5.30 | Pass |
 | Inverse text on inverse | 12.32 | 12.32 | Pass |
-| Ink on caution | 11.04 | 11.04 | Pass |
-| Caution fill on background | **1.00** | 11.04 | Light: the fill is invisible, so the caution badge has an ink outline |
-| White on warning | 5.77 | 4.85 | Pass |
-| Warning on background | 3.70 | 3.55 | Pass (shapes) |
-| Warning on surface | 4.12 | **1.53** | Dark: badge meaning is carried by its white icon and word; never a bare red shape on a dark surface |
+| Ink on yellow (level 3) | 11.04 | 11.04 | Pass |
+| Yellow fill on background | **1.00** | 11.04 | Light: the fill is invisible, so level 2–3 badges have an ink outline |
+| Yellow (level 2 outline) on surface | — | 4.75 | Pass |
+| Ink on pale yellow (level 2, light) | 15.17 | — | Pass; fill on background 1.37, so the ink outline carries the shape |
+| Ink on orange (level 4) | 7.02 | 7.02 | Pass |
+| Orange on background | **1.58** | 7.02 | Light: ink outline |
+| Orange on surface | **1.76** | 3.02 | Light: ink outline |
+| White on red (level 5) | 5.77 | 4.85 | Pass |
+| Red on background | 3.70 | 3.55 | Pass (shapes) |
+| Red on surface | 4.12 | **1.53** | Dark: badge meaning is carried by its white icon and word; never a bare red shape on a dark surface |
 | Ink on featured tile | 4.53 / 5.30 | same | Pass |
 | Surface on background | 1.11 | 2.32 | Grouping only: static cards need no edge; interactive surfaces add `--color-edge` |
 
@@ -135,14 +145,14 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, icon buttons on the right: theme toggle (moon in light, sun in dark) and "Add entry" (+). Optional context pills sit under it on tablet layouts (crew, flight day, ground delay).
 
 ### Brand mark and splash
-- **Ring:** a 270° arc in `--color-ring` and a 60° arc in `--color-accent`, round caps (canvas geometry). The accent arc was red on the canvas.
+- **Ring:** a 270° arc in `--color-ring` and a 60° arc in `--color-text`, round caps (canvas geometry). The arc was red on the canvas, then blue; blue now means level 1 only.
 - **Splash:** an 88 px ring, the wordmark at 16 px with 0.32em tracking, on `--color-bg`.
 - **No NASA insignia, logotype (worm) or seal:** they need NASA's explicit permission [N1]. Factual text such as "Built for the NASA Space Apps Challenge 2026" is fine.
 
 ### Body-system ring (the canvas "health score" ring)
 - **Segments:** one per body system the rules engine reports on (the list on the [body map](mockups/01-body-map.png)), each identified by its icon, not by colour.
-- **Colour by status:** nominal segments are `--color-ring` with an icon in `--color-text` (quiet). A caution segment is `--color-caution` with an ink-outlined ▲ marker; a warning segment is `--color-warning` with an octagon "!" marker.
-- **Centre:** the number of systems in caution or warning (`--text-hero`) with "systems to check" and the (i) button that opens what / why / how decided / what next. With none, it shows "All nominal" in muted text and the time of the last update. Never a composite health score.
+- **Colour by level:** nominal segments are `--color-ring` with an icon in `--color-text` (quiet). Levels 2–5 colour the segment with the level colour and its marker (↗/↘, ▲, kit, octagon "!"). Level 1 is not a body-system status.
+- **Centre:** the number of systems at levels 2–5 (`--text-hero`) with "systems to check" and the (i) button that opens what / why / how decided / what next. With none, it shows "All nominal" in muted text and the time of the last update. Never a composite health score.
 - **Interaction:** each segment is a button to the system's detail. A list view of the same systems is always one tap away, so the ring isn't the only path [S1 V2 10045].
 
 ### Metric tile (built: issue #7)
@@ -167,37 +177,42 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Primary:** inverse pill, at least 52 px high, verb + object ("Save check-in"). One per screen.
 - **Secondary:** transparent with a 1 px `--color-edge` border.
 - **Icon button:** transparent, 52 px round hit area, icon 22–30 px, `aria-label` required.
-- **Consequential actions** (send packet, delete entry) get confirm or undo. No red buttons: red is a warning, not "dangerous".
+- **Consequential actions** (send packet, delete entry) get confirm or undo. No red buttons: red is level 5, not "dangerous".
 
 ### Body-system list (built: issues #1, #4)
 - **Card:** a `card` with the uppercase `card-heading` "Body systems"; one row per system, rows separated by `--color-divider`.
 - **Row:** system name (weight 500), then a muted line with label, value (`.num`), unit, data age and source ("SpO₂ 96 % · just now · manual"); the status badge on the right. No-data and stale rows mute the system name.
 - **Placeholder row:** a system with no rules yet shows a synthetic value as the muted line `<detail> · synthetic` ("7.1 h last night · synthetic"), always "✓ Nominal", with no data age and no explanation.
-- **Explanation:** for caution and warning only, an inset (`--color-inset`) list of what / why it matters / how decided / what next / who to involve (routing pill) / rule (tag), with uppercase muted terms. Terms sit beside their text from 600 px up and above it on phones.
+- **Explanation:** for levels 2–5 only, an inset (`--color-inset`) list of what / why it matters / how decided / what next / who to involve (routing pill) / rule (tag), with uppercase muted terms. Terms sit beside their text from 600 px up and above it on phones.
 
 ### Field tile (forms)
 - **Structure:** a tile is the field. Its `<label>` wraps the uppercase label, the "/ unit" suffix and the input. The input is transparent DM Mono at value size, so the tile reads like a metric tile being filled in.
-- **Edge and focus:** a 1 px `--color-edge` border (3.20:1 light, 4.53:1 dark), and focus shows a 2 px accent ring around the whole tile. Inside a card the tile is inset (`--color-inset`) and the edge switches to `--color-edge-on-surface` (3.57:1 light, 4.76:1 dark).
+- **Edge and focus:** a 1 px `--color-edge` border (3.20:1 light, 4.53:1 dark), and focus shows a 2 px `--color-focus` ring around the whole tile. Inside a card the tile is inset (`--color-inset`) and the edge switches to `--color-edge-on-surface` (3.57:1 light, 4.76:1 dark).
 - **Errors:** an icon plus a sentence under the field in `--color-text`. Never red or yellow.
 - **Questionnaires:** one question per screen, the instrument's own anchors, progress and time left, and "Skip" always allowed (see [crew-health-companion.md](crew-health-companion.md), "Rendering rules").
 
-### Status badge
+### Level badge
 
-| Status | Look | Example |
+The 0–5 scale, its meaning and routing: [alert-levels.md](alert-levels.md).
+
+| Level | Look | Example |
 |---|---|---|
-| Nominal | No fill, muted text, ✓ icon, weight 500 | ✓ Nominal |
-| Caution | `--color-caution` fill, ink text and 1.5 px ink outline, ▲ icon, weight 700 | ▲ Caution |
-| Warning | `--color-warning` fill, white text, octagon "!" icon, weight 700 | (octagon) Warning |
+| 0 Nominal | No fill, muted text, ✓ icon, weight 500 | ✓ Nominal |
+| 1 To do | No fill, `--color-text` word, 1.5 px `--color-todo` outline, edit icon in `--color-todo`, weight 700 | ✎ To do |
+| 2 Watch | `--color-watch-bg` fill, `--color-on-watch` text, 1.5 px outline (light: ink; dark: yellow), trend-arrow icon, weight 700 | ↗ Watch |
+| 3 Check | `--color-check` fill, ink text, 1.5 px `--color-text` outline, ▲ icon, weight 700 | ▲ Check |
+| 4 Treat | `--color-treat` fill, ink text, 1.5 px `--color-text` outline, first-aid-kit icon, weight 700 | ✚ Treat |
+| 5 Emergency | `--color-emergency` fill, white text, 1.5 px `--color-text` outline, octagon "!" icon, weight 700 | (octagon) Emergency |
 
 "No data" and "No recent data" use `badge--quiet`: muted, no icon, no fill. Missing or stale data is not a health status.
 
-Routing is a separate, neutral outline pill: "Self-care", "CMO", "Medical conference", "Urgent ground" (the escalation tiers in [features.md](features.md)). Urgency is the colour; who acts is the label [ux-human-factors.md, "Keep urgency separate from who gets involved"].
+Routing is a separate, neutral outline pill (each level has a default, a rule row may change it): "Self-care", "CMO", "Medical conference", "Urgent ground" (the escalation tiers in [features.md](features.md)). Urgency is the colour; who acts is the label [ux-human-factors.md, "Keep urgency separate from who gets involved"].
 
 ### Pills and tags
 - **Context pill:** outline in `--color-edge`, the value in bold ("Flight day **142**").
-- **Due counter:** accent outline, "● 1 due". Absent when nothing is due. Never yellow.
+- **To-do counter (level 1):** `--color-todo` outline and edit icon, "✎ 1 to do". Absent when nothing is due. Never yellow.
 - **Source tag:** a small outline tag ("BLE · simulated", "manual", "EDA replay").
-- **Rule tag:** a dashed outline ("rule · PVT slower than baseline"). It explains why an item was added; it is not a caution.
+- **Rule tag:** a dashed outline ("rule · PVT slower than baseline"). It explains why an item was added; it is not a level.
 - **Connection and sync:** a neutral pill. Online with nothing waiting is quiet muted text; offline shows a cloud-off icon and "Offline · 2 waiting to sync". Being offline is not a health status.
 
 ### Icons
@@ -221,15 +236,16 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 | Healthicons 3.1 outline (CC0) | 776 | yes | yes | yes | yes | different: 48 px filled outlines, no UI glyphs (status, sync, theme) |
 
 ### Charts (for the detail screens)
-- **Lines and bands:** data line in `--color-text`; baseline band in `--color-ring` at low opacity; adaptation corridor as a dashed `--color-accent` outline.
-- **Points:** flagged points carry the status marker, and stale or missing points are hollow.
+- **Plot area:** a `--color-inset` well inside the card, so the lines and the band keep contrast.
+- **Lines and bands:** data line in `--color-text`; the adaptation corridor is the only filled band (`--color-text` at about 20 % with a faint edge); the pre-flight baseline is a thin dashed `--color-text-muted` line at the baseline median, labelled "your pre-flight normal" ([mockup 02](mockups/02-detail.png)). No category colours: categories are told apart by name and icon ([health-categories.md](health-categories.md#how-categories-are-shown)).
+- **Points:** a point at level 2–5 carries the level marker in its colour, and stale or missing points are hollow. The line itself never takes a level colour.
 - **Axes:** units on the axes, faint optional grid lines, no dual axes [S1 V2 10046][S2 §10.6.18].
 
 ## 6. Themes
 
 - **Light** is the default (the canvas default). **Dark** is the canvas's dark set with the fixes in §2.
 - The app follows the system setting until the user taps the toggle; the choice is remembered on the device.
-- **Night theme: not designed yet.** Pre-sleep use needs a dim display with little short-wavelength light [S1 V2 8055]. Dark mode is not that: its accent is blue and its text is bright. It's a gap to close before night-time screens ship.
+- **Night theme: not designed yet.** Pre-sleep use needs a dim display with little short-wavelength light [S1 V2 8055]. Dark mode is not that: its text is bright. It's a gap to close before night-time screens ship.
 
 ## 7. Words
 
@@ -242,20 +258,20 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 ## 8. Checklist for every UI pull request
 
 - [ ] Colours come from tokens only (no hex in `ui/*.tsx`).
-- [ ] Red and yellow appear only on status, with icon + word.
+- [ ] Blue, yellow, orange and red appear only on alert levels, with icon + word.
 - [ ] Every new colour pair is in §2.4 and passes.
 - [ ] Text ≥ 16 px; values ≥ 28 px; targets ≥ 52 px and ≥ 18 px apart.
 - [ ] Values show unit, data age and source; missing shows "—"; stale looks stale.
 - [ ] Icons come from `src/ui/icons.tsx` by concept; icon buttons have `aria-label`; the current nav item has `aria-current`; live sync text has `role="status"`.
-- [ ] Keyboard focus is visible (2 px accent ring).
+- [ ] Keyboard focus is visible (2 px `--color-focus` ring).
 - [ ] Checked in light and dark, at 390 px and 1280 px.
 
 ## 9. Canvas changes and why
 
 | Canvas | Guideline | Why |
 |---|---|---|
-| Red arc in the logo and loading ring | Accent blue | Red is reserved for warnings [S1 V2 10118/10119] |
-| Ring segments coloured red, blue, khaki and olive by category | Ring grey when nominal; caution or warning colour only when off-nominal; icon names the system | One meaning per colour; quiet when nominal [S2 §10.11.5.5][S3] |
+| Red arc in the logo and loading ring | `--color-text` arc (blue until 2026-11-14) | Red is reserved for level 5 [S1 V2 10118/10119]; blue for level 1 |
+| Ring segments coloured red, blue, khaki and olive by category | Ring grey when nominal; level colour only at levels 2–5; icon names the system | One meaning per colour; quiet when nominal [S2 §10.11.5.5][S3] |
 | "8.8 your health score" | Count of systems to check, or "All nominal" | No scores on health values; thresholds must be sourced; scoring feeds under-reporting ([crew-health-companion.md](crew-health-companion.md), "Reporting is a win") |
 | "Stress 82" tile | "Mood" tile, self-reported 1–5 | No inferred emotion ([ux-human-factors.md](../research/ux-human-factors.md) checklist item 14) |
 | "Genetics" segment | Removed | No in-flight genetic monitoring; segments follow the rules engine |
@@ -270,7 +286,7 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 | "Manual input" tab | "Check-in" | Glossary in [features.md](features.md) |
 | Moon for both the Sleep tile and the dark-mode toggle | Sleep uses `zzz`; the moon stays on the toggle | One meaning per icon [S1 V2 10010/10011] |
 
-The mockups in [mockups/](mockups/) are dark-only tablet comps with 11–14 px text and a few derived greys (`#3D403B`, `#2A3550`). Use them for layout and content; colours, sizes and status styles come from this document. Their colour use follows the rules (red and yellow only on status; "due" and rule tags neutral since 2026-11-14).
+The mockups in [mockups/](mockups/) are dark-only tablet comps with 11–14 px text and a few derived greys (`#3D403B`, `#2A3550`). Use them for layout and content; colours, sizes and status styles come from this document. Their colour use follows the rules: colour only on the alert levels, everything else grey (2026-11-14).
 
 ## Sources
 

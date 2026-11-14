@@ -39,37 +39,18 @@ Light theme on background `#CFCFCF` / card `#DADADA`; dark theme on background `
 | 2 Watch | `#FFF0C2` pale yellow · `#1B1B1B` · `#1B1B1B` | none · `#FFC72C` yellow · `#FFC72C` | Light: yellow outline would be 1.0:1 on the bg, so the light theme uses a pale tint + dark border. Dark: outline only, 11.0:1 bg, 4.8:1 card |
 | 3 Check | `#FFC72C` yellow · `#1B1B1B` · `#1B1B1B` | `#FFC72C` yellow · `#1B1B1B` · `#DADADA` | The existing caution yellow. Ink 11.0:1 |
 | 4 Treat | `#F28C28` orange · `#1B1B1B` · `#1B1B1B` | `#F28C28` orange · `#1B1B1B` · `#DADADA` | New. Ink 7.0:1 |
-| 5 Emergency | `#C61E37` red · `#FFFFFF` · `#1B1B1B` | `#C61E37` red · `#FFFFFF` · `#DADADA` | Ink moved from `#DADADA` (4.1:1, large text only) to white (5.8:1) |
+| 5 Emergency | `#C61E37` red · `#FFFFFF` · `#1B1B1B` | `#E4002B` bright red · `#FFFFFF` · `#DADADA` | As in [ui-guidelines.md](ui-guidelines.md): white ink 5.77:1 light, 4.85:1 dark; `#E4002B` is 3.55:1 on the dark background |
 
-**Border rule.** Filled chips carry a 1.5 px border in the theme's text colour. Yellow and orange are 1.0–1.8:1 against the light background, and red is 1.3:1 on the dark olive card, so without it the chip shape fails the 3:1 UI-component minimum.
+**Border rule.** Filled chips carry a 1.5 px border in the theme's text colour. Yellow and orange are 1.0–1.8:1 against the light background, and dark red is 1.53:1 on the olive card, so without it the chip shape fails the 3:1 UI-component minimum.
 
-```css
-:root {            /* light */
-  --lvl0-ink: #52574E;
-  --lvl1-ink: #1651B6;
-  --lvl2-fill: #FFF0C2; --lvl2-ink: #1B1B1B;
-  --lvl3-fill: #FFC72C; --lvl3-ink: #1B1B1B;
-  --lvl4-fill: #F28C28; --lvl4-ink: #1B1B1B;
-  --lvl5-fill: #C61E37; --lvl5-ink: #FFFFFF;
-  --lvl-border: #1B1B1B;
-}
-[data-theme="dark"] {
-  --lvl0-ink: #868375; --lvl0-ink-on-card: #CFCFCF;
-  --lvl1-ink: #7FA6F0;
-  --lvl2-fill: transparent; --lvl2-ink: #FFC72C;
-  --lvl3-fill: #FFC72C; --lvl3-ink: #1B1B1B;
-  --lvl4-fill: #F28C28; --lvl4-ink: #1B1B1B;
-  --lvl5-fill: #C61E37; --lvl5-ink: #FFFFFF;
-  --lvl-border: #DADADA;
-}
-```
+Tokens (`--color-todo`, `--color-watch-bg`, `--color-check`, `--color-treat`, `--color-emergency` and their `--color-on-*` inks) are defined in [ui-guidelines.md](ui-guidelines.md) §2.2.
 
 **How they were checked** (OKLab ΔE×100, Machado 2009 colour-blind simulation at severity 1.0; WCAG 2.1 contrast; computed 2026-11-14):
 
 | Pair | Normal | Protan | Deutan | Tritan |
 |---|---|---|---|---|
 | 3 yellow vs 4 orange | 14.5 | 15.4 | 12.2 | 13.7 |
-| 4 orange vs 5 red | 23.5 | 26.5 | 20.7 | 17.7 |
+| 4 orange vs 5 red (light `#C61E37` / dark `#E4002B`) | 23.5 / 20.8 | 26.5 / 23.7 | 20.7 / 15.3 | 17.7 / 13.7 |
 | 2 pale yellow vs 3 yellow (light) | 14.4 | 16.5 | 14.0 | — |
 | 1 blue vs 5 red (light / dark, worst) | 32.9 / 33.5 | 21.0 / 35.2 | 27.3 / 26.3 | 32.0 / 35.9 |
 
