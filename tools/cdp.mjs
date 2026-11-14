@@ -3,7 +3,8 @@
 // Usage in a shots script:
 //   import { openPage } from '../../tools/cdp.mjs'
 //   const page = await openPage('http://localhost:8080/')
-//   await page.fill('input[name=spo2]', '88'); await page.click('button[type=submit]')
+//   await page.evaluate(`location.hash = '#/check-in'`); await page.fill('input[name=heartRate]', '63')
+//   await page.click('.check-in button[type=submit]')  // or saveCheckIn(page, { spo2: 88 }) from tools/checkin-shots.mjs
 //   await page.shot('docs/features/img/1-warning.png'); await page.close()
 import { spawn } from 'node:child_process'
 import { mkdtempSync, writeFileSync } from 'node:fs'
