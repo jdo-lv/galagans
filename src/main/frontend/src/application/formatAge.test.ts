@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatAge, formatStaleAge } from './formatAge'
+import { formatAge, formatOldAge, formatStaleAge } from './formatAge'
 
 const now = new Date('2026-11-14T12:00:00Z')
 const before = (seconds: number) => new Date(now.getTime() - seconds * 1000).toISOString()
@@ -20,5 +20,11 @@ describe('formatAge', () => {
 
   it('prefixes stale ages with "data" and ends them with "old"', () => {
     expect(formatStaleAge(before(24 * 3600 + 60), now)).toBe('data 1 d old')
+  })
+
+  it('AC29: formatOldAge ends ages with "old"; formatStaleAge still prefixes "data"', () => {
+    expect(formatOldAge(before(24 * 3600), now)).toBe('1 d old')
+    expect(formatOldAge(before(2 * 3600), now)).toBe('2 h old')
+    expect(formatStaleAge(before(24 * 3600), now)).toBe('data 1 d old')
   })
 })

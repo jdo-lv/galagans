@@ -10,6 +10,10 @@ export function formatAge(recordedAt: string, now: Date): string {
   return `${Math.floor(ms / DAY)} d ago`
 }
 
+export function formatOldAge(recordedAt: string, now: Date): string {
+  return formatAge(recordedAt, now).replace(/ ago$/, ' old')
+}
+
 export function formatStaleAge(recordedAt: string, now: Date): string {
-  return `data ${formatAge(recordedAt, now).replace(/ ago$/, ' old')}`
+  return `data ${formatOldAge(recordedAt, now)}`
 }
