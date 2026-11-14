@@ -58,3 +58,9 @@ export const READINGS: ReadingSpec[] = [
     source: 'in-app test',
   },
 ]
+
+export function readingSpec(indicator: Indicator): Extract<ReadingSpec, { indicator: Indicator }> {
+  for (const spec of READINGS) if (spec.indicator === indicator) return spec
+  // Unreachable: domain/readings.test.ts checks every rule's indicator has a spec.
+  throw new Error(`No READINGS spec for ${indicator}`)
+}
