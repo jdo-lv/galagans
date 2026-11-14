@@ -1,59 +1,104 @@
+/* Row and status pill styles copied from ideas/mockups/src/01-body-map.html and base.css. */
 .status-list {
   list-style: none;
-  padding: 0;
 }
 
 .status-list > li {
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.status-list > li:last-child {
+  border-bottom: 0;
+}
+
+.status-head {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.75rem;
-  align-items: baseline;
-  padding: 0.5rem 0;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 33px;
 }
 
 .status-system {
-  font-weight: 600;
+  font-size: 14px;
+}
+
+.status-sub {
+  margin-top: 3px;
+  color: var(--text-2);
+  font-size: 12px;
 }
 
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.1rem 0.5rem;
-  border-radius: 4px;
-}
-
-.status-age {
-  color: #868375;
-}
-
-.status-explanation {
-  flex-basis: 100%;
-  margin: 0.25rem 0 0;
-}
-
-.status-explanation dt {
-  font-weight: 600;
-}
-
-.status-explanation dd {
-  margin: 0 0 0.5rem;
+  gap: 6px;
+  border-radius: 13px;
+  padding: 4px 10px;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 .status-nominal .status-badge,
-.status-stale .status-badge {
-  color: #868375;
+.status-stale .status-badge,
+.status-no-data .status-badge {
+  padding: 4px 0;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.status-no-data .status-system,
+.status-stale .status-system {
+  color: var(--muted);
 }
 
 .status-caution .status-badge {
-  background: #ffc72c;
-  color: #1b1b1b;
+  background: var(--caution);
+  color: var(--caution-ink);
+  font-weight: 700;
 }
 
 /* #DADADA on #C61E37 is 4.1:1, which passes only as large text (bold ≥ 18.66 px). */
 .status-warning .status-badge {
-  background: #c61e37;
-  color: #dadada;
-  font-weight: 700;
+  background: var(--warning);
+  color: var(--warning-ink);
   font-size: 18.66px;
+  font-weight: 700;
+}
+
+/* Explanation rows as in ideas/mockups/src/02-detail.html (.erow, .nx). */
+.status-explanation {
+  margin-top: 10px;
+  border-radius: 8px;
+  padding: 4px 12px;
+  background: var(--inset);
+}
+
+.status-explanation > div {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.status-explanation > div:last-child {
+  border-bottom: 0;
+}
+
+.status-explanation dt {
+  flex: none;
+  width: 130px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.status-unavailable {
+  padding: 11px 0;
+  color: var(--text-2);
 }

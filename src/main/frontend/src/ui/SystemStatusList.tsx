@@ -37,24 +37,36 @@ function StatusRow({ status, now }: { status: SystemStatus; now: Date }) {
   const age = recordedAt && (state === 'stale' ? formatStaleAge(recordedAt, now) : formatAge(recordedAt, now))
   return (
     <li className={`status-${state}`}>
-      <span className="status-system">{status.system}</span>
-      <Badge state={state} />
-      {status.value !== undefined && <span className="status-reading">{`${status.label} ${status.value} ${status.unit}`}</span>}
-      {age && <span className="status-age">{`${age} · ${status.source}`}</span>}
+      <div className="status-head">
+        <div>
+          <div className="status-system">{status.system}</div>
+          {status.value !== undefined && (
+            <div className="status-sub">
+              <span>{`${status.label} ${status.value} ${status.unit}`}</span>
+              {' · '}
+              <span>{`${age} · ${status.source}`}</span>
+            </div>
+          )}
+        </div>
+        <Badge state={state} />
+      </div>
       {rule && (
         <dl className="status-explanation">
-          <dt>What</dt>
-          <dd>{rule.what}</dd>
-          <dt>Why</dt>
-          <dd>{rule.why}</dd>
-          <dt>How decided</dt>
-          <dd>{rule.howDecided}</dd>
-          <dt>Next</dt>
-          <dd>{rule.next}</dd>
-          <dt>Tier</dt>
-          <dd>{rule.tier}</dd>
-          <dt>Rule</dt>
-          <dd>{rule.id}</dd>
+          {(
+            [
+              ['What', rule.what],
+              ['Why it matters', rule.why],
+              ['How decided', rule.howDecided],
+              ['What next', rule.next],
+              ['Who to involve', rule.tier],
+              ['Rule', rule.id],
+            ] as const
+          ).map(([term, text]) => (
+            <div key={term}>
+              <dt>{term}</dt>
+              <dd>{text}</dd>
+            </div>
+          ))}
         </dl>
       )}
     </li>
@@ -64,9 +76,11 @@ function StatusRow({ status, now }: { status: SystemStatus; now: Date }) {
 export function SystemStatusList({ state }: { state: StatusListState }) {
   const headingId = useId()
   return (
-    <section aria-labelledby={headingId}>
-      <h2 id={headingId}>Body systems</h2>
-      {state.kind === 'unavailable' && <p>Status unavailable</p>}
+    <section className="panel" aria-labelledby={headingId}>
+      <h2 id={headingId} className="ph">
+        Body systems
+      </h2>
+      {state.kind === 'unavailable' && <p className="status-unavailable">Status unavailable</p>}
       {state.kind === 'ready' && (
         <ul className="status-list">
           {state.statuses.map((status) => (

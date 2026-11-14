@@ -28,7 +28,7 @@ export function CheckInForm({ onSubmit }: { onSubmit: (draft: CheckInDraft) => P
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className="checkin" onSubmit={handleSubmit}>
       <label>
         Heart rate (bpm)
         <input name="heartRate" type="number" min={20} max={250} />
@@ -45,7 +45,7 @@ export function CheckInForm({ onSubmit }: { onSubmit: (draft: CheckInDraft) => P
         Mood (1-5)
         <input name="mood" type="number" min={1} max={5} />
       </label>
-      <button type="submit" disabled={saving}>
+      <button type="submit" className="btn" disabled={saving}>
         Save check-in
       </button>
     </form>

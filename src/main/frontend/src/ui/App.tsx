@@ -13,17 +13,29 @@ export function App() {
   const statuses = useSystemStatuses()
 
   return (
-    <main>
-      <h1>Crew Health Companion</h1>
-      <StatusBar online={online} pending={pending} />
-      <SystemStatusList state={statuses.state} />
-      <CheckInForm
-        onSubmit={async (draft) => {
-          await recorder.record(draft)
-          refresh()
-          statuses.refresh()
-        }}
-      />
-    </main>
+    <>
+      <header className="top">
+        <h1 className="brand">
+          <span className="dot" aria-hidden="true" />
+          Crew Health Companion
+        </h1>
+        <StatusBar online={online} pending={pending} />
+      </header>
+      <main className="layout">
+        <SystemStatusList state={statuses.state} />
+        <section className="panel" aria-labelledby="checkin-heading">
+          <h2 id="checkin-heading" className="ph">
+            Check-in
+          </h2>
+          <CheckInForm
+            onSubmit={async (draft) => {
+              await recorder.record(draft)
+              refresh()
+              statuses.refresh()
+            }}
+          />
+        </section>
+      </main>
+    </>
   )
 }

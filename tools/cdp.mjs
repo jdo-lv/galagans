@@ -45,12 +45,19 @@ export async function openPage(url, { width = 1280, height = 800, port = 9333, s
   const evaluate = async (expression) =>
     (await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true })).result.value
 
+  await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false })
   await send('Page.enable')
   await send('Page.navigate', { url })
   await sleep(settleMs)
 
   return {
+    send,
     evaluate,
+    sleep,
+    reload: async () => {
+      await send('Page.reload')
+      await sleep(settleMs)
+    },
     /** Sets an input's value the way React sees it. */
     fill: (selector, value) =>
       evaluate(`(() => {
