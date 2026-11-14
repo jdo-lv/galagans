@@ -29,7 +29,17 @@ export interface SystemStatus {
   unit?: string
   value?: number
   recordedAt?: string
-  source: 'manual'
+  /** Free-text sub line, only on placeholders. */
+  detail?: string
+  source: 'manual' | 'synthetic'
   /** Only for caution and warning. */
   rule?: Rule
+}
+
+/** Synthetic stand-in for a body system with no rules yet; always nominal, never explained or aged. */
+export interface Placeholder {
+  system: string
+  state: 'nominal'
+  detail: string
+  source: 'synthetic'
 }

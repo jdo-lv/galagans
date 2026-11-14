@@ -7,6 +7,7 @@ import { BrowserConnectivityMonitor } from './infrastructure/BrowserConnectivity
 import { HttpCheckInGateway } from './infrastructure/HttpCheckInGateway'
 import { IndexedDbCheckInRepository } from './infrastructure/IndexedDbCheckInRepository'
 import { JsonRuleSource } from './infrastructure/JsonRuleSource'
+import { mockStatuses } from './infrastructure/mockStatuses'
 
 export interface Services {
   recorder: CheckInRecording
@@ -26,7 +27,7 @@ export function createServices(): Services & { startSync: () => () => void } {
     connectivity,
     synchronizer: syncService,
     recorder: new CheckInRecorder(repository, syncService),
-    statusReader: new SystemStatusReader(new JsonRuleSource(), repository),
+    statusReader: new SystemStatusReader(new JsonRuleSource(), repository, undefined, mockStatuses),
     startSync: () => syncService.start(),
   }
 }

@@ -5,7 +5,8 @@ import { CheckInRecorder } from '../application/CheckInRecorder'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import type { CheckIn } from '../domain/checkIn'
-import type { Rule } from '../domain/rules'
+import type { Placeholder, Rule } from '../domain/rules'
+import { mockStatuses } from '../infrastructure/mockStatuses'
 import rules from '../infrastructure/rules.json'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { App } from './App'
@@ -18,7 +19,7 @@ const HOUR = 60 * MIN
 
 const reading = (id: string, recordedAt: string, spo2Percent?: number): CheckIn => ({ id, recordedAt, spo2Percent, symptoms: [] })
 
-function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = true } = {}) {
+function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = true, placeholders = [] as Placeholder[] } = {}) {
   const clock = { now: new Date(now) }
   const repository = new FakeRepository()
   seed.forEach((c) => repository.items.set(c.id, { checkIn: c, pending: false }))
@@ -32,7 +33,7 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
     connectivity,
     synchronizer,
     recorder: new CheckInRecorder(repository, synchronizer, undefined, () => clock.now),
-    statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now),
+    statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now, placeholders),
   }
   return {
     clock,
@@ -234,5 +235,28 @@ describe('SystemStatusList', () => {
     expect(row()).toHaveClass('status-stale')
     expect(row()).toHaveTextContent('data 1 d old · manual')
     expectNoStatusIcon(row())
+  })
+})
+
+describe('Body systems with placeholders (#4)', () => {
+  const systemNames = (rows: HTMLElement[]) => rows.map((r) => r.querySelector('.status-system')?.textContent)
+
+  it('AC1: lists Respiratory (No data) then the nine placeholders in mockup order', async () => {
+    setup({ placeholders: mockStatuses }).renderApp()
+
+    const rows = await within(list()).findAllByRole('listitem')
+    expect(systemNames(rows)).toEqual([
+      'Respiratory',
+      'Cognition',
+      'Cabin air',
+      'Sleep',
+      'Immune',
+      'Cardiovascular',
+      'Bone & muscle',
+      'Vision (SANS)',
+      'Radiation',
+      'Kidney & hydration',
+    ])
+    expect(within(rows[0]).getByText('No data')).toBeInTheDocument()
   })
 })
