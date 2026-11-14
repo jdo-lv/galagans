@@ -39,7 +39,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `research/Health Palette Prototype.html`: palette design (colour tokens, light/dark mockups, WCAG contrast board). It's a self-unpacking bundle, so read the summary in `research/ux-human-factors.md` "Team palette" instead of parsing it.
 - `ideas/viability-checklist.md`: gates G1–G5, scoring criteria, common fixes and the idea template. Every team idea goes through it.
 - `ideas/crew-health-companion.md`: lead idea (daily check-in, body map, rules engine, Device Simulator, surgeon packet), with mockups in `ideas/mockups/*.png`. Mockup sources: `ideas/mockups/src/*.html` with palette tokens in `base.css`; re-render with `ideas/mockups/src/render.sh`.
-- `ideas/features.md`: every feature of the lead idea in plain words, glossary, build order.
+- `ideas/features.md`: every feature of the lead idea in plain words, glossary, build order. Each built feature has a `Status:` line: `Implemented.` when done, otherwise what works and `Missing: …`.
 - `docs/features/<n>-<slug>.md`: one per implemented UI issue, with screenshots of each state from the running app (`docs/features/img/`), the mockup it follows and deviations. Screenshots retaken by `docs/features/<n>-<slug>.shots.mjs` using `tools/cdp.mjs`.
 - `ai-log.md`: AI tool use log for the submission.
 - `spaceChallenges.md`: unsourced overview table with mangled journal citations. Don't cite it; trace claims to `research/` instead.

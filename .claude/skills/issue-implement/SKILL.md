@@ -32,6 +32,8 @@ The issue is the spec. Build exactly its acceptance criteria (ACs), nothing more
 
 5. **Docs.** Do everything in the issue's Docs section. If the change alters behaviour described in `ideas/crew-health-companion.md` or `ideas/features.md`, update them in the same branch. Update `CLAUDE.md` only for architecture, command or convention changes.
 
+   **Feature status.** Set the `- **Status:**` line of every feature the issue touches in `ideas/features.md`: `Implemented.` plus one line of what it does when nothing of the feature is left, otherwise what works and `Missing: …`. Add the line if the feature has none.
+
 6. **Feature doc with screenshots.** For any issue that changes the UI, write `docs/features/<n>-<slug>.md`:
    - what the feature does for the crew, in 2–3 lines, and how to try it (`mvn spring-boot:run`, then the clicks and values);
    - one screenshot per UI state the ACs name (empty, nominal, caution, warning, stale, error…), each under a heading with the input that produced it, saved as `docs/features/img/<n>-<state>.png`;
