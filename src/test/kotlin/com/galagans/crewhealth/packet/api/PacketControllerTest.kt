@@ -75,6 +75,11 @@ class PacketControllerTest(
         assertEquals("  Slept badly.  ", inbox.received.single().note)
     }
 
+    @Test
+    fun `AC3 accepts an empty item list`() {
+        post(ac1BodyWith { it["items"] = emptyList<Any>() }).expectStatus().isOk
+    }
+
     companion object {
         @JvmStatic
         fun blankNotes() = listOf(
