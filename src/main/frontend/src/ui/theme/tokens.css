@@ -1,0 +1,92 @@
+/*
+ * Design tokens from the team palette (research/Health Palette Prototype.html).
+ * Usage rules and contrast ratios: ideas/ui-guidelines.md. Components use the semantic tokens, never the palette directly.
+ * Theme: follows the system until <html data-theme="light|dark"> is set by the theme toggle.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Palette (canvas), plus status and dark-contrast additions */
+  --palette-mist: #cfcfcf;
+  --palette-bone: #dadada;
+  --palette-ink: #1b1b1b;
+  --palette-warm-grey: #726f6c;
+  --palette-khaki: #868375;
+  --palette-olive: #52574e;
+  --palette-blue: #1651b6;
+  --palette-deep-blue: #0032a0;
+  --palette-red: #c61e37;
+  --palette-bright-red: #e4002b;
+  --palette-caution-yellow: #ffc72c;
+  --palette-white: #ffffff;
+  --palette-blue-tint: #7fa6f0;
+
+  /* Semantic colours: light-dark(light value, dark value) */
+  --color-bg: light-dark(var(--palette-mist), var(--palette-ink));
+  --color-surface: light-dark(var(--palette-bone), var(--palette-olive));
+  --color-text: light-dark(var(--palette-ink), var(--palette-bone));
+  --color-text-muted: light-dark(var(--palette-olive), var(--palette-khaki));
+  --color-text-muted-on-surface: light-dark(var(--palette-olive), var(--palette-mist));
+  --color-edge: light-dark(var(--palette-warm-grey), var(--palette-khaki));
+  --color-edge-on-surface: light-dark(var(--palette-warm-grey), var(--palette-mist));
+  --color-divider: var(--color-bg); /* row rules inside a surface */
+  --color-inset: var(--color-bg); /* recessed area inside a surface: fields, explanations */
+  --color-ring: light-dark(var(--palette-warm-grey), var(--palette-khaki));
+  --color-accent: light-dark(var(--palette-blue), var(--palette-blue-tint));
+  --color-link-on-surface: light-dark(var(--palette-blue), var(--palette-bone));
+  --color-link-hover: light-dark(var(--palette-deep-blue), var(--palette-bone));
+  --color-inverse-bg: light-dark(var(--palette-ink), var(--palette-bone));
+  --color-inverse-text: light-dark(var(--palette-bone), var(--palette-ink));
+
+  /* Featured tiles: category surfaces, never status */
+  --color-feature-1: var(--palette-khaki);
+  --color-on-feature-1: var(--palette-ink);
+  --color-feature-2: var(--palette-olive);
+  --color-on-feature-2: var(--palette-bone);
+
+  /* Status: only on badges, ring segments and chart markers, always with icon + word */
+  --color-caution: var(--palette-caution-yellow);
+  --color-on-caution: var(--palette-ink);
+  --color-warning: light-dark(var(--palette-red), var(--palette-bright-red));
+  --color-on-warning: var(--palette-white);
+
+  /* Type: Inter for words, DM Mono for numbers. 16px floor = NASA 0.25° minimum at 50 cm on a tablet. */
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-data: 'DM Mono', ui-monospace, monospace;
+  --text-body: 1rem;
+  --text-heading: 1.25rem;
+  --text-value: 1.75rem;
+  --text-hero: 4rem;
+  --tracking-label: 0.08em;
+  --tracking-hero: -0.04em;
+  --tracking-splash: 0.32em;
+  --line-height: 1.4;
+
+  /* Space and shape */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --gutter: var(--space-5);
+  --gap-cards: var(--space-4);
+  --gap-targets: 18px; /* ≥ 3.2 mm between touch targets */
+  --target-min: 52px; /* ≥ 9.5 mm touch target */
+  --radius-card: 16px;
+  --radius-item: 12px;
+  --radius-tag: 6px;
+  --radius-pill: 999px;
+  --content-max: 1200px;
+  --focus-ring: 2px solid var(--color-accent);
+  --transition-theme: background-color 0.25s, color 0.25s, border-color 0.25s;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}

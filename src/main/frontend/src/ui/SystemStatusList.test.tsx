@@ -53,8 +53,8 @@ const row = () => within(list()).getByRole('listitem')
 
 async function submitSpo2(value: number) {
   // user-event keeps its own copy of the typed value, which form.reset() doesn't clear.
-  await userEvent.clear(screen.getByLabelText(/spo2/i))
-  await userEvent.type(screen.getByLabelText(/spo2/i), String(value))
+  await userEvent.clear(screen.getByLabelText(/spo[2₂]/i))
+  await userEvent.type(screen.getByLabelText(/spo[2₂]/i), String(value))
   await userEvent.click(screen.getByRole('button', { name: /save check-in/i }))
 }
 
@@ -201,7 +201,7 @@ describe('SystemStatusList', () => {
 
     await submitSpo2(96)
     await vi.waitFor(() => expect(s.repository.items.size).toBe(1))
-    await vi.waitFor(() => expect(screen.getByLabelText(/spo2/i)).toHaveValue(null))
+    await vi.waitFor(() => expect(screen.getByLabelText(/spo[2₂]/i)).toHaveValue(null))
     expect(within(list()).getByText('Status unavailable')).toBeInTheDocument()
 
     setFail(s, false)

@@ -11,8 +11,8 @@ export default defineConfig({
         name: 'Crew Health Companion',
         short_name: 'CrewHealth',
         description: 'Offline-first daily health check-in for crew on space missions',
-        theme_color: '#1b1b1b',
-        background_color: '#1b1b1b',
+        theme_color: '#cfcfcf',
+        background_color: '#cfcfcf',
         display: 'standalone',
         start_url: '/',
         icons: [
@@ -21,7 +21,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
         navigateFallbackDenylist: [/^\/api\//],
       },
     }),

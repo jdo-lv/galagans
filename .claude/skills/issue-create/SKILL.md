@@ -23,7 +23,7 @@ Three principles override speed:
    - defaults, naming, units, rule table row vs constant
    - which layer and side: crew app (offline, rules) or ground station (receive, store, show)
    - UI placement and NASA display rules (quiet when nominal, icon + word + color, data age and source)
-   - which mockup screen and elements the UI copies (`ideas/mockups/NN-*.png`, tokens in `ideas/mockups/src/base.css`), and any deliberate deviation
+   - which mockup screen and elements the UI copies (`ideas/mockups/NN-*.png`; colours, sizes and status styles from `ideas/ui-guidelines.md`), and any deliberate deviation
    - roles (self, CMO, flight surgeon) and what each sees
    - environment modes it applies to (ISS, Orion, lunar, Mars transit)
    - source labels for data (bracelet, manual, replay, proxy, synthetic)

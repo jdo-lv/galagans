@@ -248,6 +248,8 @@ Research for the NASA Space Apps 2026 challenge "Create Health Monitoring Softwa
 
 ## Team palette (Health Palette Prototype)
 
+Usage rules (semantic tokens, type, components, contrast for every allowed pair): [ui-guidelines.md](../ideas/ui-guidelines.md). The gaps listed below are resolved there.
+
 Design source: [Health Palette Prototype.html](Health%20Palette%20Prototype.html) (open in a browser; three boards: Splash, Today, Palette contrast check). Ratios below are WCAG 2.1, recomputed from the hex values on 2026-11-14.
 
 | Token | Light | Dark |
@@ -270,7 +272,7 @@ Applied in the restyled mockups (`ideas/mockups/src/base.css`, 2026-11-14; all 1
 - Brand arc moved from red to blue. On dark, blue needs the tint `#7FA6F0` (7.1:1 on `#1B1B1B`); `#1651B6` is 2.4:1.
 - Card edge `#868375` (4.5:1 on `#1B1B1B`) fixes the 2.3:1 edge failure.
 - Selected and primary states use the design's pill (`#DADADA` on `#1B1B1B`), not yellow, so yellow only means caution. Rule-triggered items get a dashed tag, not yellow.
-- Simulator purple replaced by palette greys; nominal green dropped for the quiet muted style; architecture legend uses khaki / grey / blue tint / caution yellow.
+- Simulator purple replaced by palette greys; nominal green dropped for the quiet muted style; architecture legend uses khaki / warm grey / blue tint / light grey (yellow left the legend on 2026-11-14: it means caution only, see [ui-guidelines.md](../ideas/ui-guidelines.md)).
 
 ## Gaps and unverified items
 

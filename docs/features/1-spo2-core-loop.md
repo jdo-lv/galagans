@@ -17,7 +17,7 @@ Quiet: muted "✓ Nominal", no fill, no explanation.
 ![Caution](img/1-caution.png)
 
 ### Warning (SpO₂ 88, rule SPO-02)
-Octagon icon plus the word, bold 18.66 px because `#DADADA` on `#C61E37` is 4.1:1 (large text only).
+Octagon icon plus the word, white on red (5.77:1 light, 4.85:1 dark), so it passes at body size.
 ![Warning](img/1-warning.png)
 
 ### Stale (SpO₂ 88 recorded 25 h ago)
@@ -32,13 +32,14 @@ The warning appears without the server; the check-in waits to sync.
 
 ## Mockup and deviations
 
-Follows [01-body-map.png](../../ideas/mockups/01-body-map.png) ("Body systems" panel, rows, status pills, top bar) and the explanation rows of [02-detail.png](../../ideas/mockups/02-detail.png). Colours, radii and spacing come from `ideas/mockups/src/base.css`, copied as tokens into `src/main/frontend/src/ui/theme.css`.
+Layout follows [01-body-map.png](../../ideas/mockups/01-body-map.png) ("Body systems" panel, rows, status pills) and the explanation rows of [02-detail.png](../../ideas/mockups/02-detail.png). Colours, type, sizes and status styles follow [ui-guidelines.md](../../ideas/ui-guidelines.md) (tokens in `src/main/frontend/src/ui/theme/`), in light and dark; the screenshots are dark because the machine that took them is set to dark mode.
 
 | Deviation | Reason |
 |---|---|
 | "✓ Nominal" instead of the mockup's "● Nominal" | Issue AC2 fixes the text. |
-| Red WARNING pill, not in the mockups | No mockup shows a warning; colour and size from issue #1 and `research/ux-human-factors.md` "Team palette". |
+| Red WARNING pill, not in the mockups | No mockup shows a warning; style from [ui-guidelines.md](../../ideas/ui-guidelines.md) §5 (status badge). |
+| Header with brand ring, "HEALTH" wordmark and theme toggle instead of the mockup's top bar of context pills | Canvas header from the guidelines; crew, mode and flight-day pills have no data yet. |
+| Text at least 16 px, inputs as field tiles, "Who to involve" as a pill and the rule id as a tag | Guidelines §3–§5 (NASA minimum text height; routing kept neutral and apart from urgency). The mockups use 11–14 px. |
 | One system (Respiratory), no body figure, hazard lens, routine or readings panels | Out of scope for #1. |
 | Explanation inline in the row, not a separate detail screen; tier shown as a value, not the 4-step ladder | The issue puts the texts in the row (AC4, AC6); the detail screen is out of scope. |
-| Check-in form in a right-hand "Check-in" panel with all fields on one screen | No mockup for the current form; 06-questionnaire (one question per screen) is a later feature. Inputs and button use the 06 panel, input and button styles. |
-| Inter only if installed, else `system-ui` | Offline-first: no CDN fonts. |
+| Check-in form in a right-hand "Check-in" panel with all fields on one screen | No mockup for the current form; 06-questionnaire (one question per screen) is a later feature. Fields use the guidelines' field tile and primary button. |

@@ -1,11 +1,13 @@
-/* Row and status pill styles copied from ideas/mockups/src/01-body-map.html and base.css. */
+/* Body-system rows (mockup 01) and explanation rows (mockup 02). Colours and sizes: ideas/ui-guidelines.md. */
 .status-list {
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .status-list > li {
-  padding: 11px 0;
-  border-bottom: 1px solid var(--rule);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-divider);
 }
 
 .status-list > li:last-child {
@@ -16,72 +18,40 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  min-height: 33px;
+  gap: var(--space-3);
+  min-height: 40px;
 }
 
 .status-system {
-  font-size: 14px;
-}
-
-.status-sub {
-  margin-top: 3px;
-  color: var(--text-2);
-  font-size: 12px;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: 13px;
-  padding: 4px 10px;
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.status-nominal .status-badge,
-.status-stale .status-badge,
-.status-no-data .status-badge {
-  padding: 4px 0;
-  color: var(--text-2);
   font-weight: 500;
 }
 
+.status-sub {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+}
+
+/* No data and stale data look quiet: muted name, no status colour */
 .status-no-data .status-system,
 .status-stale .status-system {
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 
-.status-caution .status-badge {
-  background: var(--caution);
-  color: var(--caution-ink);
-  font-weight: 700;
-}
-
-/* #DADADA on #C61E37 is 4.1:1, which passes only as large text (bold ≥ 18.66 px). */
-.status-warning .status-badge {
-  background: var(--warning);
-  color: var(--warning-ink);
-  font-size: 18.66px;
-  font-weight: 700;
-}
-
-/* Explanation rows as in ideas/mockups/src/02-detail.html (.erow, .nx). */
 .status-explanation {
-  margin-top: 10px;
-  border-radius: 8px;
-  padding: 4px 12px;
-  background: var(--inset);
+  --color-divider: var(--color-surface);
+  margin: var(--space-3) 0 0;
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-item);
+  background: var(--color-inset);
 }
 
 .status-explanation > div {
-  display: flex;
-  gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--rule);
-  font-size: 13px;
-  line-height: 1.45;
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: baseline;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-divider);
 }
 
 .status-explanation > div:last-child {
@@ -89,16 +59,24 @@
 }
 
 .status-explanation dt {
-  flex: none;
-  width: 130px;
-  color: var(--text-2);
-  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.status-explanation dd {
+  margin: 0;
+}
+
+@media (max-width: 599px) {
+  .status-explanation > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
 }
 
 .status-unavailable {
-  padding: 11px 0;
-  color: var(--text-2);
+  padding: var(--space-3) 0;
+  color: var(--color-text-muted);
 }

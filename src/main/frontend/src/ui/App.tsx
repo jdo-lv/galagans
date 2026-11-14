@@ -1,3 +1,4 @@
+import { AppHeader } from './AppHeader'
 import { CheckInForm } from './CheckInForm'
 import { StatusBar } from './StatusBar'
 import { SystemStatusList } from './SystemStatusList'
@@ -13,18 +14,13 @@ export function App() {
   const statuses = useSystemStatuses()
 
   return (
-    <>
-      <header className="top">
-        <h1 className="brand">
-          <span className="dot" aria-hidden="true" />
-          Crew Health Companion
-        </h1>
-        <StatusBar online={online} pending={pending} />
-      </header>
+    <div className="app">
+      <AppHeader />
+      <StatusBar online={online} pending={pending} />
       <main className="layout">
         <SystemStatusList state={statuses.state} />
-        <section className="panel" aria-labelledby="checkin-heading">
-          <h2 id="checkin-heading" className="ph">
+        <section className="card" aria-labelledby="checkin-heading">
+          <h2 id="checkin-heading" className="card-heading">
             Check-in
           </h2>
           <CheckInForm
@@ -36,6 +32,6 @@ export function App() {
           />
         </section>
       </main>
-    </>
+    </div>
   )
 }

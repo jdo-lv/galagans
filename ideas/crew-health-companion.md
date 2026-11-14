@@ -254,7 +254,7 @@ See the [home screen mockup](mockups/01-body-map.png).
 |---|---|---|
 | Upcoming | grey row with its window ("20:00–22:00") | not yet open |
 | Due now | highlighted row + "Start" button + estimated time ("~40 s") | window open |
-| Added by a rule | as "due now", plus a yellow "rule" tag with a one-line reason | e.g. "PVT slower than baseline" |
+| Added by a rule | as "due now", plus a dashed "rule" tag with a one-line reason | e.g. "PVT slower than baseline" |
 | Done | tick + time | completed |
 | Missed | dimmed "not answered" | window closed; the data-age note appears on the body map |
 
@@ -262,7 +262,7 @@ See the [home screen mockup](mockups/01-body-map.png).
 - **One reminder when a window opens:** a banner with "Start" and "Snooze", and nothing more. NASA notes that too many alerts become a nuisance and crews stop responding ([ux-human-factors.md](../research/ux-human-factors.md)).
 - **Bundling:** everything due in the same window starts with one "Start" as one session.
 - **Rule-triggered items join the next session** instead of interrupting, unless the rule is urgent. Even then the banner names the reason.
-- **"Due" never uses red or yellow.** Those colors are reserved for health status, so being due uses the neutral accent color. The yellow "rule" tag marks why an item was added, not urgency.
+- **"Due" never uses red or yellow.** Those colors are reserved for health status, so being due uses the neutral accent color. The dashed "rule" tag marks why an item was added, not urgency, so it is never yellow ([ui-guidelines.md](ui-guidelines.md)).
 
 **Who sees what is pending**
 - The astronaut sees their own list.
