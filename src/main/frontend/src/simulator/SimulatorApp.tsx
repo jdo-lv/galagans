@@ -106,7 +106,9 @@ export function SimulatorApp({ publisher, now = () => new Date(), newId = genera
       <header className="sim-top">
         <h1>Device Simulator</h1>
         <span className="pill" role="status">
-          Device link <b className="num">{publisher.url}</b> · {linkState}
+          <span>
+            Device link <b className="num">{publisher.url}</b> · {linkState}
+          </span>
         </span>
         <span className="pill">All data simulated</span>
         <ThemeToggle storageKey="simulator.theme" />
