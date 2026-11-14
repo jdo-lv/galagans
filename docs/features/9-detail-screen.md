@@ -43,7 +43,7 @@ Layout follows [02-detail.png](../../ideas/mockups/02-detail.png) and the issue 
 
 | Deviation | Reason |
 |---|---|
-| No adaptation corridor or baseline band; X axis is the last 7 days, not flight days; no flight-day scrubber | Personal baseline (F3) and corridor (F11) aren't built yet. |
+| No adaptation corridor or baseline band; X axis is the last 7 days, not flight days; no flight-day scrubber | Corridor (F11) isn't built yet. The Cognition chart shows the pre-flight baseline line since [#28](28-personal-baseline.md). |
 | No "Share with CMO" / "Add to surgeon packet" buttons, no tier sentence | Surgeon packet (F14) and conference agenda (F23) aren't built yet. |
 | Who to involve is a 2 × 2 grid, not four in a row | At the app's body text size "Medical conference" doesn't fit in a quarter of the 380 px column. |
 | One "What next" step, not a numbered list | Each rule row has a single `next` text. |
