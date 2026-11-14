@@ -3,7 +3,9 @@
 import { openPage } from '../../tools/cdp.mjs'
 
 const page = await openPage('http://localhost:5173/#/', { width: 1280, height: 900 })
-await page.evaluate(`document.documentElement.dataset.theme = 'dark'`)
+// The theme toggle reads its choice from storage, so set it and reload (sun icon in dark, as in ui-guidelines §5).
+await page.evaluate(`localStorage.setItem('crew-health.theme', 'dark')`)
+await page.reload()
 // A real click: read-aloud needs a user gesture to play.
 await page.send('Runtime.evaluate', { expression: `document.querySelector('button[aria-label="Voice control"]').click()`, userGesture: true })
 for (let i = 0; i < 20 && !(await page.evaluate(`document.body.innerText.includes('Voice: speaking')`)); i++) await page.sleep(250)
