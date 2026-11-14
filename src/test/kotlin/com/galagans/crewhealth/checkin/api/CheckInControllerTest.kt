@@ -41,6 +41,13 @@ class CheckInControllerTest(@Autowired private val client: WebTestClient) {
     }
 
     @Test
+    fun `accepts a check-in with KSS and the symptoms flag and ignores the fields it does not store yet`() {
+        post("""{"checkIns":[{"id":"k","recordedAt":"2026-11-14T08:00:00Z","kss":7,"symptoms":["headache"],"symptomsAnswered":true}]}""")
+            .expectStatus().isOk
+            .expectBody().jsonPath("$.acceptedIds[0]").isEqualTo("k")
+    }
+
+    @Test
     fun `rejects a mood outside 1 to 5`() {
         post("""{"checkIns":[{"id":"a","recordedAt":"2026-11-14T08:00:00Z","mood":9}]}""")
             .expectStatus().isBadRequest
