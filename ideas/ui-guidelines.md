@@ -125,7 +125,7 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 - **Gaps:** 16 px between static cards (canvas 14 px, moved onto the 4 px grid); **18 px between touch targets**.
 - **Touch targets:** at least 52 × 52 px. On an iPad-class screen that is 10 mm, and 18 px is 3.4 mm, meeting NASA's 9.5 mm targets with 3.2 mm gaps [S2 §10.4.2.21]. The canvas's 44 px icon buttons keep their look but get a 52 px hit area.
 - **Radii:** 16 px cards and tiles, 12 px items inside a card (nav items), fully round pills and badges.
-- **Grid:** phone, one or two columns (canvas). Tablet and laptop, content at most 1200 px wide; the home screen puts the body-systems card beside a 380 px column that holds Today's routine, Latest readings and the Check-in card, in that order (mockup 01), and stacks them below 860 px. Tile grids use tiles at least 150 px wide (two columns on a phone, like the canvas).
+- **Grid:** phone, one or two columns (canvas). Tablet and laptop, content at most 1200 px wide; the home screen shows three columns from 1200 px: the body-systems card (300 px), the Hazard lens card, and a 380 px column that holds Today's routine, Latest readings and the Check-in card, in that order (mockup 01). From 861 to 1199 px the Hazard lens card moves under the body-systems card, and at 860 px and below everything stacks, body systems first. Tile grids use tiles at least 150 px wide (two columns on a phone, like the canvas).
 - **Critical information is visible without scrolling** [S1 V2 10037]; navigation is at most 2–3 levels deep.
 - **Motion:** 0.25 s colour transitions on theme change (canvas), none with `prefers-reduced-motion`. Nothing blinks or pulses.
 
@@ -149,7 +149,7 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Surface:** an inset (`--color-inset`) tile in a card's tile grid, 16 px radius, no edge: it's static, not a control (§2.4).
 - **Row 1:** the value in `--text-value` with its unit in bold body text, and the metric's icon on the right. Mood shows as "3 / 5". A reading too wide for the tile wraps its unit under the value and moves the icon to the next line, still on the right.
 - **Row 2:** the field-tile label pattern: the label in uppercase, then "/" and the data age in muted text, in its own case: "SPO₂ / 4 min ago". The canvas used a unit or a date here; the unit moves next to the value.
-- **Row 3:** a source tag on every value shown ("manual", "synthetic"). Simulated, replayed and proxy readings say so.
+- **Row 3:** a source tag on every value shown ("manual", "synthetic", "in-app test"). Simulated, replayed and proxy readings say so.
 - **Missing:** "—" with the accessible text "No reading", and no unit, age or tag. **Stale** (older than the metric's expected interval): the value and unit in `--color-text-muted-on-inset` and the age spelled out ("8 d old"), with the icon and no status colour.
 - **Placeholder tile:** a reading the app can't take yet shows synthetic text and unit with the tag "synthetic", no data age and no badge (issue #7).
 - **Status:** an off-nominal tile shows a status badge in place of the icon. The tile surface itself never changes colour.
@@ -160,6 +160,14 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Due:** a 1 px `--color-accent` outline in `--radius-item`, no fill, and a secondary "Start · ~<estimate>" button (the screen's one primary button stays "Save check-in"). Never red or yellow.
 - **Done:** "done HH:MM" with no glyph; ✓ stays Nominal.
 - **Placeholder row:** the label with a "synthetic" tag under it and the muted detail on the right; no state, button or glyph, the same at every time of day.
+- **PVT row** (issue #16): "done HH:MM" when a PVT was done today, otherwise muted "every 4th day"; no tag, no button (the Reaction test card starts it).
+
+### Test screen (PVT, built: issue #16)
+- **Home card:** "Reaction test" between Latest readings and Check-in, with a secondary "Start reaction test" button (Check-in keeps the one primary).
+- **Start screen:** what to do, "use the same device each time" (device latency affects RT, health-indicators §13), a primary "Start test" and an underlined "← Home".
+- **Running:** the time left ("2:41 left", `.num`) beside the heading; the target is an inset `button` at least 300 px high (`aria-label="Respond"`) with the counter in `.value` at `--text-hero`; "Too early" for a false start; a secondary "Stop". Space and a tap both respond.
+- **Result:** a two-column list (muted terms, numbers right) of median, lapses, false starts and responses, then the save line and one primary button.
+- **No status colour anywhere on the test:** a slow response isn't a caution; the Cognition rule decides that (#17).
 
 ### Featured tile
 - **Use:** a tall tile on `--color-feature-1` or `--color-feature-2` with title, day and up to three value + unit lines, for process summaries such as exercise minutes and sleep hours.
@@ -181,6 +189,18 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Row:** system name (weight 500), then a muted line with label, value (`.num`), unit, data age and source ("SpO₂ 96 % · just now · manual"); the status badge on the right. No-data and stale rows mute the system name.
 - **Placeholder row:** a system with no rules yet shows a synthetic value as the muted line `<detail> · synthetic` ("7.1 h last night · synthetic"), always "✓ Nominal", with no data age and no explanation.
 - **Link to the detail:** a caution or warning row is one link to its detail screen: the whole row, at least 52 px high, no underline, with a chevron (`ChevronIcon`) as the link cue. This is an exception to "links on a surface are always underlined" (§2.2). Quiet rows (nominal, no data, stale, placeholder) are not links.
+- **Hazard lens marks (issue #14):** with a hazard selected, an affected row gets a 4 px `--color-text` bar on the left and the visually hidden text "Affected by <hazard>"; any other row is dimmed (name, sub line and badge in `--color-text-muted`; no opacity, so no new contrast pair). A caution or warning row outside the hazard gets neither. While a hazard is selected the card ends with a muted note: "Lens on: affected systems marked, others dimmed. Status is unchanged by the lens." ("Lens on: all systems marked. …" for Distance from Earth).
+
+### Hazard lens (built: issue #14)
+- **Card:** a `card` headed "Hazard lens" with the muted suffix "· NASA HRP five hazards", then the five hazards as toggle chips, a caption and the body figure.
+- **Chips:** `button` with `aria-pressed`, a hazard icon from `icons.tsx` and the hazard's name, at least 52 px high, 18 px apart, 1 px `--color-edge` outline pill. The pressed chip is the inverse pill (selected item). One hazard at a time; pressing it again turns the lens off. The choice is remembered on the device.
+- **Caption:** an inset (`--color-inset`) with "<hazard>: <what it does>", "Affects: …", "Watched by: …" and a muted source line; `aria-live="polite"`. With nothing selected: "Pick a hazard to see which body systems it affects."
+- **Lens marks are neutral** (`--color-text`), never a colour: colour stays on status.
+
+### Body figure (built: issue #14)
+- **Drawing:** a decorative SVG (`aria-hidden`): silhouette in `--color-inset` with a `--color-edge` outline, organs outlined in `--color-text-muted`, dashed `--color-edge` leader lines. No status colour on shapes.
+- **Labels:** an HTML list named "Body figure" with Cognition, Eyes, Lungs, Heart, Kidneys and Bone & muscle. A label is quiet muted text; caution or warning adds the status badge under it. Labels sit beside the figure from 600 px and form a two-column grid under it below 600 px.
+- **Lens:** an affected label is `--color-text`, weight 700, with a 4 px bar on the side facing the figure; its organ outline goes `--color-text` 2.5 px and its leader line solid. The figure is display-only.
 
 ### Detail screen (built: issue #9)
 - **Route:** `#/systems/<system>`; "← Body systems" (underlined link) goes back and focuses the "Body systems" heading. Opening a detail focuses its heading once.

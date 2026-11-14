@@ -1,0 +1,205 @@
+package com.galagans.crewhealth.packet.api
+
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.galagans.crewhealth.packet.application.PacketInbox
+import com.galagans.crewhealth.packet.domain.Packet
+import com.galagans.crewhealth.packet.domain.PacketItem
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Named.named
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+import org.springframework.http.MediaType
+import org.springframework.test.json.JsonCompareMode
+import org.springframework.test.web.reactive.server.WebTestClient
+import java.time.Instant
+import kotlin.test.assertEquals
+
+@WebFluxTest(PacketController::class)
+@Import(PacketControllerTest.RecordingInboxConfig::class)
+class PacketControllerTest(
+    @Autowired private val client: WebTestClient,
+    @Autowired private val inbox: RecordingInbox,
+) {
+
+    class RecordingInbox : PacketInbox {
+        val received = mutableListOf<Packet>()
+
+        override fun receive(packet: Packet): String {
+            received.add(packet)
+            return packet.id
+        }
+    }
+
+    class RecordingInboxConfig {
+        @Bean
+        fun recordingInbox() = RecordingInbox()
+    }
+
+    @BeforeEach
+    fun clearInbox() {
+        inbox.received.clear()
+    }
+
+    private fun post(body: String) = client.post().uri("/api/packets")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(body)
+        .exchange()
+
+    @Test
+    fun `AC1 receives the packet and returns its id`() {
+        post(AC1_BODY)
+            .expectStatus().isOk
+            .expectBody().json("""{"id":"p-1"}""", JsonCompareMode.STRICT)
+
+        assertEquals(listOf(AC1_PACKET), inbox.received)
+    }
+
+    @ParameterizedTest
+    @MethodSource("blankNotes")
+    fun `AC2 missing or blank note is received as empty`(body: String) {
+        post(body).expectStatus().isOk
+
+        assertEquals("", inbox.received.single().note)
+    }
+
+    @Test
+    fun `AC2 note is kept untrimmed`() {
+        post(ac1BodyWith { it["note"] = "  Slept badly.  " }).expectStatus().isOk
+
+        assertEquals("  Slept badly.  ", inbox.received.single().note)
+    }
+
+    @Test
+    fun `AC3 accepts an empty item list`() {
+        post(ac1BodyWith { it["items"] = emptyList<Any>() }).expectStatus().isOk
+    }
+
+    @ParameterizedTest
+    @MethodSource("freeStateAndSource")
+    fun `AC4 accepts state and source values outside the crew app's current set`(body: String) {
+        post(body).expectStatus().isOk
+    }
+
+    @Test
+    fun `AC4 accepts an item with only key, label, unit and state`() {
+        val sleep = mapOf("key" to "sleep", "label" to "Sleep", "unit" to "h", "state" to "no-data")
+
+        post(ac1BodyWith { it.items()[0] = sleep.toMutableMap() }).expectStatus().isOk
+
+        assertEquals(
+            PacketItem(
+                key = "sleep", label = "Sleep", unit = "h", state = "no-data", value = null,
+                text = null, recordedAt = null, source = null, ruleId = null, tier = null,
+            ),
+            inbox.received.single().items[0],
+        )
+    }
+
+    @Test
+    fun `AC5 accepts a 500-character note and 20 items`() {
+        val body = ac1BodyWith { body ->
+            body["note"] = "x".repeat(500)
+            body["items"] = List(20) { body.items()[0] }
+        }
+
+        post(body).expectStatus().isOk
+    }
+
+    @Test
+    fun `AC6 ignores the crew app's own top-level fields`() {
+        val body = ac1BodyWith {
+            it["state"] = "queued"
+            it["sentAt"] = "2026-11-14T07:40:00Z"
+        }
+
+        post(body).expectStatus().isOk
+
+        assertEquals(listOf(AC1_PACKET), inbox.received)
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidPackets")
+    fun `AC7 rejects an invalid packet`(body: String) {
+        post(body).expectStatus().isBadRequest
+
+        assertEquals(emptyList(), inbox.received)
+    }
+
+    companion object {
+        @JvmStatic
+        fun blankNotes() = listOf(
+            named("note missing", ac1BodyWith { it.remove("note") }),
+            named("note null", ac1BodyWith { it["note"] = null }),
+            named("note empty", ac1BodyWith { it["note"] = "" }),
+            named("note spaces", ac1BodyWith { it["note"] = "   " }),
+        )
+
+        @JvmStatic
+        fun freeStateAndSource() = listOf(
+            named("state unrated", ac1BodyWith { it.items()[0]["state"] = "unrated" }),
+            named("source in-app test", ac1BodyWith { it.items()[0]["source"] = "in-app test" }),
+        )
+
+        @JvmStatic
+        fun invalidPackets() = listOf(
+            named("id empty", ac1BodyWith { it["id"] = "" }),
+            named("id spaces", ac1BodyWith { it["id"] = "   " }),
+            named("id missing", ac1BodyWith { it.remove("id") }),
+            named("builtAt missing", ac1BodyWith { it.remove("builtAt") }),
+            named("builtAt not a time", ac1BodyWith { it["builtAt"] = "yesterday" }),
+            named("oneWayDelayMs missing", ac1BodyWith { it.remove("oneWayDelayMs") }),
+            named("oneWayDelayMs negative", ac1BodyWith { it["oneWayDelayMs"] = -1 }),
+            named("note 501 characters", ac1BodyWith { it["note"] = "x".repeat(501) }),
+            named("note 501 spaces", ac1BodyWith { it["note"] = " ".repeat(501) }),
+            named("items missing", ac1BodyWith { it.remove("items") }),
+            named("21 items", ac1BodyWith { body -> body["items"] = List(21) { body.items()[0] } }),
+            named("null item", ac1BodyWith { it["items"] = listOf(null) }),
+            named("item key blank", ac1BodyWith { it.items()[0]["key"] = " " }),
+            named("item key missing", ac1BodyWith { it.items()[0].remove("key") }),
+            named("item label blank", ac1BodyWith { it.items()[0]["label"] = " " }),
+            named("item label missing", ac1BodyWith { it.items()[0].remove("label") }),
+            named("item state blank", ac1BodyWith { it.items()[0]["state"] = " " }),
+            named("item state missing", ac1BodyWith { it.items()[0].remove("state") }),
+            named("item source empty", ac1BodyWith { it.items()[0]["source"] = "" }),
+            named("item source spaces", ac1BodyWith { it.items()[0]["source"] = "  " }),
+            named("not JSON", """{"id":"""),
+        )
+
+        private val mapper = jacksonObjectMapper()
+
+        const val AC1_BODY = """{"id":"p-1","builtAt":"2026-11-14T07:31:00Z","oneWayDelayMs":845000,"note":"Slept badly.","items":[{"key":"spo2","label":"SpO₂","unit":"%","state":"caution","value":92,"recordedAt":"2026-11-14T07:21:00Z","source":"manual","ruleId":"SPO-01","tier":"CMO"},{"key":"bloodPressure","label":"Blood pressure","unit":"mmHg","state":"synthetic","text":"108/70","source":"synthetic"}]}"""
+
+        val AC1_PACKET = Packet(
+            id = "p-1",
+            builtAt = Instant.parse("2026-11-14T07:31:00Z"),
+            oneWayDelayMs = 845000,
+            note = "Slept badly.",
+            items = listOf(
+                PacketItem(
+                    key = "spo2", label = "SpO₂", unit = "%", state = "caution", value = 92.0, text = null,
+                    recordedAt = Instant.parse("2026-11-14T07:21:00Z"), source = "manual", ruleId = "SPO-01", tier = "CMO",
+                ),
+                PacketItem(
+                    key = "bloodPressure", label = "Blood pressure", unit = "mmHg", state = "synthetic", value = null,
+                    text = "108/70", recordedAt = null, source = "synthetic", ruleId = null, tier = null,
+                ),
+            ),
+        )
+
+        /** The AC1 body as JSON after [change] edits its parsed form. */
+        fun ac1BodyWith(change: (MutableMap<String, Any?>) -> Unit): String {
+            val body: MutableMap<String, Any?> = mapper.readValue(AC1_BODY)
+            change(body)
+            return mapper.writeValueAsString(body)
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        fun MutableMap<String, Any?>.items() = this["items"] as MutableList<MutableMap<String, Any?>>
+    }
+}

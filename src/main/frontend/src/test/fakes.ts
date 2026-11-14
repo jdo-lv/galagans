@@ -5,6 +5,7 @@ import type { Rule } from '../domain/rules'
 export class FakeRepository implements CheckInRepository, CheckInHistory {
   items = new Map<string, { checkIn: CheckIn; pending: boolean }>()
   failList = false
+  failAdd = false
 
   async list() {
     if (this.failList) throw new Error('storage failed')
@@ -12,6 +13,7 @@ export class FakeRepository implements CheckInRepository, CheckInHistory {
   }
 
   async add(checkIn: CheckIn) {
+    if (this.failAdd) throw new Error('storage failed')
     this.items.set(checkIn.id, { checkIn, pending: true })
   }
   async listPending() {

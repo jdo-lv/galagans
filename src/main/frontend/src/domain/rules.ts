@@ -1,4 +1,4 @@
-export type Indicator = 'heartRateBpm' | 'spo2Percent' | 'sleepHours' | 'mood'
+export type Indicator = 'heartRateBpm' | 'spo2Percent' | 'sleepHours' | 'mood' | 'pvtMedianMs'
 
 export type Status = 'nominal' | 'caution' | 'warning'
 

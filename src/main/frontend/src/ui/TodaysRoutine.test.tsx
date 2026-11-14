@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
 import { mockRoutine } from '../infrastructure/mockRoutine'
-import { setup } from '../test/renderApp'
+import { pvt, setup } from '../test/renderApp'
 
 const at = (h: number, m = 0, day = 14) => new Date(2026, 10, day, h, m)
 const stored = (id: string, recordedAt: Date): CheckIn => ({ id, recordedAt: recordedAt.toISOString(), symptoms: [] })
@@ -129,12 +129,12 @@ describe('TodaysRoutine', () => {
     expect(timeText(await row())).toHaveTextContent('done 06:30')
   })
 
-  it.each([at(6, 59), at(8), at(10)])('AC13: placeholders look the same at %s', async (now) => {
+  it.each([at(6, 59), at(8), at(10)])('AC13: placeholders look the same at %s (the PVT row is real since #16)', async (now) => {
     setupAt({ now }).renderApp()
 
-    const [, ...rest] = await items()
+    const [, , ...rest] = await items()
+    expect(rest).toHaveLength(3)
     const expected = [
-      ['PVT (3 min)', 'every 4th day'],
       ['Exercise · resistance 45 min', '14:00'],
       ['Fluids 2.5 L', '1.1 L so far'],
       ['Workload (Bedford)', '20:00–22:00'],
@@ -201,5 +201,44 @@ describe('TodaysRoutine', () => {
 
     await waitFor(async () => expect(timeText(await row())).toHaveTextContent('done 08:00'))
     expect(s.gateway.sent).toHaveLength(0)
+  })
+})
+
+describe('Today\'s routine with the PVT (#16)', () => {
+  const pvtAt = (id: string, when: Date) => pvt(id, when.toISOString(), 300)
+  const pvtRow = async () => (await items())[1]
+
+  it('AC34: a PVT alone does not mark the morning check-in done', async () => {
+    setupAt({ now: at(8, 30), seed: [pvtAt('p', at(8))] }).renderApp()
+
+    const li = await row()
+    expect(li).toHaveClass('routine-item--due')
+    expect(within(li).getByRole('button', { name: 'Start · ~1.5 min' })).toBeInTheDocument()
+    expect(li).not.toHaveTextContent('done')
+  })
+
+  it('AC35: the morning check-in is the first check-in without a PVT', async () => {
+    setupAt({ now: at(8, 30), seed: [pvtAt('p', at(8)), stored('a', at(7, 30))] }).renderApp()
+
+    expect(timeText(await row())).toHaveTextContent('done 07:30')
+  })
+
+  it('AC36: a PVT today marks the PVT row done with its time', async () => {
+    setupAt({ now: at(8, 30), seed: [pvtAt('p', at(8))] }).renderApp()
+
+    const li = await pvtRow()
+    expect(li).toHaveTextContent('PVT (3 min)')
+    expect(timeText(li)).toHaveTextContent('done 08:00')
+    expect(li.querySelector('.tag')).toBeNull()
+  })
+
+  it('AC37: without a PVT today the row says "every 4th day"; the three synthetic rows stay', async () => {
+    setupAt({ now: at(8, 30), seed: [pvtAt('p', at(8, 0, 13))] }).renderApp()
+
+    const [, li, ...rest] = await items()
+    expect(li).toHaveTextContent('PVT (3 min)')
+    expect(timeText(li)).toHaveTextContent('every 4th day')
+    expect(li.querySelector('.tag')).toBeNull()
+    expect(rest.map((r) => r.querySelector('.tag')?.textContent)).toEqual(['synthetic', 'synthetic', 'synthetic'])
   })
 })

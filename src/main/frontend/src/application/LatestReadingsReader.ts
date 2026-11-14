@@ -11,7 +11,7 @@ function fromCheckIns(spec: IndicatorSpec, rules: Rule[], checkIns: CheckIn[], n
   const latest = latestReading(checkIns, spec.indicator, spec.validMin, spec.validMax, rows)
   if (!latest) return { spec, state: 'no-data' }
 
-  const shown = { spec, value: latest.value, recordedAt: latest.recordedAt, source: 'manual' as const }
+  const shown = { spec, value: latest.value, recordedAt: latest.recordedAt, source: spec.source ?? 'manual' }
   return { ...shown, state: now.getTime() - latest.time > spec.staleAfterMs ? 'stale' : latest.status }
 }
 

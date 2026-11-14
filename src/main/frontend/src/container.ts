@@ -21,6 +21,8 @@ export interface Services {
   statusReader: SystemStatusReader
   readingsReader: LatestReadingsReader
   routineReader: RoutineReader
+  /** In [0, 1); the PVT's random wait (#16). */
+  random: () => number
 }
 
 /** Composition root: the only place that picks concrete implementations. */
@@ -36,6 +38,7 @@ export function createServices(): Services & { startSync: () => () => void } {
     statusReader: new SystemStatusReader(new JsonRuleSource(), repository, undefined, mockStatuses),
     readingsReader: new LatestReadingsReader(new JsonRuleSource(), repository, undefined, mockReadings),
     routineReader: new RoutineReader(repository, undefined, mockRoutine),
+    random: Math.random,
     startSync: () => syncService.start(),
   }
 }
