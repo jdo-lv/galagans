@@ -41,10 +41,15 @@
   gap: var(--space-1);
   align-content: start;
   min-height: 120px;
+  padding: var(--space-4);
 }
 
 .sim-device p {
   margin: 0;
+}
+
+.sim-device .value {
+  white-space: nowrap;
 }
 
 .sim-device__top {
