@@ -8,11 +8,11 @@ The astronaut taps the microphone in the header and hears a short health briefin
 
 The screen only changes in the header button and the voice pill, so the spoken texts are quoted here (captured from the app with the demo statuses).
 
-**Briefing, nothing flagged** (Respiratory and Cognition without data, no check-in or PVT yet):
-> All your readings are nominal. There is no Respiratory or Cognition reading yet. To do today: your morning check-in and the reaction test. What would you like to do next?
+**Briefing, nothing flagged** (Respiratory, Cognition, Cabin air and Radiation without data, no check-in or PVT yet):
+> All your readings are nominal. There is no Respiratory, Cognition, Cabin air or Radiation reading yet. To do today: your morning check-in and the reaction test. What would you like to do next?
 
 **Briefing after a check-in with SpO₂ 92 %** (rule SPO-01, caution):
-> Caution, Respiratory. SpO₂ is below 94 %. Yours is 92 %. Low oxygen saturation can mean hypoxia from a cabin atmosphere fault, fire or smoke. Re-measure: warm your hands, sit still for 1 minute, finger fully in, hand at heart level. Still below 94 % → tell the CMO now. Who to involve: CMO. All your other readings are nominal. There is no Cognition reading yet. To do today: the reaction test. This is decision support; your flight surgeon has the final word. What would you like to do next?
+> Caution, Respiratory. SpO₂ is below 94 %. Yours is 92 %. Low oxygen saturation can mean hypoxia from a cabin atmosphere fault, fire or smoke. Re-measure: warm your hands, sit still for 1 minute, finger fully in, hand at heart level. Still below 94 % → tell the CMO now. Who to involve: CMO. All your other readings are nominal. There is no Cognition, Cabin air or Radiation reading yet. To do today: the reaction test. This is decision support; your flight surgeon has the final word. What would you like to do next?
 
 Piper hears the symbols as words ("S P O 2 is below 94 percent", "…, then tell the CMO now").
 
@@ -43,4 +43,4 @@ The issue mock is [37-mock.png](img/37-mock.png) ([script](37-voice-briefing.moc
 
 ## Mockup and deviations
 
-Home follows [01-body-map.png](../../ideas/mockups/01-body-map.png). Deviation: a microphone icon button first among the header buttons (before "Add entry" and the theme toggle) and a voice pill after the ground-link pill; no voice mockup exists. Styles follow [ui-guidelines.md](../../ideas/ui-guidelines.md) §5 "App header", "Buttons" (inverse fill while on, 60 % opacity while disabled), "Pills and tags" and "Icons" (`VoiceIcon`). The header buttons are 18 px apart (`--gap-targets`, rule 7): the issue's AC7 said 20 px, but `main` gave the header its own 18 px gap for "Add entry" (#29) before this merged.
+Home follows [01-body-map.png](../../ideas/mockups/01-body-map.png). Deviation: a microphone icon button first among the header buttons (before "Add entry" and the theme toggle) and a voice pill after the ground-link pill; no voice mockup exists. Below 600 px the wordmark is centred between the brand mark and the buttons, since three 52 px buttons don't fit beside a page-centred wordmark. Styles follow [ui-guidelines.md](../../ideas/ui-guidelines.md) §5 "App header", "Buttons" (inverse fill while on, 60 % opacity while disabled), "Pills and tags" and "Icons" (`VoiceIcon`). The header buttons are 18 px apart (`--gap-targets`, rule 7): the issue's AC7 said 20 px, but `main` gave the header its own 18 px gap for "Add entry" (#29) before this merged.

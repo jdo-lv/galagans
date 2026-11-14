@@ -20,6 +20,8 @@ async function open({ theme = 'dark', width = 1280, height = 900, hash = '#/', m
     source: `HTMLMediaElement.prototype.play = function () { setTimeout(() => this.dispatchEvent(new Event('ended')), 50); return Promise.resolve() }`,
   })
   await page.reload()
+  // The splash (#38) fades out, then leaves the page.
+  for (let i = 0; i < 40 && (await page.evaluate(`!!document.getElementById('splash')`)); i++) await page.sleep(250)
   return page
 }
 
