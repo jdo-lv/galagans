@@ -1,8 +1,15 @@
 import type { CheckIn } from '../domain/checkIn'
-import type { CheckInGateway, CheckInRepository, ConnectivityMonitor } from '../domain/ports'
+import type { CheckInGateway, CheckInHistory, CheckInRepository, ConnectivityMonitor, RuleSource } from '../domain/ports'
+import type { Rule } from '../domain/rules'
 
-export class FakeRepository implements CheckInRepository {
+export class FakeRepository implements CheckInRepository, CheckInHistory {
   items = new Map<string, { checkIn: CheckIn; pending: boolean }>()
+  failList = false
+
+  async list() {
+    if (this.failList) throw new Error('storage failed')
+    return [...this.items.values()].map((i) => i.checkIn)
+  }
 
   async add(checkIn: CheckIn) {
     this.items.set(checkIn.id, { checkIn, pending: true })
@@ -29,6 +36,17 @@ export class FakeGateway implements CheckInGateway {
     if (this.fail) throw new Error('offline')
     this.sent.push(checkIns)
     return checkIns.map((c) => c.id)
+  }
+}
+
+export class FakeRuleSource implements RuleSource {
+  fail = false
+
+  constructor(private readonly rules: Rule[] = []) {}
+
+  async load() {
+    if (this.fail) throw new Error('rules failed')
+    return this.rules
   }
 }
 

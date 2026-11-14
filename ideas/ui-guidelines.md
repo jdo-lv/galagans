@@ -59,6 +59,8 @@ Components use these names, not the hex values.
 | `--color-text-muted-on-surface` | `#52574E` | `#CFCFCF` | Secondary text on a surface |
 | `--color-edge` | `#726F6C` | `#868375` | Boundary of anything interactive on the background: field tiles, outline buttons, pills |
 | `--color-edge-on-surface` | `#726F6C` | `#CFCFCF` | The same inside a card; `.card` swaps it in for `--color-edge` |
+| `--color-divider` | `#CFCFCF` | `#1B1B1B` | Row rules inside a surface (the background colour, as on the canvas contrast board) |
+| `--color-inset` | `#CFCFCF` | `#1B1B1B` | Recessed areas inside a surface: field tiles in a card, explanations |
 | `--color-ring` | `#726F6C` | `#868375` | Brand ring track, nominal ring segments |
 | `--color-accent` | `#1651B6` | `#7FA6F0` | Brand arc, links on the background, focus ring, "due" counter, selection in charts |
 | `--color-link-on-surface` | `#1651B6` | `#DADADA` | Links on a surface (always underlined) |
@@ -114,7 +116,7 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 - **Why 16 px minimum.** On an iPad-class screen one CSS pixel is about 0.19 mm (our assumption: 132 CSS px per inch). Inter's capital letters are 0.727 em tall, so 16 px gives 2.2 mm, about 0.25° at 50 cm, which is NASA's minimum character height [S1 Table 21]. The canvas labels at 11–13 px are below it.
 - **Why 28 px values.** DM Mono at 28 px gives capitals of about 3.7 mm, over 0.4° at 50 cm: the preferred size, which NASA asks for labels and critical values [S1 V2 10049, V2 10050, V2 10066].
 - **Uppercase** only for labels of three words or fewer. Sentences use sentence case. **Units keep their own case** ("HEART RATE / bpm", "WATER / mL", "SLEEP / h"): uppercasing turns h into H and mL into ML.
-- **Numbers** always in DM Mono with `font-variant-numeric: tabular-nums`, so columns line up and digits don't jump.
+- **Numbers** always in DM Mono with `font-variant-numeric: tabular-nums`, so columns line up and digits don't jump. Inside running text, wrap the number in `.num` ("SpO₂ <span class=num>96</span> %").
 
 ## 4. Layout, spacing and shape
 
@@ -122,7 +124,7 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 - **Gaps:** 16 px between static cards (canvas 14 px, moved onto the 4 px grid); **18 px between touch targets**.
 - **Touch targets:** at least 52 × 52 px. On an iPad-class screen that is 10 mm, and 18 px is 3.4 mm, meeting NASA's 9.5 mm targets with 3.2 mm gaps [S2 §10.4.2.21]. The canvas's 44 px icon buttons keep their look but get a 52 px hit area.
 - **Radii:** 16 px cards and tiles, 12 px items inside a card (nav items), fully round pills and badges.
-- **Grid:** phone, one or two columns (canvas). Tablet and laptop, a centred column of at most 960 px with a grid of tiles at least 150 px wide (two columns on a phone, like the canvas).
+- **Grid:** phone, one or two columns (canvas). Tablet and laptop, content at most 1200 px wide; the home screen puts the body-systems card beside a 380 px check-in card (mockup 01) and stacks them below 860 px. Tile grids use tiles at least 150 px wide (two columns on a phone, like the canvas).
 - **Critical information is visible without scrolling** [S1 V2 10037]; navigation is at most 2–3 levels deep.
 - **Motion:** 0.25 s colour transitions on theme change (canvas), none with `prefers-reduced-motion`. Nothing blinks or pulses.
 
@@ -164,9 +166,14 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Icon button:** transparent, 52 px round hit area, icon 22–30 px, `aria-label` required.
 - **Consequential actions** (send packet, delete entry) get confirm or undo. No red buttons: red is a warning, not "dangerous".
 
+### Body-system list (built: issue #1)
+- **Card:** a `card` with the uppercase `card-heading` "Body systems"; one row per system, rows separated by `--color-divider`.
+- **Row:** system name (weight 500), then a muted line with label, value (`.num`), unit, data age and source ("SpO₂ 96 % · just now · manual"); the status badge on the right. No-data and stale rows mute the system name.
+- **Explanation:** for caution and warning only, an inset (`--color-inset`) list of what / why it matters / how decided / what next / who to involve (routing pill) / rule (tag), with uppercase muted terms. Terms sit beside their text from 600 px up and above it on phones.
+
 ### Field tile (forms)
 - **Structure:** a tile is the field. Its `<label>` wraps the uppercase label, the "/ unit" suffix and the input. The input is transparent DM Mono at value size, so the tile reads like a metric tile being filled in.
-- **Edge and focus:** a 1 px `--color-edge` border (3.20:1 light, 4.53:1 dark), and focus shows a 2 px accent ring around the whole tile.
+- **Edge and focus:** a 1 px `--color-edge` border (3.20:1 light, 4.53:1 dark), and focus shows a 2 px accent ring around the whole tile. Inside a card the tile is inset (`--color-inset`) and the edge switches to `--color-edge-on-surface` (3.57:1 light, 4.76:1 dark).
 - **Errors:** an icon plus a sentence under the field in `--color-text`. Never red or yellow.
 - **Questionnaires:** one question per screen, the instrument's own anchors, progress and time left, and "Skip" always allowed (see [crew-health-companion.md](crew-health-companion.md), "Rendering rules").
 
@@ -178,7 +185,9 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 | Caution | `--color-caution` fill, ink text and 1.5 px ink outline, ▲ icon, weight 700 | ▲ Caution |
 | Warning | `--color-warning` fill, white text, octagon "!" icon, weight 700 | (octagon) Warning |
 
-Routing is a separate, neutral outline pill next to the badge: "Self-care", "CMO today", "Medical conference", "Ground now". Urgency is the colour; who acts is the label [ux-human-factors.md, "Keep urgency separate from who gets involved"].
+"No data" and "No recent data" use `badge--quiet`: muted, no icon, no fill. Missing or stale data is not a health status.
+
+Routing is a separate, neutral outline pill: "Self-care", "CMO", "Medical conference", "Urgent ground" (the escalation tiers in [features.md](features.md)). Urgency is the colour; who acts is the label [ux-human-factors.md, "Keep urgency separate from who gets involved"].
 
 ### Pills and tags
 - **Context pill:** outline in `--color-edge`, the value in bold ("Flight day **142**").
@@ -239,7 +248,7 @@ Line icons with 1.6–1.8 px strokes, round caps, `currentColor`, at 20 px (nav)
 | Values with a unit or a date but no data age | Value + unit, then label / data age, then a source tag | Stale data must be flagged [S1 V2 10020]; data honesty (`CLAUDE.md`) |
 | "Manual input" tab | "Check-in" | Glossary in [features.md](features.md) |
 
-The 2026-11-14 mockups in [mockups/](mockups/) follow these rules.
+The mockups in [mockups/](mockups/) are dark-only tablet comps with 11–14 px text and a few derived greys (`#3D403B`, `#2A3550`). Use them for layout and content; colours, sizes and status styles come from this document. Their colour use follows the rules (red and yellow only on status; "due" and rule tags neutral since 2026-11-14).
 
 ## Sources
 

@@ -2,10 +2,8 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 import type { CheckInDraft } from '../domain/checkIn'
 import { HeartIcon, MoodIcon, MoonIcon, OxygenIcon } from './icons'
 
-type NumericField = 'heartRateBpm' | 'spo2Percent' | 'sleepHours' | 'mood'
-
 interface FieldSpec {
-  name: NumericField
+  name: string
   label: string
   unit: string
   min: number
@@ -15,9 +13,9 @@ interface FieldSpec {
 }
 
 const FIELDS: FieldSpec[] = [
-  { name: 'heartRateBpm', label: 'Heart rate', unit: 'bpm', min: 20, max: 250, icon: <HeartIcon /> },
-  { name: 'spo2Percent', label: 'SpO₂', unit: '%', min: 50, max: 100, icon: <OxygenIcon /> },
-  { name: 'sleepHours', label: 'Sleep', unit: 'h', min: 0, max: 24, step: 0.5, icon: <MoonIcon /> },
+  { name: 'heartRate', label: 'Heart rate', unit: 'bpm', min: 20, max: 250, icon: <HeartIcon /> },
+  { name: 'spo2', label: 'SpO₂', unit: '%', min: 50, max: 100, icon: <OxygenIcon /> },
+  { name: 'sleep', label: 'Sleep', unit: 'h', min: 0, max: 24, step: 0.5, icon: <MoonIcon /> },
   { name: 'mood', label: 'Mood', unit: '1–5', min: 1, max: 5, icon: <MoodIcon /> },
 ]
 
@@ -35,9 +33,9 @@ export function CheckInForm({ onSubmit }: { onSubmit: (draft: CheckInDraft) => P
     setSaving(true)
     try {
       await onSubmit({
-        heartRateBpm: toNumber(data.get('heartRateBpm')),
-        spo2Percent: toNumber(data.get('spo2Percent')),
-        sleepHours: toNumber(data.get('sleepHours')),
+        heartRateBpm: toNumber(data.get('heartRate')),
+        spo2Percent: toNumber(data.get('spo2')),
+        sleepHours: toNumber(data.get('sleep')),
         mood: toNumber(data.get('mood')),
         symptoms: [],
       })
@@ -48,10 +46,7 @@ export function CheckInForm({ onSubmit }: { onSubmit: (draft: CheckInDraft) => P
   }
 
   return (
-    <form className="stack" onSubmit={handleSubmit} aria-labelledby="check-in-heading">
-      <h2 id="check-in-heading" className="section-heading">
-        Check-in
-      </h2>
+    <form className="stack" onSubmit={handleSubmit}>
       <p className="muted">Fill in what you measured. Leave the rest as —.</p>
       <div className="tile-grid">
         {FIELDS.map((field) => (

@@ -29,6 +29,8 @@
   --color-text-muted-on-surface: light-dark(var(--palette-olive), var(--palette-mist));
   --color-edge: light-dark(var(--palette-warm-grey), var(--palette-khaki));
   --color-edge-on-surface: light-dark(var(--palette-warm-grey), var(--palette-mist));
+  --color-divider: var(--color-bg); /* row rules inside a surface */
+  --color-inset: var(--color-bg); /* recessed area inside a surface: fields, explanations */
   --color-ring: light-dark(var(--palette-warm-grey), var(--palette-khaki));
   --color-accent: light-dark(var(--palette-blue), var(--palette-blue-tint));
   --color-link-on-surface: light-dark(var(--palette-blue), var(--palette-bone));
@@ -76,7 +78,7 @@
   --radius-item: 12px;
   --radius-tag: 6px;
   --radius-pill: 999px;
-  --content-max: 960px;
+  --content-max: 1200px;
   --focus-ring: 2px solid var(--color-accent);
   --transition-theme: background-color 0.25s, color 0.25s, border-color 0.25s;
 }

@@ -97,6 +97,20 @@ a:hover {
   color: var(--color-text-muted);
 }
 
+/* Home layout (mockup 01): systems panel beside a narrower check-in panel, stacked on narrow screens */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
+  gap: var(--gap-cards);
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Vertical rhythm for a screen section; the primary button spans the width on phones only */
 .stack {
   display: flex;
@@ -125,6 +139,15 @@ a:hover {
   color: var(--color-link-on-surface);
 }
 
+.card-heading {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-body);
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
 .tile-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -144,6 +167,12 @@ a:hover {
   letter-spacing: 0;
   text-transform: none;
   color: var(--color-text-muted-on-surface);
+}
+
+/* A number inside running text */
+.num {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
 }
 
 .value {
@@ -166,6 +195,10 @@ a:hover {
   border-radius: var(--radius-card);
   cursor: text;
   transition: var(--transition-theme);
+}
+
+.card .field-tile {
+  background: var(--color-inset);
 }
 
 .field-tile:focus-within {
@@ -294,7 +327,8 @@ a:hover {
   white-space: nowrap;
 }
 
-.badge--nominal {
+.badge--nominal,
+.badge--quiet {
   padding-inline: 0;
   font-weight: 500;
   color: var(--color-text-muted);

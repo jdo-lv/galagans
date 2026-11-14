@@ -62,17 +62,20 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **Why:** judges and doctors can read every rule and see where it comes from. No AI makes medical decisions (a design constraint).
 - **How:** each rule is one row in a JSON file; the code evaluates them after every new reading. Rule example COG-02: "PVT median > corridor + 15% or ≥ 5 lapses → Cognition caution → tell the CMO today. Source: Dev et al. 2024".
 - **Needs:** F3. The rule table itself must be written and checked by a person, with sources from `research/`.
+- **Status:** `rules.json` holds SPO-01 (SpO₂ < 94 % → caution) and SPO-02 (< 90 % → warning), validated on load and evaluated on the tablet after each save and every 60 s. Runs without F3 for now: thresholds are the Earth clinical convention. Missing: other indicators and rows, personal baseline.
 
 #### F5. Explanation and next step (detail screen) · Must
 - **What:** tapping a flagged item opens a screen with four answers: **what** changed, **why it matters**, **how the app decided** (the rule and its source), **what to do next**, plus the escalation tier with buttons "Share with CMO" / "Add to surgeon packet".
 - **Why:** it answers the challenge's five questions on every screen. NASA display guidance says to always explain what, why and what next.
 - **Needs:** F4. See mockup [02-detail.png](mockups/02-detail.png).
+- **Status:** a caution or warning row shows what, why, how decided, next, tier and rule id inline in the status list. Missing: the separate detail screen, trend chart and the "Share with CMO" / "Add to surgeon packet" buttons.
 
 #### F6. Body map (home screen) · Must
 - **What:** a human figure plus a list of body systems, each with a status: nominal, caution or warning.
 - **Why:** the challenge suggests a clickable human figure. One glance shows where attention is needed.
 - **How:** NASA display rules: quiet when all is fine; yellow = caution, red = warning, **always with an icon and a word**, never color alone. Each value shows its unit, age and source ("4 min ago · simulated"). Missing data shows as "data 8 d old", never as a health alarm.
 - **Needs:** F4. See mockup [01-body-map.png](mockups/01-body-map.png).
+- **Status:** the "Body systems" list on home shows Respiratory (from SpO₂) as nominal, caution, warning, "No data", or "No recent data" with the data age when the reading is older than 24 h; source label "manual". Missing: the human figure, other systems, hazard lens.
 
 ### Inputs for the demo
 

@@ -23,6 +23,7 @@ Three principles override speed:
    - defaults, naming, units, rule table row vs constant
    - which layer and side: crew app (offline, rules) or ground station (receive, store, show)
    - UI placement and NASA display rules (quiet when nominal, icon + word + color, data age and source)
+   - which mockup screen and elements the UI copies (`ideas/mockups/NN-*.png`; colours, sizes and status styles from `ideas/ui-guidelines.md`), and any deliberate deviation
    - roles (self, CMO, flight surgeon) and what each sees
    - environment modes it applies to (ISS, Orion, lunar, Mars transit)
    - source labels for data (bracelet, manual, replay, proxy, synthetic)
@@ -39,7 +40,7 @@ Three principles override speed:
    - Touch points: paths and symbols, `new:` prefix for files to add.
    - Design notes: every step 3 decision, in one line each, and each option rejected in step 2 as `Rejected: <option> — <reason>`.
    - Sources: every threshold or medical claim with its `research/` reference.
-   - Docs: which idea, features, mockup or `CLAUDE.md` sections change.
+   - Docs: which idea, features, mockup or `CLAUDE.md` sections change. UI issues always list `docs/features/<n>-<slug>.md` (feature doc with screenshots).
    - Open questions: `None`.
 
    Style: Problem in 2–3 sentences; one line per AC, design note and touch point; link to the idea, features or `research/` instead of copying them; no background, intros or filler.
