@@ -18,7 +18,8 @@ import { IndexedDbCheckInRepository } from './infrastructure/IndexedDbCheckInRep
 import { IndexedDbObservationRepository } from './infrastructure/IndexedDbObservationRepository'
 import { IndexedDbPacketRepository } from './infrastructure/IndexedDbPacketRepository'
 import { JsonRuleSource } from './infrastructure/JsonRuleSource'
-import { MqttReadingSource } from './infrastructure/MqttReadingSource'
+import { DeviceLink } from './infrastructure/DeviceLink'
+import { WebSocketReadingSource } from './infrastructure/WebSocketReadingSource'
 import { mockReadings } from './infrastructure/mockReadings'
 import { mockRoutine } from './infrastructure/mockRoutine'
 import { mockStatuses } from './infrastructure/mockStatuses'
@@ -47,7 +48,7 @@ export function createServices(): Services & { startSync: () => () => void; star
   const connectivity = new BrowserConnectivityMonitor()
   const syncService = new SyncService(repository, new HttpCheckInGateway(), connectivity)
   const observations = new IndexedDbObservationRepository()
-  const healthGateway = new PersonalHealthGateway(new MqttReadingSource(), observations)
+  const healthGateway = new PersonalHealthGateway(new WebSocketReadingSource(new DeviceLink()), observations)
   const history = new CombinedObservationHistory(repository, observations)
   const readingsReader = new LatestReadingsReader(new JsonRuleSource(), history, undefined, mockReadings)
   const packets = new IndexedDbPacketRepository()
