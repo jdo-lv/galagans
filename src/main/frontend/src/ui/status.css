@@ -1,0 +1,59 @@
+.status-list {
+  list-style: none;
+  padding: 0;
+}
+
+.status-list > li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  align-items: baseline;
+  padding: 0.5rem 0;
+}
+
+.status-system {
+  font-weight: 600;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+}
+
+.status-age {
+  color: #868375;
+}
+
+.status-explanation {
+  flex-basis: 100%;
+  margin: 0.25rem 0 0;
+}
+
+.status-explanation dt {
+  font-weight: 600;
+}
+
+.status-explanation dd {
+  margin: 0 0 0.5rem;
+}
+
+.status-nominal .status-badge,
+.status-stale .status-badge {
+  color: #868375;
+}
+
+.status-caution .status-badge {
+  background: #ffc72c;
+  color: #1b1b1b;
+}
+
+/* #DADADA on #C61E37 is 4.1:1, which passes only as large text (bold ≥ 18.66 px). */
+.status-warning .status-badge {
+  background: #c61e37;
+  color: #dadada;
+  font-weight: 700;
+  font-size: 18.66px;
+}

@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { CheckInRecorder } from '../application/CheckInRecorder'
 import { SyncService } from '../application/SyncService'
-import { FakeConnectivity, FakeGateway, FakeRepository } from '../test/fakes'
+import { SystemStatusReader } from '../application/SystemStatusReader'
+import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { App } from './App'
 import { ServicesProvider } from './ServicesContext'
 
@@ -12,7 +13,13 @@ function setup(online: boolean) {
   const connectivity = new FakeConnectivity()
   connectivity.online = online
   const synchronizer = new SyncService(repository, new FakeGateway(), connectivity)
-  const services = { repository, connectivity, synchronizer, recorder: new CheckInRecorder(repository, synchronizer) }
+  const services = {
+    repository,
+    connectivity,
+    synchronizer,
+    recorder: new CheckInRecorder(repository, synchronizer),
+    statusReader: new SystemStatusReader(new FakeRuleSource(), repository),
+  }
   render(
     <ServicesProvider services={services}>
       <App />
