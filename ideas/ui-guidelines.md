@@ -159,7 +159,7 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Surface:** an inset (`--color-inset`) tile in a card's tile grid, 16 px radius, no edge: it's static, not a control (§2.4).
 - **Row 1:** the value in `--text-value` with its unit in bold body text, and the metric's icon on the right. Mood shows as "3 / 5". A reading too wide for the tile wraps its unit under the value and moves the icon to the next line, still on the right.
 - **Row 2:** the field-tile label pattern: the label in uppercase, then "/" and the data age in muted text, in its own case: "SPO₂ / 4 min ago". The canvas used a unit or a date here; the unit moves next to the value.
-- **Row 3:** a source tag on every value shown ("manual", "synthetic", "in-app test"). Simulated, replayed and proxy readings say so.
+- **Row 3:** a source tag on every value shown ("manual", "synthetic", "in-app test", "oximeter · synthetic", "oximeter · replay", "oximeter · proxy"). Simulated, replayed and proxy readings say so.
 - **Missing:** "—" with the accessible text "No reading", and no unit, age or tag. **Stale** (older than the metric's expected interval): the value and unit in `--color-text-muted-on-inset` and the age spelled out ("8 d old"), with the icon and no status colour.
 - **Placeholder tile:** a reading the app can't take yet shows synthetic text and unit with the tag "synthetic", no data age and no badge (issue #7).
 - **Status:** an off-nominal tile shows a status badge in place of the icon. The tile surface itself never changes colour.
