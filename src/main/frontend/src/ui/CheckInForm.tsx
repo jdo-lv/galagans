@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import type { CheckInDraft } from '../domain/checkIn'
-import { HeartIcon, MoodIcon, MoonIcon, OxygenIcon } from './icons'
+import { HeartRateIcon, MoodIcon, SleepIcon, Spo2Icon } from './icons'
 
 interface FieldSpec {
   name: string
@@ -13,9 +13,9 @@ interface FieldSpec {
 }
 
 const FIELDS: FieldSpec[] = [
-  { name: 'heartRate', label: 'Heart rate', unit: 'bpm', min: 20, max: 250, icon: <HeartIcon /> },
-  { name: 'spo2', label: 'SpO₂', unit: '%', min: 50, max: 100, icon: <OxygenIcon /> },
-  { name: 'sleep', label: 'Sleep', unit: 'h', min: 0, max: 24, step: 0.5, icon: <MoonIcon /> },
+  { name: 'heartRate', label: 'Heart rate', unit: 'bpm', min: 20, max: 250, icon: <HeartRateIcon /> },
+  { name: 'spo2', label: 'SpO₂', unit: '%', min: 50, max: 100, icon: <Spo2Icon /> },
+  { name: 'sleep', label: 'Sleep', unit: 'h', min: 0, max: 24, step: 0.5, icon: <SleepIcon /> },
   { name: 'mood', label: 'Mood', unit: '1–5', min: 1, max: 5, icon: <MoodIcon /> },
 ]
 

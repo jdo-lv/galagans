@@ -43,6 +43,12 @@ a:hover {
   color: var(--color-link-hover);
 }
 
+/* Every Tabler (and custom) icon shares one line weight; CSS beats the stroke-width attribute */
+.tabler-icon {
+  flex: none;
+  stroke-width: var(--icon-stroke);
+}
+
 :focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;

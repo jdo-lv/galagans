@@ -1,4 +1,4 @@
-import { MoonIcon, SunIcon } from '../icons'
+import { DarkThemeIcon, LightThemeIcon } from '../icons'
 import { useTheme } from './useTheme'
 
 export function ThemeToggle() {
@@ -7,7 +7,7 @@ export function ThemeToggle() {
 
   return (
     <button type="button" className="icon-button" onClick={toggle} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}>
-      {dark ? <SunIcon /> : <MoonIcon />}
+      {dark ? <LightThemeIcon /> : <DarkThemeIcon />}
     </button>
   )
 }
