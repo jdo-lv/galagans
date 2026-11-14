@@ -238,7 +238,7 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 ### Charts (for the detail screens)
 - **Plot area:** a `--color-inset` well inside the card, so the lines and the band keep contrast.
 - **Lines and bands:** data line in `--color-text`; the adaptation corridor is the only filled band (`--color-text` at about 20 % with a faint edge); the pre-flight baseline is a thin dashed `--color-text-muted` line at the baseline median, labelled "your pre-flight normal" ([mockup 02](mockups/02-detail.png)). No category colours: categories are told apart by name and icon ([health-categories.md](health-categories.md#how-categories-are-shown)).
-- **Points:** a point at level 2–5 carries the level marker in its colour, and stale or missing points are hollow. The line itself never takes a level colour.
+- **Points:** a point at level 2–5 takes its badge's fill and outline (a dark-theme Watch point is a yellow ring), with the level icon (18 px, `--color-text`) above it as the marker; stale or missing points are hollow. The line itself never takes a level colour.
 - **Axes:** units on the axes, faint optional grid lines, no dual axes [S1 V2 10046][S2 §10.6.18].
 
 ## 6. Themes
