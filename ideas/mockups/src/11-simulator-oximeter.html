@@ -1,0 +1,88 @@
+<!doctype html>
+<html data-theme="light">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../src/main/frontend/src/ui/theme/tokens.css">
+<link rel="stylesheet" href="../../../src/main/frontend/src/ui/theme/base.css">
+<style>
+.sim { max-width: var(--content-max); margin: 0 auto; padding: var(--space-4) var(--gutter); display: grid; gap: var(--space-4); }
+.top { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.top h1 { font-size: var(--text-heading); margin-right: var(--space-3); }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--gap-cards); align-items: start; }
+.devices { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap-cards); }
+.dev { display: grid; gap: var(--space-1); align-content: start; min-height: 120px; }
+.dev h3 { font-size: var(--text-body); display: flex; justify-content: space-between; gap: var(--space-2); }
+.dev--off { opacity: 0.75; }
+.muted-s { color: var(--color-text-muted); }
+.tag { white-space: nowrap; align-self: flex-start; }
+.slider { width: 100%; accent-color: var(--color-text); }
+.scen { list-style: none; margin: 0; padding: 0; display: grid; }
+.scen li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-2) 0; border-bottom: 1px solid var(--color-divider); }
+.scen li:last-child { border-bottom: 0; }
+.scen .button-secondary { min-height: 40px; padding: 0 var(--space-4); }
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.form label { display: grid; gap: var(--space-1); font-weight: 700; }
+.form input { min-height: var(--target-min); border: 1px solid var(--color-edge); border-radius: var(--radius-item); background: var(--color-inset); padding: 0 var(--space-3); font-family: var(--font-data); width: 100%; min-width: 0; }
+.log { font-family: var(--font-data); font-size: 0.8rem; line-height: 1.7; background: var(--color-inset); border-radius: var(--radius-item); padding: var(--space-3); white-space: pre; overflow: hidden; }
+.log .k { color: var(--color-text-muted); }
+</style>
+</head>
+<body>
+<div class="sim">
+  <div class="top">
+    <h1>Device Simulator</h1>
+    <span class="pill">Broker <b class="num">ws://localhost:9001</b> · connected</span>
+    <span class="pill">All data simulated</span>
+  </div>
+  <div class="cols">
+    <div class="stack">
+      <h2 class="card-heading" style="margin:0">Virtual devices</h2>
+      <div class="devices">
+        <section class="card dev">
+          <h3>Pulse oximeter <span class="tag">publishing</span></h3>
+          <div class="muted-s">MQTT JSON · <span class="num">crew/a1/oximeter</span></div>
+          <div class="value">97 % · 63 bpm</div>
+          <div class="muted-s">source: synthetic</div>
+          <input class="slider" type="range" min="80" max="100" value="97" aria-label="SpO₂ override">
+          <div class="muted-s">SpO₂ override · <span class="num">97 %</span></div>
+        </section>
+        <section class="card dev dev--off"><h3>Wrist bracelet <span class="tag">not built</span></h3><div class="muted-s">Live HR broadcast · GATT 0x180D · 0x2A37</div></section>
+        <section class="card dev dev--off"><h3>BP cuff <span class="tag">not built</span></h3><div class="muted-s">GATT 0x1810 · char 0x2A35</div></section>
+        <section class="card dev dev--off"><h3>Thermometer <span class="tag">not built</span></h3><div class="muted-s">GATT 0x1809 · char 0x2A1C</div></section>
+        <section class="card dev dev--off"><h3>Environment node <span class="tag">not built</span></h3><div class="muted-s">Wi-Fi · MQTT JSON</div></section>
+        <section class="card dev dev--off"><h3>Dosimeter <span class="tag">not built</span></h3><div class="muted-s">Wi-Fi · MQTT JSON</div></section>
+      </div>
+      <section class="card">
+        <h2 class="card-heading">MQTT traffic</h2>
+        <div class="log"><span class="k">09:31:00</span>  crew/a1/oximeter  {"id":"5e1c…","t":"2026-11-14T09:31:00.000Z","spo2_pct":97,"pulse_bpm":63,"src":"synthetic"}
+<span class="k">09:30:12</span>  crew/a1/oximeter  {"id":"a90f…","t":"2026-11-14T09:30:12.000Z","spo2_pct":91,"pulse_bpm":61,"src":"synthetic"}
+<span class="k">09:30:00</span>  crew/a1/oximeter  {"id":"07b2…","t":"2026-11-14T09:30:00.000Z","spo2_pct":97,"pulse_bpm":63,"src":"synthetic"}
+<span class="k">09:29:00</span>  not sent · broker disconnected</div>
+      </section>
+    </div>
+    <div class="stack">
+      <section class="card">
+        <h2 class="card-heading">Scenarios</h2>
+        <ul class="scen">
+          <li><span><b>Nominal day</b><br><span class="muted-s">running · every 60 s</span></span><button class="button-secondary">Stop</button></li>
+          <li><span>CO₂ build-up <span class="tag">not built</span></span><button class="button-secondary" disabled>Run</button></li>
+          <li><span>Resting HR drift <span class="tag">not built</span></span><button class="button-secondary" disabled>Run</button></li>
+          <li><span>Orthostatic risk <span class="tag">not built</span></span><button class="button-secondary" disabled>Run</button></li>
+          <li><span>Solar particle event <span class="tag">not built</span></span><button class="button-secondary" disabled>Run</button></li>
+          <li><span>Sensor dropout <span class="tag">not built</span></span><button class="button-secondary" disabled>Run</button></li>
+        </ul>
+      </section>
+      <section class="card stack">
+        <h2 class="card-heading" style="margin:0">Inject one reading</h2>
+        <div class="muted-s">Pulse oximeter · source: synthetic</div>
+        <div class="form">
+          <label>SpO₂ %<input value="91"></label>
+          <label>Pulse bpm<input value="61"></label>
+        </div>
+        <button class="button-primary">Publish</button>
+      </section>
+    </div>
+  </div>
+</div>
+</body>
+</html>
