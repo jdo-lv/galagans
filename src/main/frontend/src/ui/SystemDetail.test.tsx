@@ -301,6 +301,13 @@ describe('Detail chart', () => {
     expect(detail()).toHaveTextContent('No data')
     expect(detail()).toHaveTextContent('No readings in the last 7 days')
   })
+
+  it('AC12 (#28): the SpO₂ chart has no baseline line', async () => {
+    await openWith(week())
+
+    expect(chart().querySelector('.chart-baseline')).toBeNull()
+    expect(chart()).not.toHaveTextContent('pre-flight normal')
+  })
 })
 
 describe('Detail errors and offline', () => {
@@ -413,6 +420,34 @@ describe('Cognition detail (#17)', () => {
     expect(detail('Cognition')).toHaveTextContent('PVT median 312 ms · data 4 d old · in-app test')
     expect(detail('Cognition')).toHaveTextContent('No caution or warning now.')
     expect(cogPoints().map((p) => p.getAttribute('class'))).toEqual(['chart-point chart-point--stale'])
+  })
+
+  const baselineLine = () => cogChart().querySelector('line.chart-baseline')
+  const baselineLabel = () =>
+    [...cogChart().querySelectorAll('text.chart-label')].find((t) => t.textContent === 'your pre-flight normal · 265 ms · synthetic')
+
+  it.each([
+    ['current', () => week()],
+    ['stale', () => [pvt('p', ago(4 * 24 * 60 * MIN + MIN), 312)]],
+  ])('AC10 (#28): with %s readings the chart shows the 265 ms baseline line and label', async (_, seed) => {
+    await openCognition(seed())
+
+    const grid = (v: number) => Number(cogChart().querySelector(`line.chart-grid[data-value="${v}"]`)?.getAttribute('y1'))
+    const y265 = grid(250) + ((grid(300) - grid(250)) * 15) / 50
+    expect(baselineLine()).toHaveAttribute('data-value', '265')
+    expect(Number(baselineLine()?.getAttribute('y1'))).toBeCloseTo(y265)
+    expect(baselineLabel()).toHaveAttribute('text-anchor', 'end')
+    expect(baselineLabel()).toHaveAttribute('x', baselineLine()?.getAttribute('x2'))
+    expect(Number(baselineLabel()?.getAttribute('y'))).toBeCloseTo(y265 + 16)
+    expect(cogChart()).toHaveTextContent('COG-01 · > 304.75 ms caution')
+  })
+
+  it('AC11 (#28): no PVT readings shows no chart and no baseline', async () => {
+    await openCognition([])
+
+    expect(detail('Cognition')).toHaveTextContent('No data')
+    expect(detail('Cognition').querySelector('svg[role="img"]')).toBeNull()
+    expect(detail('Cognition')).not.toHaveTextContent('pre-flight normal')
   })
 
   it('AC15: a PVT above 400 ms sits on the 400 ms line with its real value in the title', async () => {
