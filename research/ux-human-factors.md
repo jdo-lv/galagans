@@ -118,7 +118,7 @@ Research for the NASA Space Apps 2026 challenge "Create Health Monitoring Softwa
 - **Offline-first.** Rich datasets should "reside locally" because bandwidth is narrow [S21]. Cognition's technical problems clustered where internet access was restricted [S15].
 - **Vol 1 Rev C** requires in-mission capability to assess, record, monitor and trend vital signs and behavioral signs. It also requires evidence-based asynchronous behavioral-health protocols on electronic devices, store-and-forward private conferences when delayed, and stronger glasses for vision changes from SANS (spaceflight-associated neuro-ocular syndrome) [S6 V1 3004, 6002, 6010].
 
-**Proposed tiers** (team design; NASA vocabulary in brackets):
+**Proposed tiers** (team design; NASA vocabulary in brackets). Superseded 2026-11-14 by the 0–5 scale in [alert-levels.md](../ideas/alert-levels.md); kept for the reasoning:
 
 | Urgency (color + icon + word) | Example | Routing (a separate label) |
 |---|---|---|
@@ -268,11 +268,12 @@ Gaps against the checklist above:
 - No night theme (item 10) and no colour-blind check (item 11).
 
 Applied in the restyled mockups (`ideas/mockups/src/base.css`, 2026-11-14; all 10 screens), dark theme:
-- Status set added: caution `#FFC72C` with `#1B1B1B` ink (11.0:1; 4.8:1 against the card), warning `#C61E37` reserved for warnings only, nominal = quiet muted "✓ Nominal" with no fill. Every status keeps icon + word.
-- Brand arc moved from red to blue. On dark, blue needs the tint `#7FA6F0` (7.1:1 on `#1B1B1B`); `#1651B6` is 2.4:1.
+- Status set added: caution `#FFC72C` with `#1B1B1B` ink (11.0:1; 4.8:1 against the card), warning `#C61E37` reserved for warnings only, nominal = quiet muted "✓ Nominal" with no fill. Every status keeps icon + word. Since 2026-11-14 this is the six-step scale in [alert-levels.md](../ideas/alert-levels.md).
+- Brand arc moved from red to blue, then (2026-11-14) to neutral khaki, since blue now means alert level 1 only.
 - Card edge `#868375` (4.5:1 on `#1B1B1B`) fixes the 2.3:1 edge failure.
-- Selected and primary states use the design's pill (`#DADADA` on `#1B1B1B`), not yellow, so yellow only means caution. Rule-triggered items get a dashed tag, not yellow.
-- Simulator purple replaced by palette greys; nominal green dropped for the quiet muted style; architecture legend uses khaki / warm grey / blue tint / light grey (yellow left the legend on 2026-11-14: it means caution only, see [ui-guidelines.md](../ideas/ui-guidelines.md)).
+- Selected and primary states use the design's pill (`#DADADA` on `#1B1B1B`), not yellow or blue, so colour only means an alert level. Rule-triggered items get a dashed tag, not yellow.
+- Colour only for alert levels (decided 2026-11-14): the UI is neutral greys and whites; colour appears only on the 0–5 alert levels in [alert-levels.md](../ideas/alert-levels.md). The per-category chart colours were dropped; categories are told apart by name, icon and small multiples ([health-categories.md](../ideas/health-categories.md#how-categories-are-shown)).
+- Simulator purple replaced by palette greys; nominal green dropped for the quiet muted style; architecture legend now uses neutral greys and border styles (solid / dashed / double), no status colours.
 
 ## Gaps and unverified items
 

@@ -1,0 +1,45 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Alert levels mock</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}body{font-family:Inter,sans-serif;font-size:16px;display:grid;grid-template-columns:1fr 1fr;width:1200px}
+.t{padding:24px;display:flex;flex-direction:column;gap:16px}
+.light{--bg:#CFCFCF;--surf:#DADADA;--text:#1B1B1B;--muted:#52574E;--inset:#CFCFCF;--wbg:#FFF0C2;--onw:#1B1B1B;--em:#C61E37}
+.dark{--bg:#1B1B1B;--surf:#52574E;--text:#DADADA;--muted:#CFCFCF;--inset:#1B1B1B;--wbg:transparent;--onw:#FFC72C;--em:#E4002B}
+.t{background:var(--bg);color:var(--text)}
+.card{background:var(--surf);border-radius:16px;padding:16px 20px}
+h2{font-size:16px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--bg);min-height:52px}
+.row:last-child{border:0}.sub{color:var(--muted);font-size:14px}
+.b{display:inline-flex;align-items:center;gap:4px;padding:2px 12px;border-radius:999px;font-weight:700;white-space:nowrap}
+.b svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.nom{padding-inline:0;font-weight:500;color:var(--muted)}
+.watch{background:var(--wbg);color:var(--onw);box-shadow:inset 0 0 0 1.5px var(--onw)}
+.check{background:#FFC72C;color:#1B1B1B;box-shadow:inset 0 0 0 1.5px var(--text)}
+.treat{background:#F28C28;color:#1B1B1B;box-shadow:inset 0 0 0 1.5px var(--text)}
+.emer{background:var(--em);color:#fff;box-shadow:inset 0 0 0 1.5px var(--text)}
+svg.chart{background:var(--inset);border-radius:8px}
+.cap{font-size:13px;color:var(--muted)}
+a{color:var(--text);text-decoration:underline}
+</style></head><body>
+<script>
+const I={down:'<svg viewBox="0 0 24 24"><path d="M3 7l6 6l4 -4l8 8"/><path d="M21 10l0 7l-7 0"/></svg>',
+tri:'<svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>',
+kit:'<svg viewBox="0 0 24 24"><path d="M8 8v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M4 8m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M10 14h4"/><path d="M12 12v4"/></svg>',
+oct:'<svg viewBox="0 0 24 24"><path d="M12 8v4"/><path d="M12 16h.01"/><path d="M15.072 21h-6.144a1.75 1.75 0 0 1 -1.548 -.928l-3.072 -6.144a1.75 1.75 0 0 1 0 -1.856l3.072 -6.144a1.75 1.75 0 0 1 1.548 -.928h6.144a1.75 1.75 0 0 1 1.548 .928l3.072 6.144a1.75 1.75 0 0 1 0 1.856l-3.072 6.144a1.75 1.75 0 0 1 -1.548 .928z"/></svg>'};
+for(const th of ['light','dark']){document.write(`<div class="t ${th}"><div class="cap">${th} theme · body systems (home)</div><div class="card"><h2>Body systems</h2>
+<div class="row"><div><div>Respiratory</div><div class="sub">SpO₂ 96 % · just now · manual</div></div><span class="b nom">✓ Nominal</span></div>
+<div class="row"><div><div>Respiratory · test row SpO₂ &lt; 95 % watch</div><div class="sub">SpO₂ 94 % · just now · manual</div></div><span class="b watch">${I.down}Watch</span></div>
+<div class="row"><div><div>Respiratory · SPO-01</div><div class="sub">SpO₂ 92 % · just now · manual</div></div><span class="b check">${I.tri}Check</span></div>
+<div class="row"><div><div>Respiratory · test row SpO₂ &lt; 94 % treat</div><div class="sub">SpO₂ 92 % · just now · manual</div></div><span class="b treat">${I.kit}Treat</span></div>
+<div class="row"><div><div>Respiratory · SPO-02</div><div class="sub">SpO₂ 88 % · just now · manual</div></div><span class="b emer">${I.oct}Emergency</span></div></div>
+<div class="card"><h2>SpO₂ · last 7 days</h2><svg class="chart" width="520" height="150" viewBox="0 0 520 150">
+<line x1="20" x2="500" y1="50" y2="50" stroke="var(--muted)" stroke-dasharray="5 4"/><text x="26" y="44" font-size="12" fill="var(--muted)">SPO-01 · &lt; 94 % check</text>
+<line x1="20" x2="500" y1="100" y2="100" stroke="var(--muted)" stroke-dasharray="5 4"/><text x="26" y="94" font-size="12" fill="var(--muted)">SPO-02 · &lt; 90 % emergency</text>
+<polyline points="60,25 160,40 260,62 360,82 460,112" fill="none" stroke="var(--text)" stroke-width="2"/>
+<circle cx="60" cy="25" r="4" fill="var(--text)"/>
+<circle cx="160" cy="40" r="6" fill="var(--wbg)" stroke="var(--onw)" stroke-width="1.5"/><g transform="translate(151,10)" color="var(--text)">${I.down.replace('<svg','<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75"')}</g>
+<circle cx="260" cy="62" r="6" fill="#FFC72C" stroke="var(--text)" stroke-width="1.5"/><g transform="translate(251,32)" color="var(--text)">${I.tri.replace('<svg','<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75"')}</g>
+<circle cx="360" cy="82" r="6" fill="#F28C28" stroke="var(--text)" stroke-width="1.5"/><g transform="translate(351,52)" color="var(--text)">${I.kit.replace('<svg','<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75"')}</g>
+<circle cx="460" cy="112" r="6" fill="var(--em)" stroke="var(--text)" stroke-width="1.5"/><g transform="translate(451,82)" color="var(--text)">${I.oct.replace('<svg','<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75"')}</g>
+</svg><div class="cap" style="margin-top:6px">Points as the badge, marker = level icon in text colour. Links: <a href="#">underlined, text colour</a>.</div></div></div>`)}
+</script></body></html>

@@ -60,7 +60,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 #### F4. Rules engine and rule table · Must
 - **What:** the "brain". A table of simple, readable rules: *if* this indicator does *this*, *then* status, action, who to involve, and the source that justifies it.
 - **Why:** judges and doctors can read every rule and see where it comes from. No AI makes medical decisions (a design constraint).
-- **How:** each rule is one row in a JSON file; the code evaluates them after every new reading. Rule example COG-02: "PVT median > corridor + 15% or ≥ 5 lapses → Cognition caution → tell the CMO today. Source: Dev et al. 2024".
+- **How:** each rule is one row in a JSON file; the code evaluates them after every new reading. Rule example COG-02: "PVT median > corridor + 15% or ≥ 5 lapses → Cognition level 3 "check" → tell the CMO today. Source: Dev et al. 2024".
 - **Needs:** F3. The rule table itself must be written and checked by a person, with sources from `research/`.
 - **Status:** `rules.json` holds SPO-01 (SpO₂ < 94 % → caution) and SPO-02 (< 90 % → warning), validated on load and evaluated on the tablet after each save and every 60 s. Runs without F3 for now: thresholds are the Earth clinical convention. Missing: other indicators and rows, personal baseline.
 
@@ -71,9 +71,9 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **Status:** a caution or warning row on home opens the system's detail screen (`#/systems/<system>`). It shows the status, a 7-day trend chart with the rule thresholds, what / why / how decided / source, what next, and the four escalation tiers with the rule's tier selected (issue #9). Missing: the adaptation corridor (F11) and the "Share with CMO" / "Add to surgeon packet" buttons.
 
 #### F6. Body map (home screen) · Must
-- **What:** a human figure plus a list of body systems, each with a status: nominal, caution or warning.
+- **What:** a human figure plus a list of body systems, each with a status on the 0–5 [alert scale](alert-levels.md): nominal, to do, watch, check, treat or emergency.
 - **Why:** the challenge suggests a clickable human figure. One glance shows where attention is needed.
-- **How:** NASA display rules: quiet when all is fine; yellow = caution, red = warning, **always with an icon and a word**, never color alone. Each value shows its unit, age and source ("4 min ago · simulated"). Missing data shows as "data 8 d old", never as a health alarm.
+- **How:** NASA display rules: quiet when all is fine; blue = input due, yellow/orange = caution band, red = emergency, **always with an icon and a word**, never color alone. Each value shows its unit, age and source ("4 min ago · simulated"). Missing data shows as "data 8 d old", never as a health alarm.
 - **Needs:** F4. See mockup [01-body-map.png](mockups/01-body-map.png).
 - **Status:** the "Body systems" list on home shows Respiratory (from SpO₂) as nominal, caution, warning, "No data", or "No recent data" with the data age when the reading is older than 24 h; source label "manual". The other nine systems of mockup 01 show synthetic nominal placeholder values labelled "synthetic" (`infrastructure/mockStatuses.ts`); a system drops its placeholder once a rule covers it. The "Latest readings" tiles show the newest heart rate, SpO₂, sleep and mood from manual check-ins with unit, data age and the tag "manual". SpO₂ carries the Respiratory caution or warning badge, a value older than 24 h looks stale, and a field never entered shows "—". A seventh tile, "Reaction time", shows the latest PVT median tagged "in-app test" (F7, issue #16). Blood pressure and cabin CO₂ are synthetic tiles (`infrastructure/mockReadings.ts`). The human figure sits in the Hazard lens card (issue #14): six display-only labels (Cognition, Eyes, Lungs, Heart, Kidneys, Bone & muscle) that stay quiet when nominal and show the status badge for caution or warning. Missing: rules for the other systems, tapping a figure item to open its detail.
 

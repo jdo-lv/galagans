@@ -7,7 +7,7 @@ body{width:1600px;height:1000px;background:#1B1B1B;color:#DADADA;font-family:Int
 .in{position:absolute;background:#52574E;border:1px solid #868375;border-radius:9px;padding:10px 13px}
 .in h4{font-size:14px;margin-bottom:5px}
 .t{font-size:12.5px;line-height:1.55;color:#DADADA}.m{color:#CFCFCF}
-.sim{border-color:#868375}.tr{border-color:#726F6C}.app{border-color:#7FA6F0}.gr{border-color:#CFCFCF}
+.sim{border-color:#868375}.tr{border-color:#868375;border-style:dotted}.app{border-color:#DADADA;border-style:double;border-width:4px}.gr{border-color:#CFCFCF}
 code{font-family:Menlo,monospace;font-size:11.5px;color:#DADADA}
 .tile{position:absolute;background:#3D403B;border:1px solid #868375;border-radius:8px;padding:9px 10px;width:158px;height:118px}
 .tile h5{font-size:13px;margin-bottom:4px}
@@ -31,7 +31,7 @@ code{font-family:Menlo,monospace;font-size:11.5px;color:#DADADA}
 
 <!-- App -->
 <div class="b app" style="left:630px;top:90px;width:700px;height:760px"><h3>Crew app (on board)</h3><div class="sub">React + TS PWA · offline · rules run here · ports in <code>domain/</code>, wiring in <code>container.ts</code></div></div>
-<div class="in" style="left:648px;top:152px;width:318px;height:330px;border-color:#7FA6F0"><h4>Personal Health Gateway</h4><div class="t m">Continua / ITU-T H.810-style</div>
+<div class="in" style="left:648px;top:152px;width:318px;height:330px;border-color:#DADADA"><h4>Personal Health Gateway</h4><div class="t m">Continua / ITU-T H.810-style</div>
 <div class="t" style="margin-top:8px"><b>Adapters</b> (one per source, same <code>ReadingSource</code> port)<br>• BLE GATT decoder (bracelet, oximeter, …)<br>• Wi-Fi JSON (env node) · dosimeter replay<br>• Dock import (topic or file picker)<br>• Manual entry, PVT, questionnaires<br><span class="m">MQTT now · Web Bluetooth later</span></div>
 <div class="t" style="margin-top:10px"><b>Normalizer → HL7 FHIR</b><br>Observation + Patient + Device + gateway Device<br><span class="m">validated timestamp · unit · source label: bracelet / manual / replay / proxy / synthetic</span></div></div>
 <div class="in" style="left:986px;top:152px;width:326px;height:120px"><h4>Local store</h4><div class="t">IndexedDB · FHIR resources · pending / synced<br><span class="m">private by default · works with no link · personal baseline per indicator</span></div></div>
@@ -41,7 +41,7 @@ code{font-family:Menlo,monospace;font-size:11.5px;color:#DADADA}
 <div class="tile" style="left:826px;top:534px"><h5>Detail</h5><div class="t m">corridor chart · what / why / how decided / next · check-and-act</div></div>
 <div class="tile" style="left:990px;top:534px"><h5>Routine</h5><div class="t m">check-in · PVT · questionnaires · fluids · landing readiness · reporting is a win</div></div>
 <div class="tile" style="left:1154px;top:534px;width:144px"><h5>Escalation</h5><div class="t m">self → CMO → private med. conference → ground · agenda</div></div>
-<div class="in" style="left:648px;top:702px;width:664px;height:132px;border-color:#7FA6F0"><h4>Store-and-forward</h4><div class="t">SyncService: pending check-ins → <code>POST /api/checkins/sync</code> (idempotent) · on start, after save, when online<br>Surgeon packet = FHIR Bundle + approved agenda items · shows the one-way delay<br><span class="m">crew reviews before send · warnings take their own path</span></div></div>
+<div class="in" style="left:648px;top:702px;width:664px;height:132px;border-color:#DADADA"><h4>Store-and-forward</h4><div class="t">SyncService: pending check-ins → <code>POST /api/checkins/sync</code> (idempotent) · on start, after save, when online<br>Surgeon packet = FHIR Bundle + approved agenda items · shows the one-way delay<br><span class="m">crew reviews before send · warnings take their own path</span></div></div>
 
 <!-- Ground -->
 <div class="b gr" style="left:1370px;top:560px;width:200px;height:290px;background:#52574E"><h3>Ground station</h3><div class="sub">Kotlin + Spring Boot WebFlux · Java 21</div>
@@ -51,8 +51,8 @@ code{font-family:Menlo,monospace;font-size:11.5px;color:#DADADA}
 <!-- Legend -->
 <div class="b" style="left:1370px;top:90px;width:200px;height:200px;border-color:#868375;background:#52574E"><h3 style="font-size:14px">Legend</h3>
 <div class="lg"><span class="sq" style="border-color:#868375"></span>simulator (demo only)</div>
-<div class="lg"><span class="sq" style="border-color:#726F6C"></span>transport</div>
-<div class="lg"><span class="sq" style="border-color:#7FA6F0"></span>crew app (on board)</div>
+<div class="lg"><span class="sq" style="border-color:#868375;border-style:dotted"></span>transport</div>
+<div class="lg"><span class="sq" style="border-color:#DADADA;border-style:double;border-width:4px"></span>crew app (on board)</div>
 <div class="lg"><span class="sq" style="border-color:#CFCFCF"></span>ground</div>
 <div class="lg"><span class="sq" style="border-color:#868375;border-style:dashed"></span>future</div>
 <div class="t m" style="margin-top:8px">contract: MQTT topics + payloads</div></div>
