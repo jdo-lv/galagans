@@ -14,6 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Backend tests: `mvn test -DskipFrontend=true`. Full build with frontend: `mvn clean verify` (installs Node 22.13.0 under `target/`, runs `npm ci`, `npm run build` into `src/main/resources/static`, `npm run check-build`, then `npm run test`).
 - Run: `mvn spring-boot:run` serves the built PWA and `/api` on :8080. Frontend dev: `cd src/main/frontend && npm run dev` (:5173, proxies `/api` and `/ws` to :8080).
 - Frontend only: `cd src/main/frontend && npm run test` / `npm run build`.
+- Splash: after changing the `#splash` markup in `index.html` or `.splash` in `base.css`, re-render the iPad launch images and home-screen icons with `target/node/node tools/render-splash.mjs` (then rebuild). Light theme only; rules in `ideas/ui-guidelines.md` "Brand mark and splash".
 - Device link (demo only, anonymous and unencrypted): the Spring Boot app relays WebSocket frames `{"topic","payload"}` at `/ws/devices`; both pages connect to `ws(s)://<page host>/ws/devices` and the crew app works without it. No broker or Docker.
 - Tablet: open `http://<machine IP>:8080` (Spring Boot listens on every interface). That's not a secure context, so there's no service worker or offline cache there; ids fall back to `crypto.getRandomValues`.
 - Device Simulator: `/simulator.html` (built `:8080/simulator.html`, dev `:5173/simulator.html`). Both demo machines use automatic network time: the gateway drops readings more than 60 s ahead of the tablet.
