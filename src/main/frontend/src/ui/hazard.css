@@ -59,7 +59,7 @@
   margin-top: var(--space-4);
 }
 
-.body-figure svg {
+.body-figure > svg {
   display: block;
   width: 100%;
   height: auto;
@@ -145,7 +145,7 @@
 }
 
 @media (max-width: 599px) {
-  .body-figure svg {
+  .body-figure > svg {
     max-width: 220px;
     margin: 0 auto;
   }
