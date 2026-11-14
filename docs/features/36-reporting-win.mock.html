@@ -1,0 +1,86 @@
+<!doctype html>
+<!-- Issue mock (#36): the check-in completion state at #/check-in after "Save check-in" (mockup 09, right column), in the app's theme CSS.
+     States by hash: #symptom (default: headache logged, first real day after the synthetic history), #none (no symptoms). -->
+<html data-theme="dark"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../src/main/frontend/node_modules/@fontsource/inter/latin-400.css">
+<link rel="stylesheet" href="../../src/main/frontend/node_modules/@fontsource/inter/latin-500.css">
+<link rel="stylesheet" href="../../src/main/frontend/node_modules/@fontsource/inter/latin-700.css">
+<link rel="stylesheet" href="../../src/main/frontend/node_modules/@fontsource/dm-mono/latin-300.css">
+<link rel="stylesheet" href="../../src/main/frontend/node_modules/@fontsource/dm-mono/latin-400.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/tokens.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/base.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/status.css">
+<style>
+.check-in-complete { display: grid; gap: var(--gap-cards); }
+.complete__top { display: flex; align-items: center; gap: var(--space-4); }
+.done-mark { flex: none; width: 56px; height: 56px; border: 2px solid var(--color-text); border-radius: 50%; display: grid; place-items: center; font-size: var(--text-value); font-weight: 700; }
+.complete__title { font-size: var(--text-value); font-weight: 700; line-height: 1.2; }
+.ack { margin-top: var(--space-5); font-weight: 700; }
+.ack + p { margin-top: var(--space-1); }
+.next { margin-top: var(--space-4); padding: var(--space-3) var(--space-4); background: var(--color-inset); border: 1px solid var(--color-edge); border-radius: var(--radius-item); }
+.next h3 { font-size: var(--text-body); font-weight: 700; }
+.streak__count { display: flex; align-items: baseline; gap: var(--space-3); margin-top: var(--space-4); }
+.streak__count b { font-family: var(--font-data); font-size: var(--text-value); }
+.days { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: var(--space-2); }
+.day { min-height: 64px; border: 1px solid var(--color-edge); border-radius: var(--radius-item); display: grid; place-items: center; align-content: center; gap: 2px; background: var(--color-inset); }
+.day__mark { display: flex; align-items: center; gap: 2px; font-weight: 700; }
+.day__mark svg { width: 18px; height: 18px; }
+.day__date { font-family: var(--font-data); color: var(--color-text-muted); }
+.day--today { border: 2px solid var(--color-text); }
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); margin-top: var(--space-3); color: var(--color-text-muted); }
+.legend span { display: inline-flex; align-items: center; gap: var(--space-1); }
+.legend svg { width: 18px; height: 18px; }
+.seed-note { margin-top: var(--space-2); color: var(--color-text-muted); }
+.counters { list-style: none; margin: var(--space-5) 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap-targets); }
+.counters li { padding: var(--space-3) var(--space-4); background: var(--color-inset); border-radius: var(--radius-item); }
+.counters .v { font-family: var(--font-data); font-size: var(--text-heading); margin: var(--space-1) 0; }
+.never { margin-top: var(--space-4); color: var(--color-text-muted); }
+.complete__actions { display: flex; justify-content: flex-end; }
+.nowrap { white-space: nowrap; }
+@media (max-width: 599px) {
+  .days { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .counters { grid-template-columns: 1fr; }
+  .complete__actions .button-primary { width: 100%; }
+}
+</style></head>
+<body><div class="app" id="app"></div>
+<script>
+const svg = (paths, size = 22) => `<svg class="tabler-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths.map((d) => `<path d="${d}"/>`).join('')}</svg>`
+const I = {
+  sun: svg(['M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0', 'M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7']),
+  sat: svg(['M3.707 6.293l2.586 -2.586a1 1 0 0 1 1.414 0l5.586 5.586a1 1 0 0 1 0 1.414l-2.586 2.586a1 1 0 0 1 -1.414 0l-5.586 -5.586a1 1 0 0 1 0 -1.414', 'M6 10l-3 3l3 3l3 -3', 'M10 6l3 -3l3 3l-3 3', 'M12 12l1.5 1.5', 'M14.5 17a2.5 2.5 0 0 0 2.5 -2.5', 'M15 21a6 6 0 0 0 6 -6'], 18),
+  symptom: svg(['M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2', 'M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2', 'M10 14l4 0', 'M12 12l0 4']),
+  paused: svg(['M6 6a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -12', 'M14 6a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -12']),
+}
+const brand = `<svg class="brand-mark" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M24.83 12.09 A11 11 0 1 1 10.24 3.66" fill="none" stroke="var(--color-ring)" stroke-width="3.5" stroke-linecap="round"/><path d="M14 3 A11 11 0 0 1 23.53 8.5" fill="none" stroke="var(--color-accent)" stroke-width="3.5" stroke-linecap="round"/></svg>`
+const header = `<header class="app-header">${brand}<h1 class="wordmark">Health</h1><div class="header-actions"><button class="icon-button" aria-label="Switch to light mode">${I.sun}</button></div></header>
+<div class="pill-row"><p role="status" class="pill pill--quiet"><span>Online</span></p><a class="pill pill--link">${I.sat}<span>Ground link: one-way delay <b>14 min 05 s</b> (demo)</span></a></div>`
+
+// 1–13 Nov: synthetic history (mockup 09 cells 133–145); 14 Nov: today, the first real check-in day.
+const seed = ['done', 'done', 'done', 'done', 'done', 'done', 'paused', 'paused', 'reported', 'reported', 'done', 'reported', 'reported']
+const mark = (kind) => kind === 'paused' ? I.paused : kind === 'missed' ? '—' : kind === 'reported' ? `✓${I.symptom}` : '✓'
+const cell = (day, kind, today) => `<li class="day${today ? ' day--today' : ''}"><span class="day__mark" aria-hidden="true">${mark(kind)}</span><span class="day__date">${day}</span></li>`
+
+const streak = (todayKind) => `<section class="card"><h2 class="card-heading">Your routine streak</h2>
+<p class="muted">Counts what you do, never your values. No comparison with your crewmates.</p>
+<p class="streak__count"><b>12</b><span>check-ins in a row · last 14 days below</span></p>
+<ol class="days">${seed.map((k, i) => cell(i + 1, k, false)).join('')}${cell(14, todayKind, true)}</ol>
+<p class="legend"><span>✓ check-in done</span><span>${I.symptom} symptom reported (counts as done)</span><span>${I.paused} sick or rest day: paused, never reset</span></p>
+<p class="seed-note"><span class="tag">synthetic</span> Days before 14 Nov are a pre-loaded demo history.</p>
+<ul class="counters">
+<li><span>Exercise this week</span><p class="v">540 / 600 min</p><span class="muted">countermeasure minutes done</span> <span class="tag">synthetic</span></li>
+<li><span>Fluid log</span><p class="v">4 of 7 days</p><span class="muted">days you logged to target</span> <span class="tag">synthetic</span></li>
+<li><span>PVT sessions</span><p class="v">1 of 7</p><span class="muted">every 4th day, last 28 days</span></li>
+</ul>
+<p class="never">Never shown here: heart rate, SpO₂, sleep hours, mood or any health value. Nothing is scored as good or bad.</p></section>`
+
+const complete = (body) => `<section class="card"><div class="complete__top"><span class="done-mark" aria-hidden="true">✓</span><div><h2 class="complete__title">Check-in complete · 08:05</h2><p class="muted"><span class="nowrap">6 steps</span> · <span class="nowrap">5 answered</span> · <span class="nowrap">1 min 22 s</span></p></div></div>${body}</section>`
+
+const states = {
+  symptom: () => complete(`<p class="ack">Logged: headache. Thanks for reporting.</p><p>Reporting a symptom counts as a completed check-in, and your streak continues.</p>
+<div class="next"><h3>What happens next</h3><p>Consider raising this with your CMO, or at your next private medical conference.</p></div>`) + streak('reported'),
+  none: () => complete(`<p class="ack">No symptoms logged.</p>`) + streak('done'),
+}
+const state = (states[location.hash.slice(1)] ?? states.symptom)()
+document.getElementById('app').innerHTML = `${header}<main class="check-in-complete">${state}<div class="complete__actions"><button class="button-primary">Done</button></div></main>`
+</script></body></html>
