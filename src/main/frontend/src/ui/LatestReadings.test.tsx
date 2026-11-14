@@ -15,6 +15,8 @@ import { ServicesProvider } from './ServicesContext'
 
 const LABELS = ['SpO₂', 'Heart rate', 'Sleep', 'Mood', 'Blood pressure', 'Cabin CO₂']
 
+const stored = (id: string, recordedAt: string, fields: Partial<CheckIn>): CheckIn => ({ id, recordedAt, symptoms: [], ...fields })
+
 function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = true } = {}) {
   const clock = { now: new Date(now) }
   const repository = new FakeRepository()
@@ -159,5 +161,58 @@ describe('LatestReadings', () => {
     await waitFor(() => expect(tile('SpO₂').querySelector('.badge')).toHaveTextContent('WARNING'))
     expect(tile('SpO₂').querySelector('.badge svg')).toHaveAttribute('aria-hidden', 'true')
     expect(tile('SpO₂').querySelector('.metric-tile__icon')).toBeNull()
+  })
+
+  it('AC10: each tile shows the newest value of its own field', async () => {
+    setup({
+      now: '2026-11-14T10:00:00Z',
+      seed: [
+        stored('a', '2026-11-14T08:00:00Z', { spo2Percent: 88, heartRateBpm: 70 }),
+        stored('b', '2026-11-14T10:00:00Z', { heartRateBpm: 64 }),
+      ],
+    }).renderApp()
+    await tiles()
+
+    expect(tile('SpO₂')).toHaveTextContent('88 %')
+    expect(tile('SpO₂')).toHaveTextContent('SpO₂ / 2 h ago')
+    expect(tile('SpO₂')).toHaveTextContent('WARNING')
+    expect(tile('Heart rate')).toHaveTextContent('64 bpm')
+    expect(tile('Heart rate')).toHaveTextContent('Heart rate / just now')
+  })
+
+  it('AC11: a value older than 24 h looks stale: muted, "1 d old", icon and no badge', async () => {
+    setup({ now: '2026-11-14T08:01:00Z', seed: [stored('a', '2026-11-13T08:00:00Z', { spo2Percent: 88 })] }).renderApp()
+    await tiles()
+
+    const t = tile('SpO₂')
+    expect(t).toHaveClass('metric-tile--stale')
+    expect(t).toHaveTextContent('88 %')
+    expect(t).toHaveTextContent('SpO₂ / 1 d old')
+    expect(t.querySelector('.tag')).toHaveTextContent('manual')
+    expect(t.querySelector('.metric-tile__icon')).not.toBeNull()
+    expect(t.querySelector('.badge')).toBeNull()
+  })
+
+  it('AC12: a value exactly 24 h old still shows its warning', async () => {
+    setup({ now: '2026-11-14T08:00:00Z', seed: [stored('a', '2026-11-13T08:00:00Z', { spo2Percent: 88 })] }).renderApp()
+    await tiles()
+
+    expect(tile('SpO₂')).toHaveTextContent('WARNING')
+    expect(tile('SpO₂')).toHaveTextContent('SpO₂ / 1 d ago')
+  })
+
+  it.each([
+    ['96 first', ['a', 'b']],
+    ['88 first', ['b', 'a']],
+  ])('AC13: equal timestamps show the more severe value (%s)', async (_, order) => {
+    const byId: Record<string, CheckIn> = {
+      a: stored('a', '2026-11-14T09:00:00Z', { spo2Percent: 96 }),
+      b: stored('b', '2026-11-14T09:00:00Z', { spo2Percent: 88 }),
+    }
+    setup({ seed: order.map((id) => byId[id]) }).renderApp()
+    await tiles()
+
+    expect(tile('SpO₂')).toHaveTextContent('88 %')
+    expect(tile('SpO₂')).toHaveTextContent('WARNING')
   })
 })

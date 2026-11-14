@@ -40,7 +40,7 @@ function ReadingTile({ reading, now }: { reading: LatestReading; now: Date }) {
   const age = recordedAt && (state === 'stale' ? formatOldAge(recordedAt, now) : formatAge(recordedAt, now))
   const suffix = [spec.labelSuffix, age && `/ ${age}`].filter(Boolean).join(' ')
   return (
-    <li className="metric-tile">
+    <li className={state === 'stale' ? 'metric-tile metric-tile--stale' : 'metric-tile'}>
       <div className="metric-tile__top">
         <Reading reading={reading} />
         {state === 'caution' || state === 'warning' ? <Badge state={state} /> : Icon && <Icon className="metric-tile__icon" />}
