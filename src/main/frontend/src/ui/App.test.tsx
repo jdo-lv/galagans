@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { CheckInRecorder } from '../application/CheckInRecorder'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
+import { RoutineReader } from '../application/RoutineReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
@@ -21,6 +22,7 @@ function setup(online: boolean) {
     recorder: new CheckInRecorder(repository, synchronizer),
     statusReader: new SystemStatusReader(new FakeRuleSource(), repository),
     readingsReader: new LatestReadingsReader(new FakeRuleSource(), repository),
+    routineReader: new RoutineReader(repository),
   }
   render(
     <ServicesProvider services={services}>

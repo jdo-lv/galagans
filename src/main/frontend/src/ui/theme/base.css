@@ -417,3 +417,46 @@ ul.tile-grid {
   background: var(--color-warning);
   color: var(--color-on-warning);
 }
+
+/* Today's routine rows (mockup 01) */
+ul.routine-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.routine-list > li {
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.routine-list > li:last-child {
+  border-bottom: 0;
+}
+
+.routine-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+}
+
+/* The outline replaces the divider; neutral accent, never red or yellow (ui-guidelines §2.3) */
+.routine-list > .routine-item--due {
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-item);
+  padding: var(--space-3);
+  margin: var(--space-2) 0;
+}
+
+/* On a narrow card the button drops under the label and stays on the right */
+.routine-item--due .button-secondary {
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.routine-item--upcoming,
+.routine-item--missed {
+  color: var(--color-text-muted);
+}
