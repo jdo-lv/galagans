@@ -1,0 +1,93 @@
+<!doctype html>
+<!--
+  Issue mock: home → morning check-in navigation (Today's routine, due pill, "+", one question per step).
+  Unlike 01–10 it uses the app's own theme CSS, so it shows the target look in the app. State by hash:
+  #home (default, check-in due), #step (SpO₂ step), #error (out-of-range heart rate), #mood (mood step).
+  The Latest readings card copies issue #7's empty state.
+-->
+<html data-theme="dark"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../../src/main/frontend/node_modules/@fontsource/inter/latin-400.css">
+<link rel="stylesheet" href="../../../src/main/frontend/node_modules/@fontsource/inter/latin-500.css">
+<link rel="stylesheet" href="../../../src/main/frontend/node_modules/@fontsource/inter/latin-700.css">
+<link rel="stylesheet" href="../../../src/main/frontend/node_modules/@fontsource/dm-mono/latin-300.css">
+<link rel="stylesheet" href="../../../src/main/frontend/node_modules/@fontsource/dm-mono/latin-400.css">
+<link rel="stylesheet" href="../../../src/main/frontend/src/ui/theme/tokens.css">
+<link rel="stylesheet" href="../../../src/main/frontend/src/ui/theme/base.css">
+<link rel="stylesheet" href="../../../src/main/frontend/src/ui/status.css">
+<style>
+/* Proposed additions for the issue (tokens only) */
+.app-header { grid-template-columns: auto 1fr auto; }
+.header-actions { display: flex; gap: var(--space-1); justify-self: end; }
+.pill-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.routine-list { list-style: none; margin: 0; padding: 0; }
+.routine-item { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); min-height: 40px; padding: var(--space-3) 0; }
+.routine-item--due { padding: var(--space-3); border: 2px solid var(--color-accent); border-radius: var(--radius-item); }
+.routine-item a.button-primary { display: inline-flex; align-items: center; text-decoration: none; color: var(--color-inverse-text); white-space: nowrap; }
+.routine-item--done { color: var(--color-text-muted); }
+.check-in { max-width: 840px; width: 100%; }
+.step-tabs { list-style: none; margin: 0 0 var(--space-6); padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-2); }
+.step-tabs li { padding: 10px 14px; border: 1px solid var(--color-edge); border-radius: var(--radius-item); color: var(--color-text-muted); }
+.step-tabs li[aria-current='step'] { border: 2px solid var(--color-accent); color: var(--color-text); font-weight: 700; }
+.step-prompt { font-size: var(--text-value); font-weight: 700; line-height: 1.2; }
+.step-hint { margin-top: var(--space-2); }
+.step-body { margin-top: var(--space-6); }
+.step-body .field-tile { width: 240px; }
+.scale { display: grid; grid-template-columns: repeat(5, 82px); gap: var(--gap-targets); }
+.scale button { height: 82px; border: 1px solid var(--color-edge); border-radius: var(--radius-item); background: var(--color-inset); font-family: var(--font-data); font-size: var(--text-value); cursor: pointer; }
+.scale button[aria-pressed='true'] { background: var(--color-inverse-bg); color: var(--color-inverse-text); border-color: var(--color-inverse-bg); }
+.scale-anchors { display: grid; grid-template-columns: repeat(5, 82px); gap: var(--gap-targets); margin-top: var(--space-2); text-align: center; color: var(--color-text-muted); }
+.field-error { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3); }
+.step-actions { display: flex; align-items: center; gap: var(--gap-targets); margin-top: var(--space-7); }
+.step-actions .spacer { flex: 1; text-align: center; color: var(--color-text-muted); }
+.metric-tile { background: var(--color-inset); border-radius: var(--radius-card); padding: var(--space-4) var(--space-5); display: flex; flex-direction: column; gap: var(--space-2); }
+.metric-tile__top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-2); flex-wrap: wrap; }
+ul.tile-grid { list-style: none; margin: 0; padding: 0; }
+</style></head>
+<body><div class="app" id="app"></div>
+<script>
+const svg = (paths, size = 22) => `<svg class="tabler-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths.map((d) => `<path d="${d}"/>`).join('')}</svg>`
+const I = {
+  sun: svg(['M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0', 'M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7']),
+  add: svg(['M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0', 'M9 12h6', 'M12 9v6'], 30),
+  hr: svg(['M19.5 13.572l-7.5 7.428l-2.896 -2.868m-6.117 -8.104a5 5 0 0 1 9.013 -3.022a5 5 0 1 1 7.5 6.572', 'M3 13h2l2 3l2 -6l1 3h3']),
+  spo2: `<svg class="tabler-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3s-6 7-6 11a6 6 0 0 0 9 5.2"/><text x="13.5" y="19.5" font-size="7.5" font-weight="700" fill="currentColor" stroke="none" font-family="Inter, sans-serif">O2</text></svg>`,
+  sleep: svg(['M4 12h6l-6 8h6', 'M14 4h6l-6 8h6']),
+  mood: svg(['M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0', 'M9 10l.01 0', 'M15 10l.01 0', 'M9.5 15a3.5 3.5 0 0 0 5 0']),
+  bp: svg(['M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0', 'M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0', 'M13.41 10.59l2.59 -2.59', 'M7 12a5 5 0 0 1 5 -5']),
+  air: svg(['M5 8h8.5a2.5 2.5 0 1 0 -2.34 -3.24', 'M3 12h15.5a2.5 2.5 0 1 1 -2.34 3.24', 'M4 16h5.5a2.5 2.5 0 1 1 -2.34 3.24']),
+  info: svg(['M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0', 'M12 9h.01', 'M11 12h1v4h1']),
+}
+const brand = `<svg class="brand-mark" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M24.83 12.09 A11 11 0 1 1 10.24 3.66" fill="none" stroke="var(--color-ring)" stroke-width="3.5" stroke-linecap="round"/><path d="M14 3 A11 11 0 0 1 23.53 8.5" fill="none" stroke="var(--color-accent)" stroke-width="3.5" stroke-linecap="round"/></svg>`
+const header = (home) => `<header class="app-header">${brand}<h1 class="wordmark">Health</h1><div class="header-actions">${home ? `<a class="icon-button" href="#/check-in" aria-label="Add entry" style="color:var(--color-text)">${I.add}</a>` : ''}<button class="icon-button" aria-label="Switch to light mode">${I.sun}</button></div></header>`
+
+const systems = [['Cognition', 'PVT 268 ms · within your baseline'], ['Cabin air', 'CO₂ 2.3 mmHg (1-h avg)'], ['Sleep', '7.1 h last night'], ['Immune', 'no new symptoms'], ['Cardiovascular', 'HR 63 bpm · BP 108/70'], ['Bone &amp; muscle', 'Exercise 540/600 min/wk'], ['Vision (SANS)', 'self-test done Wed · no changes'], ['Radiation', '38% of 30-day limit'], ['Kidney &amp; hydration', 'Fluids 1.1/2.5 L today']]
+const bodySystems = `<section class="card"><h2 class="card-heading">Body systems</h2><ul class="status-list">
+<li class="status-no-data"><div class="status-head"><div><div class="status-system">Respiratory</div></div><span class="badge badge--quiet">No data</span></div></li>
+${systems.map(([n, d]) => `<li class="status-nominal"><div class="status-head"><div><div class="status-system">${n}</div><div class="status-sub">${d} · synthetic</div></div><span class="badge badge--nominal">✓ Nominal</span></div></li>`).join('')}</ul></section>`
+
+const tile = (label, icon, value = '—', unit = '', tag = '') => `<li class="metric-tile"><div class="metric-tile__top"><span>${value === '—' ? '<span class="value">—</span>' : `<span class="value">${value}</span> <b>${unit}</b>`}</span><span>${icon}</span></div><span class="tile-label">${label}</span>${tag ? `<span><span class="tag">${tag}</span></span>` : ''}</li>`
+const readings = `<section class="card"><h2 class="card-heading">Latest readings</h2><ul class="tile-grid">
+${tile('SpO₂', I.spo2)}${tile('Heart rate', I.hr)}${tile('Sleep', I.sleep)}${tile('Mood', I.mood)}${tile('Blood pressure', I.bp, '108/70', 'mmHg', 'synthetic')}${tile('Cabin CO₂ <span class="tile-label__suffix">(1-h avg)</span>', I.air, '2.3', 'mmHg', 'synthetic')}</ul></section>`
+
+const routine = `<section class="card"><h2 class="card-heading">Today's routine</h2><ul class="routine-list">
+<li class="routine-item routine-item--due"><span>Morning check-in</span><a class="button-primary" href="#/check-in">Start · ~60 s</a></li></ul></section>`
+
+const home = () => `${header(true)}<div class="pill-row"><p role="status" class="pill pill--quiet"><span>Online</span></p><p class="pill pill--due">● 1 due</p></div>
+<main class="layout">${bodySystems}<div class="stack">${routine}${readings}</div></main>`
+
+const steps = ['Heart rate', 'SpO₂', 'Sleep', 'Mood']
+const tabs = (current, answered) => `<ol class="step-tabs">${steps.map((s, i) => `<li ${i === current ? 'aria-current="step"' : ''}>${i < current && answered[i] ? `✓ ${s}` : `${i + 1} · ${s}`}</li>`).join('')}</ol>`
+const actions = (current) => `<div class="step-actions"><button class="button-secondary">${current === 0 ? 'Cancel' : '← Back'}</button><span class="spacer">Skip is saved as "not answered", never as a value</span><button class="button-secondary">Skip</button><button class="button-primary">${current === 3 ? 'Save check-in' : 'Next →'}</button></div>`
+const numberStep = (label, unit, icon, value) => `<label class="field-tile"><span class="field-tile__top"><input type="number" value="${value}" placeholder="—">${icon}</span><span class="tile-label">${label} <span class="tile-label__suffix">/ ${unit}</span></span></label>`
+const screen = (current, answered, prompt, hint, body, secondsLeft) => `${header(false)}<div class="pill-row"><p role="status" class="pill pill--quiet"><span>Online</span></p><p class="pill">about ${secondsLeft} s left</p></div>
+<main><section class="card check-in"><h2 class="card-heading">Morning check-in</h2>${tabs(current, answered)}
+<h3 class="step-prompt">${prompt}</h3><p class="step-hint muted">${hint}</p><div class="step-body">${body}</div>${actions(current)}</section></main>`
+
+const states = {
+  home,
+  step: () => screen(1, [true], 'What is your SpO₂?', 'Type the value from your device, or skip.', numberStep('SpO₂', '%', I.spo2, '97'), 45),
+  error: () => screen(0, [], 'What is your heart rate?', 'Type the value from your device, or skip.', numberStep('Heart rate', 'bpm', I.hr, '300') + `<p class="field-error">${I.info}<span>Enter a whole number from 20 to 250 bpm, or skip.</span></p>`, 60),
+  mood: () => screen(3, [true, true, false], 'How is your mood today?', 'Tap one number.', `<div class="scale">${[1, 2, 3, 4, 5].map((n) => `<button aria-pressed="${n === 4}">${n}</button>`).join('')}</div><div class="scale-anchors"><span>Very low</span><span></span><span></span><span></span><span>Very good</span></div>`, 15),
+}
+document.getElementById('app').innerHTML = (states[location.hash.slice(1)] ?? home)()
+</script></body></html>
