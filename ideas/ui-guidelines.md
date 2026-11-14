@@ -65,7 +65,7 @@ Components use these names, not the hex values.
 | `--color-ring` | `#726F6C` | `#868375` | Brand ring track, nominal ring segments |
 | `--color-accent` | `#1651B6` | `#7FA6F0` | Brand arc, links on the background, focus ring, "due" counter, selection in charts |
 | `--color-link-on-surface` | `#1651B6` | `#DADADA` | Links on a surface (always underlined) |
-| `--color-inverse-bg` / `--color-inverse-text` | `#1B1B1B` / `#DADADA` | `#DADADA` / `#1B1B1B` | Primary button, selected nav item |
+| `--color-inverse-bg` / `--color-inverse-text` | `#1B1B1B` / `#DADADA` | `#DADADA` / `#1B1B1B` | Primary button, selected nav item, selected tier on the detail screen |
 | `--color-feature-1` / `--color-on-feature-1` | `#868375` / `#1B1B1B` | same | Featured tile 1 (exercise) |
 | `--color-feature-2` / `--color-on-feature-2` | `#52574E` / `#DADADA` | same | Featured tile 2 (sleep) |
 | `--color-caution` / `--color-on-caution` | `#FFC72C` / `#1B1B1B` | same | Caution badge and caution segment |
@@ -73,7 +73,7 @@ Components use these names, not the hex values.
 
 ### 2.3 Rules
 
-- **Status colours** appear only on a status badge, a ring segment or a chart marker, and always next to the status icon and word.
+- **Status colours** appear only on a status badge, a ring segment or a chart marker, and always next to the status icon and word. Exception: a chart point marker is icon + colour ("▲", "!"); its word is in the point's title and the screen's badge (§5 "Charts").
 - **Not status:** "due", "offline", "waiting to sync", "rule-added", form errors and destructive actions use neutral styles (§5). A missing questionnaire is data age, not a caution.
 - **Featured tiles** (khaki, olive) are category surfaces for at most two summaries per screen. They never show status and never colour anything else.
 - **Khaki is never text on a surface** (2.72:1 light, 1.95:1 dark). On the dark background it is muted text (4.53:1).
@@ -169,11 +169,19 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Icon button:** transparent, 52 px round hit area, icon 22–30 px, `aria-label` required.
 - **Consequential actions** (send packet, delete entry) get confirm or undo. No red buttons: red is a warning, not "dangerous".
 
-### Body-system list (built: issues #1, #4)
+### Body-system list (built: issues #1, #4, #9)
 - **Card:** a `card` with the uppercase `card-heading` "Body systems"; one row per system, rows separated by `--color-divider`.
 - **Row:** system name (weight 500), then a muted line with label, value (`.num`), unit, data age and source ("SpO₂ 96 % · just now · manual"); the status badge on the right. No-data and stale rows mute the system name.
 - **Placeholder row:** a system with no rules yet shows a synthetic value as the muted line `<detail> · synthetic` ("7.1 h last night · synthetic"), always "✓ Nominal", with no data age and no explanation.
-- **Explanation:** for caution and warning only, an inset (`--color-inset`) list of what / why it matters / how decided / what next / who to involve (routing pill) / rule (tag), with uppercase muted terms. Terms sit beside their text from 600 px up and above it on phones.
+- **Link to the detail:** a caution or warning row is one link to its detail screen: the whole row, at least 52 px high, no underline, with a chevron (`ChevronIcon`) as the link cue. This is an exception to "links on a surface are always underlined" (§2.2). Quiet rows (nominal, no data, stale, placeholder) are not links.
+
+### Detail screen (built: issue #9)
+- **Route:** `#/systems/<system>`; "← Body systems" (underlined link) goes back and focuses the "Body systems" heading. Opening a detail focuses its heading once.
+- **Header:** full width above the columns: status badge, the system name (`section-heading`), the reading line ("SpO₂ 92 % · 10 min ago · manual"), and "No caution or warning now." when not flagged.
+- **Columns** (`.layout`, from 860 px): left the trend chart card and the Explanation card; right What next and Who to involve, their tops aligned with the chart card. Not flagged: only the chart card, in the left column.
+- **Explanation:** an inset (`--color-inset`) list of What / Why it matters / How decided / Source, the source followed by a rule tag ("rule · SPO-01"), with uppercase muted terms. Terms sit beside their text from 600 px up and above it on phones.
+- **What next:** the rule's next step on an inset.
+- **Who to involve:** the four tiers (Self-care, CMO, Medical conference, Urgent ground) as outline tiles in a 2 × 2 grid; the rule's tier is the inverse fill, weight 700, with `aria-current`. Never a status colour.
 
 ### Field tile (forms)
 - **Structure:** a tile is the field. Its `<label>` wraps the uppercase label, the "/ unit" suffix and the input. The input is transparent DM Mono at value size, so the tile reads like a metric tile being filled in.
@@ -202,7 +210,7 @@ Routing is a separate, neutral outline pill: "Self-care", "CMO", "Medical confer
 
 ### Icons
 
-**Library: [Tabler Icons](https://tabler.io/icons), outline set** (`@tabler/icons-react` 3.50.0, MIT, 5,000+ icons) [I1]. It is the same rounded 24 px line style as the canvas icons, and of the line libraries it covers the most health and body concepts. The full vocabulary, rendered: [mockups/icons.png](mockups/icons.png).
+**Library: [Tabler Icons](https://tabler.io/icons), outline set** (`@tabler/icons-react` 3.50.0, MIT, 5,000+ icons) [I1]. It is the same rounded 24 px line style as the canvas icons, and of the line libraries it covers the most health and body concepts. The full vocabulary, rendered: [mockups/icons.png](mockups/icons.png). The sheet has no source in the repo, so icons added after it (`ChevronIcon`: chevron = "opens detail", #9) are not in it.
 
 - **Import by concept from [`src/ui/icons.tsx`](../src/main/frontend/src/ui/icons.tsx)**, never from `@tabler/icons-react` directly: `RespiratoryIcon`, `CautionIcon`, `Spo2Icon`, `GroundLinkIcon`. One concept has one icon everywhere, and one icon has one meaning [S1 V2 10010/10011]. A new concept is one export line there, plus a row in the sheet.
 - **Defaults:** every icon is `aria-hidden` and 22 px. The word next to it, or the button's `aria-label`, carries the meaning. Sizes are 18 px in badges and pills, 20 px in navigation, 22 px in tiles and 30 px for the header "add".
@@ -222,7 +230,9 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 
 ### Charts (for the detail screens)
 - **Lines and bands:** data line in `--color-text`; baseline band in `--color-ring` at low opacity; adaptation corridor as a dashed `--color-accent` outline.
-- **Points:** flagged points carry the status marker, and stale or missing points are hollow.
+- **Points:** flagged points carry the status marker, and stale or missing points are hollow. Caution: `--color-caution` fill with an `--color-on-caution` outline and a "▲" marker; warning: `--color-warning` with a "!" marker; the newest point of a stale status: hollow, no marker. The marker shows icon + colour without the word (§2.3 exception); each point's title gives value, status, UTC time and source.
+- **Thresholds:** one dashed `--color-text-muted` line per rule row, labelled "SPO-01 · < 94 % caution". Never a status colour.
+- **Range:** a fixed Y range per indicator (SpO₂ 80–100 %, grid every 5) so the threshold lines always show; values outside it sit on the edge.
 - **Axes:** units on the axes, faint optional grid lines, no dual axes [S1 V2 10046][S2 §10.6.18].
 
 ## 6. Themes
