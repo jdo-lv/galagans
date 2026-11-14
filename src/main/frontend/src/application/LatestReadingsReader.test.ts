@@ -87,6 +87,36 @@ describe('LatestReadingsReader', () => {
     expect(await at(STALE_AFTER_MS)).not.toBe('stale')
   })
 
+  it('#19 AC8: a caution reading carries the rule row that decided it', async () => {
+    const reading = await byKey('spo2', [checkIn({ spo2Percent: 92 }, '2026-11-14T11:50:00Z')])
+
+    expect(reading?.state).toBe('caution')
+    expect(reading?.rule?.id).toBe('SPO-01')
+    expect(reading?.unrated).toBeUndefined()
+  })
+
+  it('#19 AC10: a nominal reading of a rated indicator has no rule and is not unrated', async () => {
+    const reading = await byKey('spo2', [checkIn({ spo2Percent: 96 }, '2026-11-14T11:50:00Z')])
+
+    expect(reading?.state).toBe('nominal')
+    expect(reading).not.toHaveProperty('rule')
+    expect(reading).not.toHaveProperty('unrated')
+  })
+
+  it('#19 AC11: a stale reading carries no rule, even when its value matches one', async () => {
+    const reading = await byKey('spo2', [checkIn({ spo2Percent: 92 }, '2026-11-13T11:00:00Z')])
+
+    expect(reading?.state).toBe('stale')
+    expect(reading).not.toHaveProperty('rule')
+  })
+
+  it('#19 AC12: an indicator with no rule rows is unrated', async () => {
+    const reading = await byKey('heartRate', [checkIn({ heartRateBpm: 63 }, '2026-11-14T11:50:00Z')])
+
+    expect(reading?.state).toBe('nominal')
+    expect(reading?.unrated).toBe(true)
+  })
+
   it('AC25: a heart-rate rule row sets the Heart rate state', async () => {
     const [spo01, spo02] = rules as Rule[]
     const heartRateRow: Rule = {

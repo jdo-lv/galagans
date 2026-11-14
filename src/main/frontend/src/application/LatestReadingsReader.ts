@@ -8,11 +8,14 @@ type IndicatorSpec = Extract<ReadingSpec, { indicator: string }>
 
 function fromCheckIns(spec: IndicatorSpec, rules: Rule[], checkIns: CheckIn[], now: Date): LatestReading {
   const rows = rules.filter((rule) => rule.indicator === spec.indicator)
+  const rating = rows.length === 0 ? { unrated: true as const } : {}
   const latest = latestReading(checkIns, spec.indicator, spec.validMin, spec.validMax, rows)
-  if (!latest) return { spec, state: 'no-data' }
+  if (!latest) return { spec, state: 'no-data', ...rating }
 
-  const shown = { spec, value: latest.value, recordedAt: latest.recordedAt, source: spec.source ?? 'manual' }
-  return { ...shown, state: now.getTime() - latest.time > spec.staleAfterMs ? 'stale' : latest.status }
+  const shown = { spec, value: latest.value, recordedAt: latest.recordedAt, source: spec.source ?? 'manual', ...rating }
+  // A rule only judges fresh data, as in the body-systems list.
+  if (now.getTime() - latest.time > spec.staleAfterMs) return { ...shown, state: 'stale' }
+  return latest.rule ? { ...shown, state: latest.status, rule: latest.rule } : { ...shown, state: latest.status }
 }
 
 export class LatestReadingsReader {
