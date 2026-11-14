@@ -14,6 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Backend tests: `mvn test -DskipFrontend=true`. Full build with frontend: `mvn clean verify` (installs Node 22.13.0 under `target/`, runs `npm ci`, `npm run build` into `src/main/resources/static`, then `npm run test`).
 - Run: `mvn spring-boot:run` serves the built PWA and `/api` on :8080. Frontend dev: `cd src/main/frontend && npm run dev` (:5173, proxies `/api` to :8080).
 - Frontend only: `cd src/main/frontend && npm run test` / `npm run build`.
+- F25 voice host: `podman compose -f voice-host/compose.yaml up -d --build` (or `docker compose`). LLM (llama.cpp, Qwen3.5-4B) on :8081, whisper-server on :8082, Piper read-aloud on :8084; the Vite dev server proxies them under `/voice/llm`, `/voice/stt`, `/voice/tts`, so voice works only with `npm run dev` (the built app on :8080 shows "Voice host unreachable"). Needs a Podman VM with 8 GB (`podman machine set --memory 8192`). The first start downloads the model (~2.7 GB) into a volume.
+- Frontend tests need Node 22 (`target/node/node`, installed by the Maven build). On Node 25+, `localStorage` is undefined in jsdom and the theme and hazard-lens tests fail.
 
 ## Code architecture
 
