@@ -1,16 +1,9 @@
 import { useId } from 'react'
 import { formatAge, formatStaleAge } from '../application/formatAge'
 import type { SystemStatus } from '../domain/rules'
+import { WarningIcon } from './icons'
 import './status.css'
 import type { StatusListState } from './useSystemStatuses'
-
-function Octagon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
-      <polygon points="7,1 17,1 23,7 23,17 17,23 7,23 1,17 1,7" fill="currentColor" />
-    </svg>
-  )
-}
 
 function Badge({ state }: { state: SystemStatus['state'] }) {
   switch (state) {
@@ -25,7 +18,7 @@ function Badge({ state }: { state: SystemStatus['state'] }) {
     case 'warning':
       return (
         <span className="badge badge--warning">
-          <Octagon />
+          <WarningIcon size={18} />
           <span>WARNING</span>
         </span>
       )
