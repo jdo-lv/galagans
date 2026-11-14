@@ -27,3 +27,85 @@
 .packet-privacy .tabler-icon {
   margin-top: 2px;
 }
+
+/* Next packet contents: uppercase muted column labels, rows divided like the body-system list */
+.packet-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.packet-table th,
+.packet-table td {
+  padding: var(--space-3) var(--space-2) var(--space-3) 0;
+  border-bottom: 1px solid var(--color-divider);
+  text-align: left;
+  vertical-align: top;
+}
+
+.packet-table thead th {
+  padding-block: var(--space-2);
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.packet-table tbody th {
+  font-weight: 400;
+}
+
+.packet-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+/* Badge, rule tag and tier pill stacked */
+.packet-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+/* The tier is a label, not a target, so it keeps the pill shape at text height */
+.packet-tier {
+  min-height: 0;
+  padding: 0 var(--space-3);
+}
+
+/* Phones: each row stacks, item and status, then value and source */
+@media (max-width: 599px) {
+  .packet-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .packet-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-1) var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-divider);
+  }
+
+  .packet-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .packet-table tbody th,
+  .packet-table tbody td {
+    padding: 0;
+    border: 0;
+  }
+
+  .packet-table tbody tr > :nth-child(even) {
+    justify-self: end;
+  }
+
+  .packet-status {
+    align-items: flex-end;
+  }
+}
