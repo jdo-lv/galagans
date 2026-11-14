@@ -48,49 +48,17 @@ The body-map mockup ([01-body-map.png](mockups/01-body-map.png)) lists nine syst
 
 **Respiratory is part of category 3** (decided 2026-11-14). It stays a named sub-system inside "Heart, lungs & circulation", next to Cardiovascular, so the rule table can keep `system: "Respiratory"` for SpO₂ rules and the category shows the worse status of its sub-systems. The first MVP issue's "Respiratory" row is that sub-system; it rolls up into category 3 once categories are built.
 
-## Chart colours
+## How categories are shown
 
-Added 2026-11-14. One colour per category so a category reads the same in every chart, legend, body-map row and surgeon packet. Yellow, orange and red are left out: yellow `#FFC72C` = caution and red `#C61E37` = warning ([ux-human-factors.md](../research/ux-human-factors.md#team-palette-health-palette-prototype)), and orange sits between them. Green is left out too: for red-green colour-blind viewers it collapses onto warning red (ΔE 2.3 in our test).
+Decided 2026-11-14: **categories have no colour.** The UI is neutral (palette greys and whites), and colour appears only on the [0–5 alert levels](alert-levels.md), so any colour on screen means "action may be needed". An earlier version gave each category a hue; it was dropped so a coloured chart line can't be read as a status.
 
-| # | Category | Hue | Light theme | Dark theme | Why this hue |
-|---|---|---|---|---|---|
-| 1 | Sleep & alertness | violet | `#5814C1` | `#7444E7` | night |
-| 2 | Mood & behavioral health | orchid | `#C333BC` | `#DB4DD3` | |
-| 3 | Heart, lungs & circulation | berry | `#8D0466` | `#C81392` | heart, kept clear of warning red |
-| 4 | Head, eyes & balance | blue | `#046BFB` | `#4087FD` | follows the palette's "brain" blue |
-| 5 | Bone, muscle & kidney | teal | `#029791` | `#18A7A1` | water / fluids |
-| 6 | Immune & skin | deep cyan | `#0D6891` | `#01729F` | |
-| — | Habitat exposure (CO₂, noise, temperature, humidity, dose) | neutral khaki-grey | `#726F6C` | `#868375` | context, not a body category; draw dashed |
+A category is told apart by its name, its icon and its place, never by colour:
 
-These replace the palette's decorative accents for data (khaki = exercise, olive = sleep): khaki now means habitat, and olive `#52574E` is the dark card colour, so it can't carry a series.
-
-```css
-:root {           /* light */
-  --cat-sleep: #5814C1; --cat-mood: #C333BC; --cat-heart: #8D0466;
-  --cat-head: #046BFB;  --cat-bone: #029791; --cat-immune: #0D6891; --cat-habitat: #726F6C;
-}
-[data-theme="dark"] {
-  --cat-sleep: #7444E7; --cat-mood: #DB4DD3; --cat-heart: #C81392;
-  --cat-head: #4087FD;  --cat-bone: #18A7A1; --cat-immune: #01729F; --cat-habitat: #868375;
-}
-```
-
-**How they were checked** (OKLab ΔE×100, protan/deuteranopia simulated with Machado 2009 at severity 1.0, the method of the dataviz checklist; recomputed 2026-11-14):
-
-- Colour-blind separation, all 21 pairs: worst 7.0 light / 6.6 dark (bone vs habitat). That's in the 6–8 band where colour alone is not enough, so the secondary encoding below is required, not optional.
-- Normal vision, all pairs: worst 11.9 light (immune vs habitat) / 11.7 dark (mood vs heart). Below 15, so no more than three categories in one plot area.
-- Distance from the status colours, worst of normal/protan/deutan: ≥ 21 from caution yellow, ≥ 12.6 from warning red for the six categories (habitat grey is 8.1, so it never gets a filled warning-sized mark).
-- Contrast: every dark-theme colour is ≥ 3:1 on the background `#1B1B1B`, none is on the olive card `#52574E` (1.3–2.5:1). Light theme on the card `#DADADA`: all ≥ 3.3:1 except bone teal (2.6:1).
-
-**Rules for using them**
-
-1. Colour = category identity only. Status stays on the status set with icon + word; a category colour never means good or bad, and a value line never turns yellow or red (draw the caution or warning band behind it instead).
-2. Never colour alone ([ux-human-factors.md](../research/ux-human-factors.md) checklist item 11): every series has a direct label with the category name and its icon; legends list categories in the table's order.
-3. At most three categories in one plot. More → small multiples, one per category, same axes.
-4. Dark theme: charts sit in a `#1B1B1B` plot well inside the card, not on the olive card.
-5. Light theme: bone teal needs its direct label or the value table, because its line is under 3:1.
-6. Lines 2 px, markers ≥ 8 px; habitat series dashed so it reads as context.
-7. Respiratory uses the category 3 colour. A seventh body category (e.g. splitting Respiratory out of 3) needs a re-run of these checks; it can't just take a new hue, because seven cool hues can't all stay apart for colour-blind viewers.
+1. **Name and icon on every mark.** Each chart series has a direct label (category name + icon) at the line end; legends list categories in the table's order.
+2. **One category per plot.** More than one → small multiples, one per category, same axes. If two series must share a plot (e.g. a value and its habitat context), the body value is a solid line and habitat exposure is dashed.
+3. **Neutral inks.** Dark theme: series `#DADADA`, secondary series and axes `#868375`, baseline band `#CFCFCF` at low opacity, plot well `#1B1B1B` inside the olive card. Light theme: series `#1B1B1B`, secondary `#52574E`.
+4. **Status goes on top, not into the line.** A value that triggers a level gets the level's marker (icon + word + level colour) at that point, and the alert band behind it; the line itself stays neutral.
+5. **Lines 2 px, markers ≥ 8 px** so the neutral marks keep ≥ 3:1 against the plot well.
 
 ## Sources
 
@@ -101,4 +69,4 @@ All figures are taken from the team's research files, which carry the primary re
 - [research/long-duration-literature.md](../research/long-duration-literature.md): muscle loss [L2], jugular stasis [L4], cognition [L5], viral shedding [L7], sleep in isolation [L8], kidney [L9].
 - [research/health-indicators.md](../research/health-indicators.md): indicator catalog, devices, attention thresholds, orthostatic intolerance on landing, CO₂ and noise limits.
 - [ideas/features.md](features.md) and [crew-health-companion.md](crew-health-companion.md): the values the app collects (F1 check-in, F7 PVT, F8 devices, F15 questionnaires, F17 fluids).
-- Chart colours: validation method and thresholds from the dataviz checklist (OKLCH band, chroma ≥ 0.10, CVD ΔE target 8 / floor 6, normal-vision floor 15, WCAG 3:1 for marks); Machado, Oliveira & Fernandes (2009), "A physiologically-based model for simulation of color vision deficiency", IEEE TVCG 15(6). Colour-blind rules and status colours: [research/ux-human-factors.md](../research/ux-human-factors.md) [S1] [S2] [S32].
+- Neutral category display and status colours: [alert-levels.md](alert-levels.md); colour-blind and display rules: [research/ux-human-factors.md](../research/ux-human-factors.md) [S1] [S2] [S32].

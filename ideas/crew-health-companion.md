@@ -18,7 +18,7 @@ Proposal written 2026-11-06 from everything in `../research/`. It is an idea und
   1. Morning check-in. The simulated pulse oximeter sends a reading.
   2. A 3-minute PVT that comes out slow.
   3. In the simulator, the operator triggers the "CO2 build-up" scenario, which replays real cabin CO2.
-  4. The body map shows "Cognition: caution", "Cabin air: caution" and "Sleep: caution" (3 nights under 6 h) with the explanation and an action. The hazard lens on "Hostile/closed environment" highlights all three.
+  4. The body map shows "Cognition: check", "Cabin air: check" and "Sleep: watch" (3 nights under 6 h) with the explanation and an action. The hazard lens on "Hostile/closed environment" highlights all three.
   5. Switching to "Systems" lights the path cabin CO₂ + short sleep → cognition (if the schematic is built).
   6. The Cognition detail shows the PVT outside its adaptation corridor.
   7. "Add to my next medical conference" puts the item on the agenda; the approved agenda goes into the surgeon packet, sent with the visible Mars delay.
@@ -49,7 +49,7 @@ Name: Crew Health Companion
 Problem (which HRP risk / hazard): Medical conditions and adverse cognitive/behavioral changes under distance from Earth (no real-time ground) and a hostile closed environment (CO2, radiation); risks: sleep, SANS, bone/muscle, kidney stones, cardiovascular.
 User and moment of use: Astronaut, daily check-in at a set time (1–2 min) plus prompted checks per mission routine. Environment mode: ISS / Orion / lunar base / Mars transit (changes the medical kit and the delay).
 Inputs: Daily — HR + SpO2 (simulated BLE oximeter or manual), BP (simulated BLE cuff or manual), temperature, sleep hours, mood 1–5, symptom checklist. Every 4th day — 3-min PVT. Weekly — Amsler grid + acuity self-test, body mass. Continuous (environment) — CO2, temperature, humidity, noise, radiation dose (simulated Wi-Fi node). All sensors come from the Device Simulator app.
-Outputs: Per-system status (nominal / caution / warning with icon + word + color), explanation, recommended action, escalation tier, store-and-forward packet for the flight surgeon.
+Outputs: Per-system status on the 0–5 alert scale ([alert-levels.md](alert-levels.md): nominal, to do, watch, check, treat, emergency; icon + word + color), explanation, recommended action, escalation tier, store-and-forward packet for the flight surgeon.
 2-minute demo: check-in → PVT → body map flag + hazard lens → corridor chart, explanation + action → CO2 cause → surgeon packet with delay.
 Data for the demo: Real — OSDR RadLab radiation, OSDR EDA cabin CO2/temp/RH, Inspiration4 blood panels with reference ranges. Proxy — PhysioNet sleep/HR. Synthetic (labeled) — in-flight vital-sign drift built from published shifts.
 Gates G1–G5: pass (G2 and G3 with the modifications below) — see "Gates".
@@ -67,7 +67,7 @@ Gates G1–G5: pass (G2 and G3 with the modifications below) — see "Gates".
    - its scheduled checks
 4. **Mission routine.** The app prompts the checks NASA already schedules: daily check-in, PVT every 4th day, weekly vision self-test, and pre-landing fluid loading. A "post-flight" mode extends tracking into recovery, because bone and cognition don't return to baseline quickly ([long-duration-literature.md](../research/long-duration-literature.md)).
 5. **Escalation and delay.** Each action names the tier. The flight-surgeon packet is store-and-forward and shows the current one-way delay for the chosen environment mode: Moon ~1.3 s light-time, 6–10 s in practice; Mars 3–22 min.
-6. **NASA display rules.** Nominal is quiet. Caution is yellow and warning is red, always with an icon and a word. Each value shows its unit, data age and trend ([ux-human-factors.md](../research/ux-human-factors.md)).
+6. **NASA display rules.** Nominal is quiet. Statuses follow the 0–5 [alert levels](alert-levels.md): blue = astronaut input due, yellow/orange = caution band, red = emergency only, always with an icon and a word. Each value shows its unit, data age and trend ([ux-human-factors.md](../research/ux-human-factors.md)).
 7. **Privacy and gamification.**
    - Data is private by default.
    - There are role views for self, CMO and surgeon.
@@ -131,7 +131,7 @@ Added 2026-11-13. **What it shows.** A toggle at the top of the home screen swit
 - **Left column, habitat:** the environment node's readings (cabin CO₂, temperature, humidity, noise) and the dosimeter.
 - **Right column, crew member:** body systems and symptoms (cognition, sleep, headache, immune, blood and eyes).
 - **Links:** one per known relationship, taken from the rule table's "related signals". A link behind an active flag is drawn solid with its status icon and the rule ID, e.g. "▲ rule COG-02 · related". Nominal links are dashed and grey. Never color alone.
-- **Cause path card:** under the diagram, one sentence states the path ("Cabin CO₂ above the 1-h limit + 3 short nights → Cognition caution"), with how it was decided and what to do next.
+- **Cause path card:** under the diagram, one sentence states the path ("Cabin CO₂ above the 1-h limit + 3 short nights → Cognition check"), with how it was decided and what to do next.
 - **Hazard lens:** applies to this view too; boxes and links outside the selected hazard are dimmed.
 
 **Why.** The body map shows *where* a problem is. The schematic shows *why*, which is the brief's "how do spaceflight hazards affect these health indicators?" and the "how decided" part of every explanation. It also makes the CO₂ demo scenario readable at a glance, and it looks like flight software rather than a fitness app.
@@ -254,7 +254,7 @@ See the [home screen mockup](mockups/01-body-map.png).
 |---|---|---|
 | Upcoming | grey row with its window ("20:00–22:00") | not yet open |
 | Due now | highlighted row + "Start" button + estimated time ("~40 s") | window open |
-| Added by a rule | as "due now", plus a dashed "rule" tag with a one-line reason | e.g. "PVT slower than baseline" |
+| Added by a rule | as "due now", plus a dashed grey "rule" tag with a one-line reason | e.g. "PVT slower than baseline" |
 | Done | tick + time | completed |
 | Missed | dimmed "not answered" | window closed; the data-age note appears on the body map |
 
@@ -262,7 +262,7 @@ See the [home screen mockup](mockups/01-body-map.png).
 - **One reminder when a window opens:** a banner with "Start" and "Snooze", and nothing more. NASA notes that too many alerts become a nuisance and crews stop responding ([ux-human-factors.md](../research/ux-human-factors.md)).
 - **Bundling:** everything due in the same window starts with one "Start" as one session.
 - **Rule-triggered items join the next session** instead of interrupting, unless the rule is urgent. Even then the banner names the reason.
-- **"Due" never uses red or yellow.** Those colors are reserved for health status, so being due uses the neutral accent color. The dashed "rule" tag marks why an item was added, not urgency, so it is never yellow ([ui-guidelines.md](ui-guidelines.md)).
+- **"Due" is alert level 1, never 2–5.** A due item gets the level 1 blue outline, icon and the word "to do" ([alert-levels.md](alert-levels.md)). Yellow, orange and red stay for health status. The dashed grey "rule" tag marks why an item was added, not urgency.
 
 **Who sees what is pending**
 - The astronaut sees their own list.

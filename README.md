@@ -23,6 +23,7 @@ Team workspace for the challenge **"Create Health Monitoring Software for Astron
 | [ideas/features.md](ideas/features.md) | Every feature of the lead idea in plain words for non-experts, a glossary, and the build order |
 | [ideas/ui-guidelines.md](ideas/ui-guidelines.md) | UI and UX guidelines from the palette canvas: tokens, type, components, status colours, contrast, checklist for UI pull requests |
 | [ideas/health-categories.md](ideas/health-categories.md) | Six health categories grouping every collected value by the main long-mission issue, with exposures as context |
+| [ideas/alert-levels.md](ideas/alert-levels.md) | Six alert levels (0 nominal → 5 emergency): meaning, icon, routing, colour tokens with contrast and colour-blind checks |
 
 ## What the research says (shapes every idea)
 
