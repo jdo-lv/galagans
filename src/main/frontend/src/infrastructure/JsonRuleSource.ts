@@ -8,6 +8,8 @@ const STRING_FIELDS = ['id', 'system', 'indicator', 'label', 'unit', 'tier', 'wh
 const NUMBER_FIELDS = ['validMin', 'validMax']
 const INDICATORS: Indicator[] = ['heartRateBpm', 'spo2Percent', 'sleepHours', 'mood', 'pvtMedianMs']
 const THRESHOLDS = ['below', 'above', 'aboveBaselinePercent'] as const
+const TEXT_FIELDS = ['what', 'howDecided', 'next'] as const
+const PLACEHOLDER = /\{(baseline|limit|percent)\}/g
 
 /** Keeps only well-formed entries, so a broken one reads as missing. */
 function validBaseline(profile: unknown): Baseline {
@@ -38,14 +40,22 @@ function validate(row: unknown, index: number, baseline: Baseline): Rule {
   const [threshold] = thresholds
   if (threshold !== 'aboveBaselinePercent') {
     if (typeof r[threshold] !== 'number') fail(`${threshold} must be a number`)
+    if (TEXT_FIELDS.some((key) => (r[key] as string).match(PLACEHOLDER))) {
+      fail('{baseline}, {limit} and {percent} need aboveBaselinePercent')
+    }
     return r as unknown as Rule
   }
 
-  const percent = r.aboveBaselinePercent as number
+  const percent = r.aboveBaselinePercent
+  if (typeof percent !== 'number' || !(percent > 0)) return fail('aboveBaselinePercent must be a positive number')
   const indicator = r.indicator as Indicator
   const entry = baseline[indicator] ?? fail(`no baseline for ${indicator}`)
+  const above = entry.value * (1 + percent / 100)
+  const values = { baseline: entry.value, limit: above, percent }
+  const fill = (text: string) => text.replace(PLACEHOLDER, (_, key: keyof typeof values) => String(values[key]))
   const { aboveBaselinePercent: _, ...rest } = r
-  return { ...rest, above: entry.value * (1 + percent / 100), baseline: entry } as unknown as Rule
+  const texts = Object.fromEntries(TEXT_FIELDS.map((key) => [key, fill(r[key] as string)]))
+  return { ...rest, ...texts, above, baseline: entry } as unknown as Rule
 }
 
 /** Validates the rule rows and resolves baseline-relative thresholds against the pre-flight profile. */
