@@ -20,6 +20,6 @@ export type CheckInRoutineItem = {
 export type RoutinePlaceholder = { kind: 'placeholder'; label: string; detail: string; source: 'synthetic' }
 
 /** The PVT (#16): done when a PVT result exists today. */
-export type PvtRoutineItem = { kind: 'pvt'; label: 'PVT (3 min)'; doneAt?: string }
+export type PvtRoutineItem = { kind: 'pvt'; label: 'PVT (3 min)'; doneAt?: string; /** No PVT result in the last 4 days (#37). */ due: boolean }
 
 export type RoutineItem = CheckInRoutineItem | PvtRoutineItem | RoutinePlaceholder
