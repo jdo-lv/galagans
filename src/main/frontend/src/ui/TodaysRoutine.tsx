@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import { formatTime } from '../application/formatAge'
-import type { CheckInRoutineItem, RoutineItem, RoutinePlaceholder } from '../domain/routine'
+import type { CheckInRoutineItem, PvtRoutineItem, RoutineItem, RoutinePlaceholder } from '../domain/routine'
 import type { PeriodicState } from './usePeriodicRead'
 
 function rightText(item: CheckInRoutineItem): string | undefined {
@@ -20,6 +20,15 @@ function CheckInRow({ item, onStart }: { item: CheckInRoutineItem; onStart: () =
         </button>
       )}
       {text && <span className="num">{text}</span>}
+    </li>
+  )
+}
+
+function PvtRow({ item }: { item: PvtRoutineItem }) {
+  return (
+    <li className="routine-item">
+      <span>{item.label}</span>
+      {item.doneAt ? <span className="num">{`done ${formatTime(item.doneAt)}`}</span> : <span className="num muted">every 4th day</span>}
     </li>
   )
 }
@@ -48,7 +57,13 @@ export function TodaysRoutine({ state, onStart }: { state: PeriodicState<Routine
       {state.kind === 'ready' && (
         <ul className="routine-list">
           {state.data.map((item) =>
-            item.kind === 'check-in' ? <CheckInRow key={item.label} item={item} onStart={onStart} /> : <PlaceholderRow key={item.label} item={item} />,
+            item.kind === 'check-in' ? (
+              <CheckInRow key={item.label} item={item} onStart={onStart} />
+            ) : item.kind === 'pvt' ? (
+              <PvtRow key={item.label} item={item} />
+            ) : (
+              <PlaceholderRow key={item.label} item={item} />
+            ),
           )}
         </ul>
       )}

@@ -11,6 +11,7 @@ export type ReadingSpec =
       validMin: number
       validMax: number
       staleAfterMs: number
+      source?: 'manual' | 'in-app test'
     }
   // No input in the app yet; shown from a placeholder.
   | { key: string; label: string; labelSuffix?: string; unit: string; indicator: null }
@@ -30,7 +31,7 @@ export interface LatestReading {
   text?: string
   recordedAt?: string
   /** Only when a value or text is shown. */
-  source?: 'manual' | 'synthetic'
+  source?: 'manual' | 'synthetic' | 'in-app test'
 }
 
 /** One row per "Latest readings" tile, in display order (ideas/mockups/01-body-map.png). */
@@ -41,4 +42,15 @@ export const READINGS: ReadingSpec[] = [
   { key: 'mood', label: 'Mood', unit: '/ 5', indicator: 'mood', validMin: 1, validMax: 5, staleAfterMs: STALE_AFTER_MS },
   { key: 'bloodPressure', label: 'Blood pressure', unit: 'mmHg', indicator: null },
   { key: 'cabinCo2', label: 'Cabin CO₂', labelSuffix: '(1-h avg)', unit: 'mmHg', indicator: null },
+  // Stale after 4 d: team heuristic from the every-4th-day PVT schedule (health-indicators §13 [S28]).
+  {
+    key: 'pvt',
+    label: 'Reaction time',
+    unit: 'ms',
+    indicator: 'pvtMedianMs',
+    validMin: 130,
+    validMax: 10000,
+    staleAfterMs: 4 * 24 * 60 * 60 * 1000,
+    source: 'in-app test',
+  },
 ]

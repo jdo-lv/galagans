@@ -1,7 +1,7 @@
 import { useId, type ComponentType } from 'react'
 import { formatAge, formatOldAge } from '../application/formatAge'
 import type { LatestReading } from '../domain/readings'
-import { BloodPressureIcon, CabinAirIcon, HeartRateIcon, MoodIcon, SleepIcon, Spo2Icon } from './icons'
+import { BloodPressureIcon, CabinAirIcon, HeartRateIcon, MoodIcon, PvtIcon, SleepIcon, Spo2Icon } from './icons'
 import { Badge } from './SystemStatusList'
 import type { LatestReadingsState } from './useLatestReadings'
 
@@ -13,6 +13,7 @@ const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   mood: MoodIcon,
   bloodPressure: BloodPressureIcon,
   cabinCo2: CabinAirIcon,
+  pvt: PvtIcon,
 }
 
 function Reading({ reading }: { reading: LatestReading }) {

@@ -499,7 +499,7 @@ Updated 2026-11-13 to match the app skeleton in `src/` (see `CLAUDE.md` for buil
 | Part | Stack | Role in the mission |
 |---|---|---|
 | Crew app (`src/main/frontend`) | React 19 + TypeScript PWA (Vite, `vite-plugin-pwa` service worker), IndexedDB | **The tablet on board.** Check-in, PVT, questionnaires, gateway, **rules engine**, body map, explanations. Works with no connection. |
-| Ground station (`src/main/kotlin`) | Kotlin + Spring Boot 3.4 WebFlux, Java 21 | **Earth.** Receives synced check-ins (`POST /api/checkins/sync`, done) and surgeon packets, and gives the flight surgeon a read-only view. Never needed for the crew loop. |
+| Ground station (`src/main/kotlin`) | Kotlin + Spring Boot 3.4 WebFlux, Java 21 | **Earth.** Receives synced check-ins (`POST /api/checkins/sync`, done) and surgeon packets (`POST /api/packets`, done), and will give the flight surgeon a read-only view (not built). Never needed for the crew loop. |
 | Device Simulator | TypeScript, a second page in the same Vite project (`simulator.html`) | **The spacecraft's devices.** Runs scenario timelines in the browser and publishes readings to MQTT. |
 | Broker | Mosquitto, local (e.g. Docker) with its WebSocket listener | **The radio link** between simulator and crew app. |
 

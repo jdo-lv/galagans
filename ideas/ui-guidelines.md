@@ -149,7 +149,7 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Surface:** an inset (`--color-inset`) tile in a card's tile grid, 16 px radius, no edge: it's static, not a control (§2.4).
 - **Row 1:** the value in `--text-value` with its unit in bold body text, and the metric's icon on the right. Mood shows as "3 / 5". A reading too wide for the tile wraps its unit under the value and moves the icon to the next line, still on the right.
 - **Row 2:** the field-tile label pattern: the label in uppercase, then "/" and the data age in muted text, in its own case: "SPO₂ / 4 min ago". The canvas used a unit or a date here; the unit moves next to the value.
-- **Row 3:** a source tag on every value shown ("manual", "synthetic"). Simulated, replayed and proxy readings say so.
+- **Row 3:** a source tag on every value shown ("manual", "synthetic", "in-app test"). Simulated, replayed and proxy readings say so.
 - **Missing:** "—" with the accessible text "No reading", and no unit, age or tag. **Stale** (older than the metric's expected interval): the value and unit in `--color-text-muted-on-inset` and the age spelled out ("8 d old"), with the icon and no status colour.
 - **Placeholder tile:** a reading the app can't take yet shows synthetic text and unit with the tag "synthetic", no data age and no badge (issue #7).
 - **Status:** an off-nominal tile shows a status badge in place of the icon. The tile surface itself never changes colour.
@@ -160,6 +160,14 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Due:** a 1 px `--color-accent` outline in `--radius-item`, no fill, and a secondary "Start · ~<estimate>" button (the screen's one primary button stays "Save check-in"). Never red or yellow.
 - **Done:** "done HH:MM" with no glyph; ✓ stays Nominal.
 - **Placeholder row:** the label with a "synthetic" tag under it and the muted detail on the right; no state, button or glyph, the same at every time of day.
+- **PVT row** (issue #16): "done HH:MM" when a PVT was done today, otherwise muted "every 4th day"; no tag, no button (the Reaction test card starts it).
+
+### Test screen (PVT, built: issue #16)
+- **Home card:** "Reaction test" between Latest readings and Check-in, with a secondary "Start reaction test" button (Check-in keeps the one primary).
+- **Start screen:** what to do, "use the same device each time" (device latency affects RT, health-indicators §13), a primary "Start test" and an underlined "← Home".
+- **Running:** the time left ("2:41 left", `.num`) beside the heading; the target is an inset `button` at least 300 px high (`aria-label="Respond"`) with the counter in `.value` at `--text-hero`; "Too early" for a false start; a secondary "Stop". Space and a tap both respond.
+- **Result:** a two-column list (muted terms, numbers right) of median, lapses, false starts and responses, then the save line and one primary button.
+- **No status colour anywhere on the test:** a slow response isn't a caution; the Cognition rule decides that (#17).
 
 ### Featured tile
 - **Use:** a tall tile on `--color-feature-1` or `--color-feature-2` with title, day and up to three value + unit lines, for process summaries such as exercise minutes and sleep hours.
