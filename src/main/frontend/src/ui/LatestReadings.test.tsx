@@ -67,4 +67,40 @@ describe('LatestReadings', () => {
     expect(items.map((li) => LABELS.find((label) => li.textContent?.includes(label)))).toEqual(LABELS)
     expect(tile('Cabin CO₂').querySelector('.tile-label__suffix')).toHaveTextContent('(1-h avg)')
   })
+
+  it.each(['SpO₂', 'Heart rate', 'Sleep', 'Mood'])('AC2: %s shows "—" read as "No reading", with no unit, age, tag or badge', async (label) => {
+    setup().renderApp()
+    await tiles()
+
+    const t = tile(label)
+    expect(within(t).getByText('—').closest('[aria-hidden="true"]')).not.toBeNull()
+    expect(t.querySelector('.visually-hidden')).toHaveTextContent('No reading')
+    expect(t.querySelector('.badge')).toBeNull()
+    expect(t.querySelector('.metric-tile__unit')).toBeNull()
+    expect(t.querySelector('.tag')).toBeNull()
+    expect(t.textContent).not.toMatch(/ago|old/)
+  })
+
+  it.each([
+    ['Blood pressure', '108/70 mmHg'],
+    ['Cabin CO₂', '2.3 mmHg'],
+  ])('AC3: %s shows the synthetic %s with its tag, no badge and no age', async (label, shown) => {
+    setup().renderApp()
+    await tiles()
+
+    const t = tile(label)
+    expect(t).toHaveTextContent(shown)
+    const tags = t.querySelectorAll('.tag')
+    expect(tags).toHaveLength(1)
+    expect(tags[0]).toHaveTextContent('synthetic')
+    expect(t.querySelector('.badge')).toBeNull()
+    expect(t.textContent).not.toMatch(/ago|old/)
+  })
+
+  it.each(LABELS)('AC4: %s has an icon with no data', async (label) => {
+    setup().renderApp()
+    await tiles()
+
+    expect(tile(label).querySelector('.metric-tile__icon')).not.toBeNull()
+  })
 })
