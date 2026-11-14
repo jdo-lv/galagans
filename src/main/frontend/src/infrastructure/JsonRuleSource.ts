@@ -6,7 +6,20 @@ import ruleRows from './rules.json'
 
 const STRING_FIELDS = ['id', 'system', 'indicator', 'label', 'unit', 'tier', 'what', 'why', 'howDecided', 'next', 'source']
 const NUMBER_FIELDS = ['validMin', 'validMax']
-const INDICATORS: Indicator[] = ['heartRateBpm', 'spo2Percent', 'sleepHours', 'mood', 'pvtMedianMs']
+const INDICATORS: Indicator[] = [
+  'heartRateBpm',
+  'spo2Percent',
+  'sleepHours',
+  'mood',
+  'pvtMedianMs',
+  'systolicMmHg',
+  'diastolicMmHg',
+  'bodyTempC',
+  'cabinCo2MmHg',
+  'cabinTempC',
+  'cabinHumidityPct',
+  'doseRateMsvDay',
+]
 const THRESHOLDS = ['below', 'above', 'aboveBaselinePercent'] as const
 const TEXT_FIELDS = ['what', 'howDecided', 'next'] as const
 const PLACEHOLDER = /\{(baseline|limit|percent)\}/g

@@ -36,8 +36,8 @@ describe('SystemStatusList', () => {
     setup().renderApp()
 
     await vi.waitFor(() => expect(row()).toHaveTextContent('No data'))
-    // Respiratory, then Cognition (rule COG-01, #17), both with no data.
-    expect(within(list()).getAllByRole('listitem')).toHaveLength(2)
+    // Respiratory, Cognition (rule COG-01, #17) and Cabin air (rule CAB-01), all with no data.
+    expect(within(list()).getAllByRole('listitem')).toHaveLength(3)
     expect(row()).toHaveTextContent('Respiratory')
     expectNoStatusIcon(row())
   })
@@ -214,7 +214,7 @@ describe('Body systems with placeholders (#4)', () => {
     expect(within(rows[0]).getByText('No data')).toBeInTheDocument()
   })
 
-  it('AC2: SpO₂ 88 warns on Respiratory while the placeholders stay nominal (Cognition has no data since #17)', async () => {
+  it('AC2: SpO₂ 88 warns on Respiratory while the placeholders stay nominal (Cognition and Cabin air have no data)', async () => {
     setup({ placeholders: mockStatuses }).renderApp()
     await submitSpo2(88)
 
@@ -222,13 +222,13 @@ describe('Body systems with placeholders (#4)', () => {
     const [respiratory, ...others] = within(list()).getAllByRole('listitem')
     expectNoExplanation(respiratory)
     expect(others).toHaveLength(9)
-    const [cognition, ...placeholders] = others
+    const [cognition, cabinAir, ...placeholders] = others
     expect(within(cognition).getByText('No data')).toBeInTheDocument()
+    expect(within(cabinAir).getByText('No data')).toBeInTheDocument()
     placeholders.forEach((r) => expect(within(r).getByText('✓ Nominal')).toBeInTheDocument())
   })
 
   it.each([
-    ['Cabin air', 'CO₂ 2.3 mmHg (1-h avg)'],
     ['Sleep', '7.1 h last night'],
     ['Immune', 'no new symptoms'],
     ['Cardiovascular', 'BP 108/70'],
@@ -348,13 +348,13 @@ describe('Cognition from the PVT (#17)', () => {
     await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CAUTION'))
   })
 
-  it('AC7: no PVT is no data; the other eight placeholders stay', async () => {
+  it('AC7: no PVT is no data; the seven placeholders stay', async () => {
     await show([])
 
     await vi.waitFor(() => expect(cognition()).toHaveTextContent('No data'))
     expect(list()).not.toHaveTextContent('PVT 268 ms · within your baseline')
-    const placeholders = within(list()).getAllByRole('listitem').slice(2)
-    expect(placeholders).toHaveLength(8)
+    const placeholders = within(list()).getAllByRole('listitem').slice(3)
+    expect(placeholders).toHaveLength(7)
     placeholders.forEach((r) => expect(r).toHaveTextContent('synthetic'))
   })
 

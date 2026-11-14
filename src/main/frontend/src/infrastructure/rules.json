@@ -49,5 +49,22 @@
     "howDecided": "Rule COG-01: PVT median > {limit} ms (pre-flight baseline {baseline} ms + {percent} %) → caution. The baseline is a synthetic pre-loaded profile; +{percent} % is a team heuristic, not a NASA limit. No adaptation corridor yet.",
     "next": "Tell the CMO today and repeat the test tomorrow morning.",
     "source": "research/health-indicators.md §13; research/long-duration-literature.md [L5]"
+  },
+  {
+    "id": "CAB-01",
+    "system": "Cabin air",
+    "indicator": "cabinCo2MmHg",
+    "label": "CO₂ (1-h avg)",
+    "unit": "mmHg",
+    "validMin": 0,
+    "validMax": 20,
+    "above": 3,
+    "status": "caution",
+    "tier": "CMO",
+    "what": "Cabin CO₂ is above 3 mmHg as a 1-hour average.",
+    "why": "CO₂ above the limit is linked to headaches in ISS crews (reported at 2.8–4.5 mmHg) and can add to fatigue and slower thinking.",
+    "howDecided": "Rule CAB-01: CO₂ 1-h average > 3 mmHg → caution. NASA-STD-3001 limit [V2 6004] (health-indicators §22).",
+    "next": "Tell the CMO today and note any headache in your check-in. The CMO checks the cabin CO₂ trend with ground.",
+    "source": "research/health-indicators.md §22"
   }
 ]
