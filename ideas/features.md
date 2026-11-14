@@ -25,7 +25,7 @@ On a long mission an astronaut has to notice health changes in themselves, becau
 | CO₂ (mmHg) | Carbon dioxide in cabin air. Higher than on Earth; above about 3 mmHg it can cause headaches and slow thinking. |
 | SANS | Eye and brain changes caused by fluids moving toward the head in weightlessness. |
 | BLE | Bluetooth Low Energy: how a pulse oximeter or BP cuff would talk to the tablet. |
-| MQTT | A simple messaging system: devices "publish" readings, the app "subscribes". We use it to fake the sensors. |
+| Device link | A WebSocket relay in the Spring Boot app (`/ws/devices`): the simulator "publishes" readings on a topic, the crew app listens. It stands in for the spacecraft's radio and network. |
 | FHIR | The standard format hospitals use for health data. Every reading becomes a FHIR `Observation`. |
 | Store-and-forward | Save now, send when the link to Earth is up. Like email on a plane. |
 
@@ -89,16 +89,17 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 #### F8. Device Simulator · Must (3 devices, 2 scenarios)
 - **What:** a second app that pretends to be every sensor: wrist bracelet (live heart rate, plus a "dock & export" batch of sleep, resting HR and HRV), pulse oximeter, environment node (cabin CO₂, temperature, humidity, noise), dosimeter (radiation). We use no real hardware.
 - **Why:** no hardware can fail on stage, and a teammate can "operate the spacecraft" live: press "CO₂ build-up" and the crew app reacts.
-- **How:** the simulator publishes readings over MQTT; the crew app subscribes. Scenarios are timelines of values (nominal day, CO₂ build-up). Every reading is labeled "simulated", "replay" or "synthetic".
+- **How:** the simulator publishes readings over the device link; the crew app listens. Scenarios are timelines of values (nominal day, CO₂ build-up). Every reading is labeled "simulated", "replay" or "synthetic".
 - **Needs:** the shared message format agreed on day 1 (F9). Can be built in parallel from hour 1.
 - **More:** idea file "Device Simulator: a second app"; mockup [04-simulator.png](mockups/04-simulator.png).
+- **Status:** `/simulator.html` (issue #25) shows the six virtual devices of mockup 04; the pulse oximeter works: "Nominal day" publishes SpO₂ 97 % / 63 bpm at once and every 60 s, an SpO₂ override slider (80–100) changes the next reading, "Inject one reading" publishes one SpO₂ (+ pulse) value, and a traffic log shows each message or "not sent". Every reading is `synthetic` and goes over the device link to the crew app. Missing: the other 5 devices and 5 scenarios, GATT byte payloads, mission clock, device on/off, dropout and battery controls.
 
 #### F9. Personal Health Gateway · Must (simple version)
 - **What:** the part of the app that receives readings from any source (device, manual entry, replay) and turns them into one standard format (FHIR `Observation`) with source and timestamp.
 - **Why:** the rest of the app sees only one format, and swapping a fake device for a real one later only changes the connector.
-- **How (48 h):** one connector for MQTT JSON, one for manual entry, and one real Bluetooth heart-rate byte decoder (used by the bracelet) to show it's genuine. Nice-to-have: a "dock import" connector for the bracelet's batch file. Full standards stay on a slide.
+- **How (48 h):** one connector for JSON over the device link, one for manual entry, and one real Bluetooth heart-rate byte decoder (used by the bracelet) to show it's genuine. Nice-to-have: a "dock import" connector for the bracelet's batch file. Full standards stay on a slide.
 - **Needs:** F8's message format.
-- **Status:** oximeter JSON over MQTT (`crew/a1/oximeter`, issue #22) and manual entry reach one FHIR-shaped `Observation` store; a SpO₂ reading turns the Respiratory status and the SpO₂ / Heart rate tiles live, offline, with its source label. Missing: GATT byte decoders (oximeter `0x2A5E`, heart rate `0x2A37`), environment node, dosimeter, dock import, FHIR `Device` and `Patient` references.
+- **Status:** oximeter JSON over the device link (`crew/a1/oximeter`, issues #22 and #25) and manual entry reach one FHIR-shaped `Observation` store; a SpO₂ reading turns the Respiratory status and the SpO₂ / Heart rate tiles live, offline, with its source label. Missing: GATT byte decoders (oximeter `0x2A5E`, heart rate `0x2A37`), environment node, dosimeter, dock import, FHIR `Device` and `Patient` references.
 
 #### F10. Real data replay · Must
 - **What:** the simulator replays **real** NASA data: ISS cabin CO₂/temperature/humidity (OSDR EDA) and radiation (RadLab).
@@ -208,11 +209,11 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 | # | Feature | Track | When (target) | Why at this point |
 |---|---|---|---|---|
 | 0 | F1 check-in (partial), F2 offline sync | App | Done | Already in `src/` |
-| 1 | Message format and reading model (FHIR-shaped `Observation`, MQTT topics) | All | Sat 09:00–10:00 | The contract every track builds against. Oximeter contract fixed in #22: topic `crew/a1/oximeter`, payload `{id, t, spo2_pct, pulse_bpm?, src}` |
+| 1 | Message format and reading model (FHIR-shaped `Observation`, device topics) | All | Sat 09:00–10:00 | The contract every track builds against. Oximeter contract fixed in #22: topic `crew/a1/oximeter`, payload `{id, t, spo2_pct, pulse_bpm?, src}` |
 | 2 | F8 Device Simulator: environment node + oximeter, nominal scenario | Simulator | Sat from 10:00 | Independent; the demo depends on it |
 | 3 | F3 baseline + F4 rules engine with ~10 sourced rules | Rules | Sat from 10:00 | The core; everything else needs a status |
 | 4 | F1 complete (BP, temperature, symptoms) | App | Sat morning | Inputs for the rules |
-| 5 | F9 gateway (MQTT + manual) | Gateway | Sat morning | Connects simulator and app |
+| 5 | F9 gateway (device link + manual) | Gateway | Sat morning | Connects simulator and app |
 | 6 | F6 body map with statuses | UI | Sat midday | First end-to-end view |
 | **✓** | **Milestone: one simulated reading flows to a status on the body map** | — | **Sat ~15:00** | Integration risk retired early |
 | 7 | F5 detail screen with explanation and tier | UI | Sat afternoon | Completes the core loop |
