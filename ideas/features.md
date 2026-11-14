@@ -41,7 +41,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **How:** one question per screen, big buttons (fingers are clumsy in weightlessness), skip always allowed. A value can be typed or come from a (simulated) device.
 - **Example:** "Sleep last night: 5.5 h", "Mood: 3", "Symptoms: headache".
 - **Needs:** nothing.
-- **Status:** `CheckInForm` saves HR, SpO₂, sleep and mood. Missing: BP, temperature, symptom checklist, one-question-per-screen layout.
+- **Status:** the morning check-in is six steps at `#/check-in`, one question per screen (issue #29): heart rate, SpO₂, sleep hours, Karolinska Sleepiness Scale (KSS 1–9), mood 1–5 and a symptom checklist (headache, congestion, rash, neck or face swelling, back pain, or none). It opens from Today's routine "Start" or the header "+", shows progress and time left, and always allows Skip, saved as "not answered". Missing: BP, temperature, the full sleep diary.
 - **More:** idea file "Questionnaires and how they're triggered".
 
 #### F2. Works offline, sends later · Must · done
@@ -84,7 +84,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **Why:** it's the only objective, in-app measure of thinking speed, and ISS crews already do it. It's also the live moment of the demo.
 - **How:** a counter appears at random intervals (2–5 s) for 3 minutes; the app records reaction times, the median, "lapses" (≥ 355 ms) and false starts (< 130 ms) ([health-indicators.md](../research/health-indicators.md) §13 [S28][S30]).
 - **Needs:** F1 shell. Feeds F4.
-- **Status:** "Start reaction test" on home opens the 3-minute PVT-B at `#/pvt` (issue #16). It scores the median RT, lapses and false starts, and saves the result offline as a check-in labelled "in-app test", synced like any other. A "Reaction time" tile on home shows the latest median (stale after 4 days), and the routine's PVT row turns "done HH:MM". Stop, leaving the screen or going to the background saves nothing; a failed save offers "Try again". The result feeds rule COG-01, so a slow median flags Cognition (issue #17). Missing: KSS rating, ground-station storage of the PVT fields.
+- **Status:** "Start reaction test" on home opens the 3-minute PVT-B at `#/pvt` (issue #16). It scores the median RT, lapses and false starts, and saves the result offline as a check-in labelled "in-app test", synced like any other. A "Reaction time" tile on home shows the latest median (stale after 4 days), and the routine's PVT row turns "done HH:MM". Stop, leaving the screen or going to the background saves nothing; a failed save offers "Try again". The result feeds rule COG-01, so a slow median flags Cognition (issue #17). Missing: the rule-triggered KSS re-check (the KSS itself is asked in the morning check-in, issue #29), ground-station storage of the PVT fields.
 
 #### F8. Device Simulator · Must (3 devices, 2 scenarios)
 - **What:** a second app that pretends to be every sensor: wrist bracelet (live heart rate, plus a "dock & export" batch of sleep, resting HR and HRV), pulse oximeter, environment node (cabin CO₂, temperature, humidity, noise), dosimeter (radiation). We use no real hardware.
@@ -140,7 +140,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **How (48 h):** the morning check-in, the PVT, and one rule-triggered KSS + sleep re-check.
 - **Needs:** F1, F4.
 - **More:** idea file "Questionnaires and how they're triggered"; mockup [06-questionnaire.png](mockups/06-questionnaire.png).
-- **Status:** The 'Today's routine' card on home shows the Morning check-in (07:00–09:00, device time) as upcoming, due with Start, done HH:MM or not answered, from the stored check-ins (a PVT result doesn't count as the morning check-in). The PVT row is real: "done HH:MM" when a PVT was done today, otherwise "every 4th day" (issue #16). Exercise, fluids and Bedford are synthetic placeholder rows (`infrastructure/mockRoutine.ts`). Missing: rule-triggered KSS + sleep re-check, windows on the mission clock and sleep shift, bundling, reminder banner, '● 1 due' counter, body-map data-age note for a missed check-in.
+- **Status:** The 'Today's routine' card on home shows the Morning check-in (07:00–09:00, device time) as upcoming, due with Start (which opens the check-in at `#/check-in`, issue #29), done HH:MM or not answered, from the stored check-ins (a PVT result doesn't count as the morning check-in). The PVT row is real: "done HH:MM" when a PVT was done today, otherwise "every 4th day" (issue #16). Exercise, fluids and Bedford are synthetic placeholder rows (`infrastructure/mockRoutine.ts`). Missing: rule-triggered KSS + sleep re-check, windows on the mission clock and sleep shift, bundling, reminder banner, '● 1 due' counter, body-map data-age note for a missed check-in.
 
 #### F22. Check-and-act card · Must (4 cases)
 - **What:** on the detail screen of a flagged reading, three steps: (1) is the reading right? re-measure properly; (2) what in your own data may explain it (sleep, fluids, caffeine, cabin CO₂, symptoms); (3) what to do now, plus "Add to my next medical conference".

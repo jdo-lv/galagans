@@ -381,7 +381,7 @@ Format per indicator: **Risk** (hazard), **Today** (ISS), **Next** (Artemis/Gate
 | Instrument | What | Time | Scoring / thresholds | Spaceflight use / caveats |
 |---|---|---|---|---|
 | PVT-B (3-min PVT) | Vigilant attention; random 2–5 s interval (sources differ: 1–4 s vs 2–5 s [S30]) | 3 min | Main: response speed (1/RT). Lapses RT ≥355 ms; false starts <130 ms [S28][S30] | ISS RST every 4th day, AM+PM [S28]. Device latency matters |
-| Karolinska Sleepiness Scale (KSS) | Momentary sleepiness, 1–9 (1 extremely alert … 9 very sleepy, fighting sleep) | ~10 s | ≥7 commonly read as "sleepy" (convention, unverified as validated cut-off); EEG-validated [S56] | RST uses 11-point sleepiness ratings instead [S28] |
+| Karolinska Sleepiness Scale (KSS) | Momentary sleepiness over the last 5 min, 1–9; words on the odd numbers only: 1 extremely alert, 3 alert, 5 neither alert nor sleepy, 7 sleepy, but no difficulty remaining awake, 9 extremely sleepy, fighting sleep [S56] | ~10 s | ≥7 commonly read as "sleepy" (convention, unverified as validated cut-off); EEG-validated [S56] | RST uses 11-point sleepiness ratings instead [S28] |
 | Samn-Perelli | Fatigue, 1 (fully alert) – 7 (completely exhausted) | ~10 s | ≥5 often triggers fatigue-risk review in aviation FRMS (unverified) | Not found in NASA operational use |
 | Bedford Workload Scale | Spare capacity, 1–10 decision tree | ~30 s | NASA limit: ≤3 nominal, ≤6 off-nominal tasks [V2 5007] [S13] | NASA's chosen verification scale |
 | NASA-TLX | Workload: mental, physical, temporal demand, performance, effort, frustration, 0–100 each | 1–3 min (weighted adds 15 pairwise choices) | Raw mean, or weighted (weights/15) → 0–100 [S57][S13] | Diagnostic; "may be preferred for developmental testing" [S13] |
@@ -548,7 +548,7 @@ Scores are judgment calls. Pick among close ranks (6–9) by the hardware on han
 - [S53] Space motion sickness during 24 Shuttle flights: https://researchexperts.utmb.edu/en/publications/space-motion-sickness-during-24-flights-of-the-space-shuttle/ ; Field Test: https://ntrs.nasa.gov/citations/20150022289
 - [S54] ESA, Periodic Fitness Evaluation: https://outpost42.esa.int/blog/diario-di-bordo/single/l-477-periodic-fitness/ ; ISS medical model incl. monthly PHS (2006): https://ntrs.nasa.gov/citations/20060051792
 - [S55] NASA SANS in-flight testing history: https://ntrs.nasa.gov/api/citations/20180004916/downloads/20180004916.pdf
-- [S56] KSS validation: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8889981/
+- [S56] KSS validation: Laverde-López, Escobar-Córdoba and Eslava-Schmalbach 2022, "Validation of the Colombian version of the Karolinska sleepiness scale", Sleep Science 15(Spec 1):97–104: https://pmc.ncbi.nlm.nih.gov/articles/PMC8889981/ (verified 2026-11-14; the English anchors are printed "neither alert not sleepy" and "extremely sleepyfighting sleep", typo and punctuation fixed in the KSS row).
 - [S57] NASA-TLX computerized manual (NASA Ames): https://ntrs.nasa.gov/api/citations/20000021487/downloads/20000021487.pdf
 - [S58] Inter-Noise 2021, ISS crew acoustic exposure: https://ntrs.nasa.gov/api/citations/20210016151/downloads/Inter-Noise2021_Paper2219_DRAFT%20Manuscript.pdf
 - [S59] CSA, Monitoring radiation for astronaut health (2026-02-26; verified 2026-11-13): https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp

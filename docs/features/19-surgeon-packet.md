@@ -42,7 +42,7 @@ Deviations from mockup 03, all decided in the issue:
 
 | Deviation | Reason |
 |---|---|
-| No FHIR panel, no "Review & edit", no crew or flight-day pills, no symptoms row | Out of scope: FHIR is F24 (pitch only), the check-in has no symptom input yet (F1), roles and flight day are F20/F21. |
+| No FHIR panel, no "Review & edit", no crew or flight-day pills, no symptoms row | Out of scope: FHIR is F24 (pitch only), the symptom checklist of the check-in ([#29](29-check-in-questionnaire.md)) isn't in the packet yet, roles and flight day are F20/F21. |
 | The contents card is the next packet; the timeline card is the last packet sent | One screen state: Send always builds a new packet from the live draft. |
 | Unrated rows show "—" (Not rated), never "Nominal" | No rule row judges heart rate, sleep or mood yet, so calling them nominal would claim a judgement no rule made. Reaction time became rated on its own when COG-01 (#17) arrived. |
 | The tier is a separate neutral pill under the rule tag | ui-guidelines §5 "Level badge": urgency is the colour, who acts is a separate neutral pill. |

@@ -247,7 +247,7 @@ Instruments, timing and scoring come from [health-indicators.md](../research/hea
 
 - **One question per screen,** large touch targets (NASA guidance: ≥ 9.5 mm targets with 3.2 mm gaps) and large text, because fine motor accuracy drops early in flight and many crew see less sharply ([ux-human-factors.md](../research/ux-human-factors.md)).
 - **Progress and time left** are always visible; a session never surprises the crew with its length.
-- **The wording and anchors** are the instrument's own (e.g. KSS 1 "extremely alert" … 9 "very sleepy, fighting sleep"). They're never paraphrased, so scores stay comparable.
+- **The wording and anchors** are the instrument's own (e.g. KSS 1 "extremely alert" … 9 "extremely sleepy, fighting sleep", from [S56] in health-indicators.md). They're never paraphrased, so scores stay comparable.
 - **"Why you're seeing this"** shows the trigger: scheduled or added by a rule.
 - **Skip is always allowed** and recorded as "not answered", never as a value. Missed sessions don't nag: at most one reminder, then the data age shows on the body map.
 - **The privacy note is per questionnaire:** mood, PHQ and GAD answers are visible to the astronaut and the flight surgeon only, never to crewmates.

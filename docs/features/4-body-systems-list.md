@@ -2,13 +2,13 @@
 
 The "Body systems" card on home lists all ten systems of mockup 01. Respiratory is the only system with rules (SPO-01/02, [#1](1-spo2-core-loop.md)), so it shows real check-in data. The other nine show fixed synthetic values from `src/main/frontend/src/infrastructure/mockStatuses.ts`, always "✓ Nominal", labelled "synthetic", with no data age and no explanation. When a rule row is added for one of those systems, its placeholder disappears and the real status takes its place. Feature F6 in [features.md](../../ideas/features.md); issue [#4](https://github.com/jdo-lv/galagans/issues/4).
 
-**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080, enter an SpO₂ value and click "Save check-in". **Retake the screenshots** with the app running: `target/node/node docs/features/4-body-systems-list.shots.mjs` (script: [4-body-systems-list.shots.mjs](4-body-systems-list.shots.mjs)).
+**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080, click "+" (Add entry) in the header, type an SpO₂ value on its step, click "Next →" through the other steps and "Save check-in" on the last ([#29](29-check-in-questionnaire.md)). **Retake the screenshots** with the app running: `target/node/node docs/features/4-body-systems-list.shots.mjs` (script: [4-body-systems-list.shots.mjs](4-body-systems-list.shots.mjs)).
 
 ## Screens
 
 Since [#17](17-cognition-rule.md) Cognition is no longer a placeholder: it comes from the PVT (rule COG-01) and shows "No data" until a test is done.
 
-Since [#9](9-detail-screen.md) the explanation is no longer inline: the Respiratory row links to its detail screen when it is in caution or warning. The screenshots below predate that change.
+Since [#9](9-detail-screen.md) the explanation is no longer inline: the Respiratory row links to its detail screen when it is in caution or warning. Since [#29](29-check-in-questionnaire.md) values are entered through the check-in steps, not a form on home. The screenshots below predate both changes.
 
 ### No check-ins yet
 Respiratory shows "No data"; the nine placeholders follow in mockup 01 order.
