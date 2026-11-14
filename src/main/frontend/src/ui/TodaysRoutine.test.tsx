@@ -43,7 +43,7 @@ describe('TodaysRoutine', () => {
 
     const li = await row()
     expect(li).toHaveClass('routine-item--due')
-    expect(within(li).getByRole('button', { name: 'Start · ~1.5 min' })).toBeInTheDocument()
+    expect(within(li).getByRole('button', { name: 'Start · ~90 s' })).toBeInTheDocument()
     expect(li).not.toHaveTextContent(/07:00–09:00|done|not answered/)
   })
 
@@ -51,7 +51,7 @@ describe('TodaysRoutine', () => {
     const s = setupAt()
     s.renderApp()
 
-    await userEvent.click(within(await row()).getByRole('button', { name: 'Start · ~1.5 min' }))
+    await userEvent.click(within(await row()).getByRole('button', { name: 'Start · ~90 s' }))
 
     expect(document.activeElement).toBe(screen.getByLabelText(/heart rate/i))
     expect(s.repository.items.size).toBe(0)
@@ -213,7 +213,7 @@ describe('Today\'s routine with the PVT (#16)', () => {
 
     const li = await row()
     expect(li).toHaveClass('routine-item--due')
-    expect(within(li).getByRole('button', { name: 'Start · ~1.5 min' })).toBeInTheDocument()
+    expect(within(li).getByRole('button', { name: 'Start · ~90 s' })).toBeInTheDocument()
     expect(li).not.toHaveTextContent('done')
   })
 
