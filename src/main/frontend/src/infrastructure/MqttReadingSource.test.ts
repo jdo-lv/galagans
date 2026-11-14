@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { connect } = vi.hoisted(() => ({ connect: vi.fn() }))
-vi.mock('mqtt', () => ({ connect }))
+vi.mock('mqtt', () => ({ default: { connect } }))
 
 import { MqttReadingSource } from './MqttReadingSource'
 

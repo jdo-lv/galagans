@@ -1,4 +1,5 @@
-import { connect } from 'mqtt'
+// The browser build of mqtt has only a default export.
+import mqtt from 'mqtt'
 import type { ReadingSource } from '../domain/ports'
 
 const DEFAULT_URL = 'ws://localhost:9001'
@@ -29,7 +30,7 @@ export class MqttReadingSource implements ReadingSource {
     // A browser blocks ws:// from an https: page (mixed content), so no client is created there.
     if (this.pageProtocol() === 'https:' && this.url.startsWith('ws://')) return
 
-    const client = connect(this.url, { reconnectPeriod: 5000 })
+    const client = mqtt.connect(this.url, { reconnectPeriod: 5000 })
     client.on('connect', () => client.subscribe(TOPIC, { qos: 0 }))
     client.on('message', (topic, payload) => {
       if (topic !== TOPIC) return
