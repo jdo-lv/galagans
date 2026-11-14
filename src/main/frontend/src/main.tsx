@@ -14,6 +14,7 @@ import { ServicesProvider } from './ui/ServicesContext'
 
 const services = createServices()
 services.startSync()
+services.startGateway()
 registerSW({ immediate: true })
 
 createRoot(document.getElementById('root')!).render(

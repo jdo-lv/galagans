@@ -6,7 +6,7 @@ export const mockStatuses: Placeholder[] = [
   { system: 'Cabin air', state: 'nominal', detail: 'CO₂ 2.3 mmHg (1-h avg)', source: 'synthetic' },
   { system: 'Sleep', state: 'nominal', detail: '7.1 h last night', source: 'synthetic' },
   { system: 'Immune', state: 'nominal', detail: 'no new symptoms', source: 'synthetic' },
-  { system: 'Cardiovascular', state: 'nominal', detail: 'HR 63 bpm · BP 108/70', source: 'synthetic' },
+  { system: 'Cardiovascular', state: 'nominal', detail: 'BP 108/70', source: 'synthetic' },
   { system: 'Bone & muscle', state: 'nominal', detail: 'Exercise 540/600 min/wk', source: 'synthetic' },
   { system: 'Vision (SANS)', state: 'nominal', detail: 'self-test done Wed · no changes', source: 'synthetic' },
   { system: 'Radiation', state: 'nominal', detail: '38% of 30-day limit', source: 'synthetic' },

@@ -1,3 +1,4 @@
+import { CombinedObservationHistory } from '../application/CombinedObservationHistory'
 import type { CheckIn } from '../domain/checkIn'
 import type { Observation } from '../domain/observation'
 import type { Packet, StoredPacket } from '../domain/packet'
@@ -145,3 +146,7 @@ export class FakeReadingSource implements ReadingSource {
     this.listeners.forEach((l) => l(message))
   }
 }
+
+/** The history the rules read: the check-in store plus a device Observation store. */
+export const combinedHistory = (checkIns: CheckInHistory, observations = new FakeObservationRepository()) =>
+  new CombinedObservationHistory(checkIns, observations)

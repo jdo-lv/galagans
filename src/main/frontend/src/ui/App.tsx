@@ -21,7 +21,7 @@ import { usePeriodicRead } from "./usePeriodicRead";
 import { useSystemStatuses } from "./useSystemStatuses";
 
 export function App() {
-  const { recorder, routineReader } = useServices();
+  const { recorder, routineReader, healthGateway } = useServices();
   const online = useOnlineStatus();
   const { pending, refresh } = usePendingCount();
   const statuses = useSystemStatuses();
@@ -40,6 +40,8 @@ export function App() {
     readings.refresh();
     routine.refresh();
   }, [refresh, statuses.refresh, readings.refresh, routine.refresh]);
+
+  useEffect(() => healthGateway.subscribe(refreshAll), [healthGateway, refreshAll]);
 
   return (
     <div className="app">

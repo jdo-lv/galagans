@@ -43,7 +43,7 @@ function DetailBody({ detail, now, headingRef }: { detail: Detail; now: Date; he
     <Card title={`${rules[0].label} · last 7 days`}>
       {points.length > 0 ? (
         <ChartScroll>
-          <TrendChart rules={rules} points={points} now={now} source={status.source} />
+          <TrendChart rules={rules} points={points} now={now} />
         </ChartScroll>
       ) : (
         <p className="muted">No readings in the last 7 days</p>

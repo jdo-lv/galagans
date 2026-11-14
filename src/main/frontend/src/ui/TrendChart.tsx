@@ -22,7 +22,7 @@ const timeLabel = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'UTC',
 })
 
-export function TrendChart({ rules, points, now, source }: { rules: Rule[]; points: ChartPoint[]; now: Date; source: string }) {
+export function TrendChart({ rules, points, now }: { rules: Rule[]; points: ChartPoint[]; now: Date }) {
   const { indicator, label, unit, validMin, validMax } = rules[0]
   const [min, max, step] = Y_RANGE[indicator] ?? [validMin, validMax, (validMax - validMin) / 4]
   const to = now.getTime()
@@ -74,7 +74,7 @@ export function TrendChart({ rules, points, now, source }: { rules: Rule[]; poin
             cy={p.cy}
             r={p.status === 'nominal' ? 4 : 6}
           >
-            <title>{`${p.value} ${unit} · ${p.status} · ${timeLabel.format(Date.parse(p.recordedAt)).replace(',', '')} UTC · ${source}`}</title>
+            <title>{`${p.value} ${unit} · ${p.status} · ${timeLabel.format(Date.parse(p.recordedAt)).replace(',', '')} UTC · ${p.source}`}</title>
           </circle>
           {MARKER[p.status] && (
             <text className="chart-marker" x={p.cx} y={p.cy - 12} textAnchor="middle">

@@ -4,7 +4,7 @@ import { READINGS, type ReadingPlaceholder } from '../domain/readings'
 import { STALE_AFTER_MS, type Rule } from '../domain/rules'
 import { mockReadings } from '../infrastructure/mockReadings'
 import rules from '../infrastructure/rules.json'
-import { FakeRepository, FakeRuleSource } from '../test/fakes'
+import { combinedHistory, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { LatestReadingsReader } from './LatestReadingsReader'
 
 const now = new Date('2026-11-14T12:00:00Z')
@@ -12,7 +12,7 @@ const now = new Date('2026-11-14T12:00:00Z')
 async function read(checkIns: CheckIn[], { ruleRows = rules as Rule[], placeholders = [] as ReadingPlaceholder[] } = {}) {
   const repository = new FakeRepository()
   checkIns.forEach((c) => repository.items.set(c.id, { checkIn: c, pending: false }))
-  return new LatestReadingsReader(new FakeRuleSource(ruleRows), repository, () => now, placeholders).read()
+  return new LatestReadingsReader(new FakeRuleSource(ruleRows), combinedHistory(repository), () => now, placeholders).read()
 }
 
 const byKey = async (key: string, ...args: Parameters<typeof read>) => (await read(...args)).find((r) => r.spec.key === key)
