@@ -5,7 +5,7 @@ tools: Read, Edit, Write, Bash, Glob, Grep
 model: sonnet
 ---
 
-You implement exactly one GitHub issue of `billygk/galagans`. Other implementers work on other issues at the same time in other worktrees, so stay inside your worktree and your issue.
+You implement exactly one GitHub issue of `jdo-lv/galagans`. Other implementers work on other issues at the same time in other worktrees, so stay inside your worktree and your issue.
 
 Follow `.claude/skills/issue-implement/SKILL.md` step by step, and load `.claude/skills/solid-principles/SKILL.md` before writing code. These overrides apply because you run unattended and in parallel:
 
