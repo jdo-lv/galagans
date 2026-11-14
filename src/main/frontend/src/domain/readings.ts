@@ -30,6 +30,9 @@ export interface LatestReading {
   unrated?: true
 }
 
+/** The PVT runs every 4th day (health-indicators §13 [S28]): due, and its reading old, after 4 days. */
+export const PVT_EVERY_MS = 4 * 24 * 60 * 60 * 1000
+
 /** One row per "Latest readings" tile, in display order (ideas/mockups/01-body-map.png). */
 export const READINGS: ReadingSpec[] = [
   { key: 'spo2', label: 'SpO₂', unit: '%', indicator: 'spo2Percent', validMin: 50, validMax: 100, staleAfterMs: STALE_AFTER_MS },
@@ -70,7 +73,6 @@ export const READINGS: ReadingSpec[] = [
     validMax: 2000,
     staleAfterMs: STALE_AFTER_MS,
   },
-  // Stale after 4 d: team heuristic from the every-4th-day PVT schedule (health-indicators §13 [S28]).
   {
     key: 'pvt',
     label: 'Reaction time',
@@ -78,7 +80,8 @@ export const READINGS: ReadingSpec[] = [
     indicator: 'pvtMedianMs',
     validMin: 130,
     validMax: 10000,
-    staleAfterMs: 4 * 24 * 60 * 60 * 1000,
+    // Stale after 4 d: team heuristic from the every-4th-day PVT schedule (health-indicators §13 [S28]).
+    staleAfterMs: PVT_EVERY_MS,
   },
 ]
 

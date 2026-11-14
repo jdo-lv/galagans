@@ -20,7 +20,20 @@ describe('RoutineReader', () => {
 
     expect(items).toHaveLength(2)
     expect(items[0]).toMatchObject({ kind: 'check-in', state: 'due' })
-    expect(items[1]).toEqual({ kind: 'pvt', label: 'PVT (3 min)' })
+    expect(items[1]).toEqual({ kind: 'pvt', label: 'PVT (3 min)', due: true })
+  })
+
+  it('#37: the PVT is due only when there is no result in the last 4 days (every 4th day)', async () => {
+    const pvtAt = async (daysAgo: number) => {
+      const repository = new FakeRepository()
+      const when = at(8)
+      when.setDate(when.getDate() - daysAgo)
+      await repository.add({ id: 'p', recordedAt: when.toISOString(), pvtMedianMs: 270, symptoms: [] })
+      return (await new RoutineReader(repository, () => at(8)).read())[1]
+    }
+
+    expect(await pvtAt(3)).toMatchObject({ due: false })
+    expect(await pvtAt(5)).toMatchObject({ due: true })
   })
 
   it('AC22: a check-in with an unparseable recordedAt is ignored', async () => {

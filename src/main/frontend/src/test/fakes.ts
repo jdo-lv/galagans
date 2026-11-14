@@ -12,8 +12,13 @@ import type {
   PacketRepository,
   ReadingSource,
   RuleSource,
+  SpeechInput,
+  SpeechOutput,
+  VoiceInterpreter,
+  VoiceScreen,
 } from '../domain/ports'
 import type { Rule } from '../domain/rules'
+import { AudioUnavailableError, type VoiceCommand, type VoiceState, type VoiceTarget } from '../domain/voice'
 
 export class FakeRepository implements CheckInRepository, CheckInHistory {
   items = new Map<string, { checkIn: CheckIn; pending: boolean }>()
@@ -122,6 +127,62 @@ export class FakePacketGateway implements PacketGateway {
 
 export const packet = (id: string, builtAt: string): Packet => ({ id, builtAt, oneWayDelayMs: 845_000, note: '', items: [] })
 
+/** Hears `said` in order, then waits like a quiet room until the signal aborts; `onListen` runs before each turn. */
+export class FakeSpeechInput implements SpeechInput {
+  said: string[] = []
+  onListen = () => {}
+  audioBlocked = false
+
+  async listen(signal: AbortSignal) {
+    this.onListen()
+    if (this.audioBlocked) throw new AudioUnavailableError('microphone blocked')
+    if (signal.aborted) return ''
+    const next = this.said.shift()
+    if (next !== undefined) return next
+    return new Promise<string>((resolve) => signal.addEventListener('abort', () => resolve(''), { once: true }))
+  }
+}
+
+export class FakeSpeechOutput implements SpeechOutput {
+  spoken: string[] = []
+  onSpeak: (text: string) => void = () => {}
+
+  async speak(text: string) {
+    this.spoken.push(text)
+    this.onSpeak(text)
+  }
+}
+
+export class FakeVoiceInterpreter implements VoiceInterpreter {
+  commands: Record<string, VoiceCommand> = {}
+  unreachable = false
+  onInterpret = () => {}
+
+  async interpret(transcript: string): Promise<VoiceCommand> {
+    if (this.unreachable) throw new Error('voice host down')
+    this.onInterpret()
+    return Object.hasOwn(this.commands, transcript) ? this.commands[transcript] : { kind: 'none' }
+  }
+}
+
+export class FakeVoiceScreen implements VoiceScreen {
+  opened: VoiceTarget[] = []
+  /** True when the last screen opened after a state other than "speaking": the words came first. */
+  openedAfterSpeaking = false
+  states: VoiceState[] = []
+  savedCount = 0
+
+  open(target: VoiceTarget) {
+    this.opened.push(target)
+    this.openedAfterSpeaking = this.states.at(-1) === 'speaking'
+  }
+  saved() {
+    this.savedCount++
+  }
+  show(state: VoiceState) {
+    this.states.push(state)
+  }
+}
 export class FakeObservationRepository implements ObservationRepository {
   items = new Map<string, Observation>()
   failPut = false

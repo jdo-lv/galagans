@@ -135,7 +135,7 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 ## 5. Components
 
 ### App header
-Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, icon buttons on the right, 18 px apart: "Add entry" (+, Home only, opens the check-in; built: issue #29) and the theme toggle (moon in light, sun in dark). Context pills sit in one wrapping row under it on every layout and screen: the connection pill, then the ground-link pill (#19). Crew and flight-day pills are not built.
+Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre (below 600 px, centred in the space between the brand mark and the buttons, which don't fit beside a page-centred wordmark), icon buttons on the right, 18 px apart: voice control (microphone, inverse fill while on, disabled on the PVT screen, #37), "Add entry" (+, Home only, opens the check-in; built: issue #29) and the theme toggle (moon in light, sun in dark). Context pills sit in one wrapping row under it on every layout and screen: the connection pill, then the ground-link pill (#19), then the voice pill while voice is on ("Voice: listening", "Voice: thinking", "Voice: speaking") or after it failed, until the mic is tapped again ("Voice host unreachable", "Voice: audio not available") (#37). Crew and flight-day pills are not built.
 
 ### Brand mark and splash
 - **Ring:** a 270° arc in `--color-ring` and a 60° arc in `--color-text`, round caps (canvas geometry). The arc was red on the canvas, then blue; blue now means level 1 only.
@@ -185,7 +185,7 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 ### Buttons
 - **Primary:** inverse pill, at least 52 px high, verb + object ("Save check-in"). One per screen.
 - **Secondary:** transparent with a 1 px `--color-edge` border.
-- **Icon button:** transparent, 52 px round hit area, icon 22–30 px, `aria-label` required.
+- **Icon button:** transparent, 52 px round hit area, icon 22–30 px, `aria-label` required. A toggle that is on (`aria-pressed="true"`) gets the inverse fill; a disabled one is at 60 % opacity, like disabled buttons (#37).
 - **Consequential actions** (send packet, delete entry) get confirm or undo. No red buttons: red is level 5, not "dangerous".
 
 ### Body-system list (built: issues #1, #4, #9)
@@ -253,10 +253,11 @@ Routing is a separate, neutral outline pill (each level has a default, a rule ro
 - **Rule tag:** a dashed outline ("rule · PVT slower than baseline"). It explains why an item was added; it is not a level.
 - **Connection and sync:** a neutral pill. Online with nothing waiting is quiet muted text; offline shows a cloud-off icon and "Offline · 2 waiting to sync". Being offline is not a health status.
 - **Ground link (built: #19):** a context pill that is a link (`a.pill.pill--link`) to the surgeon packet, beside the connection pill: `GroundLinkIcon` at 18 px and "Ground link: one-way delay **14 min 05 s** (demo)", the value bold and never broken across lines. At least 52 px high and not underlined: the outline is the link cue. On the packet screen it is the inverse fill with `aria-current="page"`, like a selected nav item. Its accessible name starts "Surgeon packet." so the destination is announced.
+- **Voice (built: #37):** a neutral context pill after the ground link, only while voice is on or after it failed: `VoiceIcon` at 18 px and "Voice: listening", "Voice: thinking", "Voice: speaking", "Voice host unreachable" or "Voice: audio not available". The microphone header button that turns it on has the inverse fill while on.
 
 ### Icons
 
-**Library: [Tabler Icons](https://tabler.io/icons), outline set** (`@tabler/icons-react` 3.50.0, MIT, 5,000+ icons) [I1]. It is the same rounded 24 px line style as the canvas icons, and of the line libraries it covers the most health and body concepts. The full vocabulary, rendered: [mockups/icons.png](mockups/icons.png). The sheet has no source in the repo, so icons added after it (`ChevronIcon`: chevron = "opens detail", #9; `StepDoneIcon`, `StepCurrentIcon`, `StepPendingIcon`: a timeline step done, current or pending, #19) are not in it. `StepDoneIcon` is Tabler's `circle-filled`, the one filled icon in the app: a check would read as the ✓ of Nominal on the same screen.
+**Library: [Tabler Icons](https://tabler.io/icons), outline set** (`@tabler/icons-react` 3.50.0, MIT, 5,000+ icons) [I1]. It is the same rounded 24 px line style as the canvas icons, and of the line libraries it covers the most health and body concepts. The full vocabulary, rendered: [mockups/icons.png](mockups/icons.png). The sheet has no source in the repo, so icons added after it (`ChevronIcon`: chevron = "opens detail", #9; `StepDoneIcon`, `StepCurrentIcon`, `StepPendingIcon`: a timeline step done, current or pending, #19; `VoiceIcon`: Tabler's `microphone` = "voice control", #37) are not in it. `StepDoneIcon` is Tabler's `circle-filled`, the one filled icon in the app: a check would read as the ✓ of Nominal on the same screen.
 
 - **Import by concept from [`src/ui/icons.tsx`](../src/main/frontend/src/ui/icons.tsx)**, never from `@tabler/icons-react` directly: `RespiratoryIcon`, `CautionIcon`, `Spo2Icon`, `GroundLinkIcon`. One concept has one icon everywhere, and one icon has one meaning [S1 V2 10010/10011]. A new concept is one export line there, plus a row in the sheet.
 - **Defaults:** every icon is `aria-hidden` and 22 px. The word next to it, or the button's `aria-label`, carries the meaning. Sizes are 18 px in badges and pills, 20 px in navigation, 22 px in tiles and 30 px for the header "add".

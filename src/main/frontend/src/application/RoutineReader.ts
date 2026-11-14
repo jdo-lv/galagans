@@ -1,5 +1,6 @@
 import type { CheckIn } from '../domain/checkIn'
 import type { CheckInHistory } from '../domain/ports'
+import { PVT_EVERY_MS } from '../domain/readings'
 import {
   CHECK_IN_ROUTINE,
   type CheckInRoutineItem,
@@ -40,8 +41,11 @@ export class RoutineReader {
     // A PVT result is not the morning check-in; an empty check-in still is (#10).
     const doneAt = firstToday(checkIns.filter((c) => c.pvtMedianMs === undefined), now)
     const checkIn: CheckInRoutineItem = { kind: 'check-in', ...CHECK_IN_ROUTINE, state: doneAt ? 'done' : stateAt(now), doneAt }
-    const pvtDoneAt = firstToday(checkIns.filter((c) => c.pvtMedianMs !== undefined), now)
-    const pvt: PvtRoutineItem = pvtDoneAt ? { kind: 'pvt', label: 'PVT (3 min)', doneAt: pvtDoneAt } : { kind: 'pvt', label: 'PVT (3 min)' }
+    const pvts = checkIns.filter((c) => c.pvtMedianMs !== undefined)
+    const pvtDoneAt = firstToday(pvts, now)
+    const lastPvt = Math.max(...pvts.map((c) => Date.parse(c.recordedAt)).filter(Number.isFinite))
+    const due = !(now.getTime() - lastPvt < PVT_EVERY_MS)
+    const pvt: PvtRoutineItem = pvtDoneAt ? { kind: 'pvt', label: 'PVT (3 min)', doneAt: pvtDoneAt, due } : { kind: 'pvt', label: 'PVT (3 min)', due }
     return [checkIn, pvt, ...this.placeholders]
   }
 }

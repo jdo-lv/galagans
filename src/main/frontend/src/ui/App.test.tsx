@@ -6,7 +6,7 @@ import { RoutineReader } from '../application/RoutineReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
-import { observationFakes, packetFakes, saveCheckIn } from '../test/renderApp'
+import { observationFakes, packetFakes, saveCheckIn, voiceFakes } from '../test/renderApp'
 import { App } from './App'
 import { ServicesProvider } from './ServicesContext'
 
@@ -17,16 +17,20 @@ function setup(online: boolean) {
   const synchronizer = new SyncService(repository, new FakeGateway(), connectivity)
   const device = observationFakes(repository)
   const readingsReader = new LatestReadingsReader(new FakeRuleSource(), device.history)
+  const statusReader = new SystemStatusReader(new FakeRuleSource(), device.history)
+  const routineReader = new RoutineReader(repository)
+  const recorder = new CheckInRecorder(repository, synchronizer)
   const services = {
     repository,
     connectivity,
     synchronizer,
-    recorder: new CheckInRecorder(repository, synchronizer),
-    statusReader: new SystemStatusReader(new FakeRuleSource(), device.history),
+    recorder,
+    statusReader,
     healthGateway: device.healthGateway,
     readingsReader,
-    routineReader: new RoutineReader(repository),
+    routineReader,
     random: () => 0,
+    voiceSession: voiceFakes({ recorder, statusReader, routineReader }).voiceSession,
     ...packetFakes(readingsReader, connectivity).services,
   }
   render(

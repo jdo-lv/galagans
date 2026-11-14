@@ -2,6 +2,7 @@ import type { CheckIn } from './checkIn'
 import type { Observation } from './observation'
 import type { Packet, StoredPacket } from './packet'
 import type { Rule } from './rules'
+import type { VoiceCommand, VoiceState, VoiceTarget } from './voice'
 
 export interface CheckInRepository {
   add(checkIn: CheckIn): Promise<void>
@@ -41,6 +42,29 @@ export interface PacketRepository {
 export interface PacketGateway {
   /** Sends one packet to the ground station; rejects unless it was accepted. */
   send(packet: Packet): Promise<void>
+}
+
+export interface SpeechInput {
+  /** Records until the speaker pauses; resolves with the transcript, '' when nothing was said. */
+  listen(signal: AbortSignal): Promise<string>
+}
+
+export interface SpeechOutput {
+  /** Resolves when the text has been spoken, or as soon as the signal aborts. */
+  speak(text: string, signal: AbortSignal): Promise<void>
+}
+
+export interface VoiceInterpreter {
+  /** The one command in a transcript; `none` when there is none. */
+  interpret(transcript: string): Promise<VoiceCommand>
+}
+
+/** The screen a voice session moves; the UI provides it. */
+export interface VoiceScreen {
+  open(target: VoiceTarget): void
+  /** A check-in was saved by voice. */
+  saved(): void
+  show(state: VoiceState): void
 }
 
 export interface ObservationHistory {

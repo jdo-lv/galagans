@@ -1,0 +1,33 @@
+# F25 voice host PoC: the ship-local server for speech-to-text, the LLM and read-aloud.
+# Run: podman compose -f voice-host/compose.yaml up -d   (or docker compose)
+services:
+  llm:
+    image: ghcr.io/ggml-org/llama.cpp:server-b12375
+    # Downloads the model into the volume on first start, then runs offline.
+    # --no-mmproj skips the image encoder; --reasoning off stops long "thinking" before each answer;
+    # -np 1: one request at a time (one astronaut). The 4B model needs a Podman VM with 8 GB.
+    command: ["-hf", "unsloth/Qwen3.5-4B-GGUF:Q4_K_M", "--no-mmproj", "--reasoning", "off", "-np", "1", "-c", "4096"]
+    restart: unless-stopped
+    environment:
+      LLAMA_CACHE: /models
+    volumes:
+      - llm-models:/models
+    ports:
+      - "8081:8080"
+
+  whisper:
+    build:
+      context: .
+      dockerfile: whisper.Dockerfile
+    ports:
+      - "8082:8080"
+
+  piper:
+    build:
+      context: .
+      dockerfile: piper.Dockerfile
+    ports:
+      - "8084:5000"
+
+volumes:
+  llm-models:

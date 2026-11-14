@@ -17,6 +17,7 @@ Team workspace for the challenge **"Create Health Monitoring Software for Astron
 | [research/other-agencies.md](research/other-agencies.md) | CSA, ESA, CNES, DLR, JAXA, IBMP, ISRO, CNSA, MBRSC and others: devices, apps, analogs, public resources |
 | [research/long-duration-literature.md](research/long-duration-literature.md) | Peer-reviewed findings by body system: how much changes, when, and how long recovery takes (bone, muscle, brain, veins, cognition, immune, kidney, Twins Study, Mars-500) |
 | [research/ux-human-factors.md](research/ux-human-factors.md) | NASA display and caution/warning rules, crew time, privacy, gamification evidence, UX checklist |
+| [research/voice-assistant.md](research/voice-assistant.md) | F25 voice assistant: offline speech-to-text and read-aloud in the browser, small local LLMs and runtimes, minimal stack for the spike |
 | [research/Health Palette Prototype.html](research/Health%20Palette%20Prototype.html) | Palette design: Splash and Today mockups (light/dark) plus a WCAG contrast check of every colour pairing. Summary in [ux-human-factors.md](research/ux-human-factors.md#team-palette-health-palette-prototype) |
 | [ideas/viability-checklist.md](ideas/viability-checklist.md) | Gates and scores to test each idea, common fixes, idea template |
 | [ideas/crew-health-companion.md](ideas/crew-health-companion.md) | Lead idea under evaluation: daily check-in, body map, rules engine, Device Simulator, surgeon packet, with mockups in `ideas/mockups/` |

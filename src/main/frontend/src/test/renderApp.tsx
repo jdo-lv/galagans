@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { CheckInRecorder } from '../application/CheckInRecorder'
+import { CheckInRecorder, type CheckInRecording } from '../application/CheckInRecorder'
 import { LastPacketReader } from '../application/LastPacketReader'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
 import { PacketDraftReader } from '../application/PacketDraftReader'
@@ -11,6 +11,9 @@ import { CombinedObservationHistory } from '../application/CombinedObservationHi
 import { RoutineReader } from '../application/RoutineReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
+import { HealthBriefing } from '../application/HealthBriefing'
+import type { RoutineReader as RoutineReading } from '../application/RoutineReader'
+import { VoiceSession } from '../application/VoiceSession'
 import type { CheckIn } from '../domain/checkIn'
 import type { Observation } from '../domain/observation'
 import type { CheckInHistory, ConnectivityMonitor } from '../domain/ports'
@@ -25,8 +28,11 @@ import {
   FakePacketGateway,
   FakePacketRepository,
   FakeReadingSource,
-  FakeRuleSource,
   FakeRepository,
+  FakeRuleSource,
+  FakeSpeechInput,
+  FakeSpeechOutput,
+  FakeVoiceInterpreter,
 } from './fakes'
 import { RULES } from './rules'
 
@@ -63,6 +69,13 @@ export function packetFakes(readingsReader: LatestReadingsReader, connectivity: 
   }
 }
 
+/** The voice session (F25) on fakes: what it hears, says and interprets. */
+export function voiceFakes({ recorder, statusReader, routineReader }: { recorder: CheckInRecording; statusReader: SystemStatusReader; routineReader: RoutineReading }) {
+  const voice = { input: new FakeSpeechInput(), output: new FakeSpeechOutput(), interpreter: new FakeVoiceInterpreter() }
+  const briefing = new HealthBriefing(statusReader, routineReader)
+  return { voice, voiceSession: new VoiceSession(voice.input, voice.output, voice.interpreter, recorder, briefing) }
+}
+
 /** The device-reading services (#22) on fakes: the gateway is started, the test emits through `readings`. */
 export function observationFakes(checkIns: CheckInHistory, now: () => Date = () => new Date(), seed: Observation[] = []) {
   const observations = new FakeObservationRepository()
@@ -95,19 +108,25 @@ export function setup({
   const device = observationFakes(repository, () => clock.now, observationSeed)
   const readingsReader = new LatestReadingsReader(ruleSource, device.history, () => clock.now)
   const packet = packetFakes(readingsReader, connectivity, () => clock.now)
+  const recorder = new CheckInRecorder(repository, synchronizer, undefined, () => clock.now)
+  const statusReader = new SystemStatusReader(ruleSource, device.history, () => clock.now, placeholders)
+  const routineReader = new RoutineReader(repository, () => clock.now, routinePlaceholders)
+  const { voice, voiceSession } = voiceFakes({ recorder, statusReader, routineReader })
   const services = {
     repository,
     connectivity,
     synchronizer,
-    recorder: new CheckInRecorder(repository, synchronizer, undefined, () => clock.now),
-    statusReader: new SystemStatusReader(ruleSource, device.history, () => clock.now, placeholders),
+    recorder,
+    statusReader,
     healthGateway: device.healthGateway,
     readingsReader,
-    routineReader: new RoutineReader(repository, () => clock.now, routinePlaceholders),
+    routineReader,
     random,
     ...packet.services,
+    voiceSession,
   }
   return {
+    voice,
     clock,
     repository,
     observations: device.observations,

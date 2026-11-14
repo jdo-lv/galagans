@@ -56,13 +56,17 @@ describe('Home and navigation', () => {
     expect(s.repository.items.size).toBe(0)
   })
 
-  it('AC3: the header holds Add entry, then the theme toggle', async () => {
+  it('AC3: the header holds Voice control (#37), Add entry, then the theme toggle', async () => {
     setupAt().renderApp()
     const link = await screen.findByRole('link', { name: 'Add entry' })
     expect(link).toHaveAttribute('href', '#/check-in')
     const actions = link.parentElement as HTMLElement
     expect(actions).toHaveClass('header-actions')
-    expect([...actions.children]).toEqual([link, screen.getByRole('button', { name: /switch to (light|dark) mode/i })])
+    expect([...actions.children]).toEqual([
+      screen.getByRole('button', { name: 'Voice control' }),
+      link,
+      screen.getByRole('button', { name: /switch to (light|dark) mode/i }),
+    ])
   })
 
   it('AC4: Add entry opens the check-in outside the window', async () => {

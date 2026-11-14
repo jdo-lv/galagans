@@ -11,14 +11,18 @@ import { SurgeonPacket } from "./SurgeonPacket";
 import { SystemDetail } from "./SystemDetail";
 import { SystemStatusList } from "./SystemStatusList";
 import { TodaysRoutine } from "./TodaysRoutine";
+import { VoicePill, VoiceToggle } from "./VoiceToggle";
 import { useServices } from "./ServicesContext";
-import { CHECK_IN_HASH, useHashRoute } from "./useHashRoute";
+import { CHECK_IN_HASH, useHashRoute, voiceHref } from "./useHashRoute";
 import { useHazardLens } from "./useHazardLens";
 import { useLatestReadings } from "./useLatestReadings";
 import { useOnlineStatus } from "./useOnlineStatus";
 import { usePendingCount } from "./usePendingCount";
 import { usePeriodicRead } from "./usePeriodicRead";
 import { useSystemStatuses } from "./useSystemStatuses";
+import { useVoice } from "./useVoice";
+import type { VoiceTarget } from "../domain/voice";
+import type { StatusListState } from "./useSystemStatuses";
 
 export function App() {
   const { routineReader, healthGateway } = useServices();
@@ -43,12 +47,32 @@ export function App() {
 
   useEffect(() => healthGateway.subscribe(refreshAll), [healthGateway, refreshAll]);
 
+  // Like the Body systems list, only a flagged system has a detail screen to open (F5).
+  const openByVoice = useCallback(
+    (target: VoiceTarget) => {
+      if (target.screen === "system" && !hasDetail(statuses.state, target.system)) return;
+      window.location.hash = voiceHref(target);
+    },
+    [statuses.state],
+  );
+  const voice = useVoice(openByVoice, refreshAll);
+  const stopVoice = voice.stop;
+
+  // Voice must never talk during the timed reaction test, however it was opened.
+  useEffect(() => {
+    if (route.kind === "pvt") stopVoice();
+  }, [route.kind, stopVoice]);
+
   return (
     <div className="app">
-      <AppHeader showAdd={route.kind === "home"} />
+      <AppHeader
+        showAdd={route.kind === "home"}
+        actions={<VoiceToggle status={voice.status} onToggle={voice.toggle} disabled={route.kind === "pvt"} />}
+      />
       <div className="pill-row">
         <StatusBar online={online} pending={pending} />
         <GroundLinkPill current={route.kind === "packet"} />
+        <VoicePill status={voice.status} />
       </div>
       {route.kind === "check-in" ? (
         <main>
@@ -102,4 +126,8 @@ export function App() {
       )}
     </div>
   );
+}
+
+function hasDetail(state: StatusListState, system: string): boolean {
+  return state.kind === "ready" && state.data.some((s) => s.system === system && s.rule !== undefined);
 }

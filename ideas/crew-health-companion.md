@@ -503,6 +503,7 @@ Updated 2026-11-13 to match the app skeleton in `src/` (see `CLAUDE.md` for buil
 | Ground station (`src/main/kotlin`) | Kotlin + Spring Boot 3.4 WebFlux, Java 21 | **Earth.** Receives synced check-ins (`POST /api/checkins/sync`, done) and surgeon packets (`POST /api/packets`, done), and will give the flight surgeon a read-only view (not built). Never needed for the crew loop. |
 | Device Simulator | TypeScript, a second page in the same Vite project (`simulator.html`) | **The spacecraft's devices.** Runs scenario timelines in the browser and publishes readings to the device link. |
 | Device link | WebSocket relay at `/ws/devices` in the Spring Boot app; stores nothing, runs no rules | **The radio link** between simulator and crew app. |
+| Voice host (`voice-host/`) | Podman/Docker compose: whisper.cpp, llama.cpp with Qwen3.5-4B, Piper | **The ship-local server for F25.** Speech-to-text, voice commands and read-aloud, offline; reached through the Vite dev server (#37). |
 
 **Why rules run on the tablet, not on the server.** Offline-first is a design constraint: the crew loop (reading → status → explanation → action) must work during loss of signal and with a 3–22 min delay to Mars. The ground station only receives what the tablet sends, through store-and-forward. Putting rules on the server would make the crew depend on Earth, which is the problem the challenge describes.
 
