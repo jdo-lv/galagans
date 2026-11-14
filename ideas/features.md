@@ -131,6 +131,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **What:** a summary for the doctor on Earth: flagged items, readings with sources, the astronaut's own notes, in standard FHIR format. A timeline shows when it leaves and when it arrives, e.g. "one-way delay 14 min 05 s".
 - **Why:** it makes the distance from Earth visible and shows the escalation path working.
 - **Needs:** F2, F5, F9. See mockup [03-surgeon-packet.png](mockups/03-surgeon-packet.png).
+- **Status:** The ground station receives packets at `POST /api/packets` (in memory, first write per id wins). Missing: crew screen and timeline (#19), ground view, FHIR format (F24).
 
 #### F15. Today's routine and smart questionnaires · Must (minimal)
 - **What:** one list of what's due today (check-in, PVT, exercise, fluids, evening workload). Rules can add a short step, always saying why: "Added because your PVT was slower than baseline".
