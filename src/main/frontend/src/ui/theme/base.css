@@ -63,6 +63,65 @@ a:hover {
   }
 }
 
+/* Launch splash in index.html (canvas "Health — Splash"): removed by ui/splash.ts, rendered into the iOS launch images.
+   Positions are the canvas ones as fractions of its 844 px height; the credit line takes the NASA logotype's place. */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: opacity 0.3s; /* SPLASH_FADE_MS */
+}
+
+.splash--leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-brand {
+  position: absolute;
+  top: 23.7%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.splash-ring path {
+  fill: none;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+}
+
+.splash-ring-track {
+  stroke: var(--color-ring);
+}
+
+.splash-ring-arc {
+  stroke: var(--color-text);
+}
+
+/* The negative margin cancels the tracking after the last letter, so the word sits centred under the ring */
+.splash-wordmark {
+  font-weight: 500;
+  letter-spacing: var(--tracking-splash);
+  margin-right: calc(-1 * var(--tracking-splash));
+  text-transform: uppercase;
+}
+
+.splash-credit {
+  position: absolute;
+  top: 80%;
+  left: var(--gutter);
+  right: var(--gutter);
+  transform: translateY(-50%);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
 /* App shell */
 .app {
   max-width: var(--content-max);

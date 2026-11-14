@@ -11,6 +11,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { createServices } from './container'
 import { App } from './ui/App'
 import { ServicesProvider } from './ui/ServicesContext'
+import { dismissSplash } from './ui/splash'
 
 const services = createServices()
 services.startSync()
@@ -24,3 +25,4 @@ createRoot(document.getElementById('root')!).render(
     </ServicesProvider>
   </StrictMode>,
 )
+dismissSplash(document, performance.now())

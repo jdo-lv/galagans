@@ -139,7 +139,8 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 
 ### Brand mark and splash
 - **Ring:** a 270° arc in `--color-ring` and a 60° arc in `--color-text`, round caps (canvas geometry). The arc was red on the canvas, then blue; blue now means level 1 only.
-- **Splash:** an 88 px ring, the wordmark at 16 px with 0.32em tracking, on `--color-bg`.
+- **Splash:** an 88 px ring, the wordmark at 16 px with 0.32em tracking, on `--color-bg`, at the canvas positions (ring 23.7 % from the top). "Built for the NASA Space Apps Challenge 2026" in `--color-text-muted` sits where the canvas had the NASA logotype (80 %). Built: plain HTML in `index.html`, styled by `.splash` in `base.css`, so it shows before the app's JavaScript runs. `ui/splash.ts` fades it out once the app has drawn, but not before 1.2 s after launch. It follows the theme, including the one picked in the app.
+- **iOS launch images and icons:** iOS shows a launch image only for an app added to the home screen, and only when an `apple-touch-startup-image` media query matches the screen exactly. `tools/render-splash.mjs` renders the splash above (light theme) for every 2x iPad screen in both orientations into `public/splash/`, renders the ring alone into `apple-touch-icon.png` and `pwa-192/512.png`, and rewrites the tags in `index.html`. iOS copies the launch image when the app is added, so re-add the app after a change.
 - **No NASA insignia, logotype (worm) or seal:** they need NASA's explicit permission [N1]. Factual text such as "Built for the NASA Space Apps Challenge 2026" is fine.
 
 ### Body-system ring (the canvas "health score" ring)

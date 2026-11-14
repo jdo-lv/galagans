@@ -23,7 +23,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
         // The simulator is an operator page: never cached by, or answered with, the crew app.
-        globIgnores: ['simulator.html', 'assets/simulator-*.js', 'assets/simulator-*.css'],
+        // iOS reads the launch images once, when the app is added to the home screen: no need to precache them.
+        globIgnores: ['simulator.html', 'assets/simulator-*.js', 'assets/simulator-*.css', 'splash/**'],
         navigateFallbackDenylist: [/^\/api\//, /^\/ws\//, /simulator\.html$/],
       },
     }),
