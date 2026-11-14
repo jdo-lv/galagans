@@ -1,6 +1,6 @@
 import type { CheckInHistory, RuleSource } from '../domain/ports'
-import type { Placeholder, SystemStatus } from '../domain/rules'
-import { evaluate } from './evaluate'
+import type { Placeholder, SystemDetail, SystemStatus } from '../domain/rules'
+import { chartPoints, evaluate } from './evaluate'
 
 export class SystemStatusReader {
   constructor(
@@ -17,5 +17,15 @@ export class SystemStatusReader {
     const evaluated = evaluate(rules, checkIns, this.now())
     const covered = new Set(evaluated.map((s) => s.system))
     return [...evaluated, ...this.placeholders.filter((p) => !covered.has(p.system))]
+  }
+
+  /** Undefined for a system with no rule rows (placeholder or unknown). */
+  async readDetail(system: string): Promise<SystemDetail | undefined> {
+    const [rules, checkIns] = await Promise.all([this.rules.load(), this.history.list()])
+    const rows = rules.filter((r) => r.system === system)
+    if (rows.length === 0) return undefined
+    const now = this.now()
+    const [status] = evaluate(rows, checkIns, now)
+    return { status, rules: rows, points: chartPoints(rows, checkIns, now, status.state === 'stale') }
   }
 }

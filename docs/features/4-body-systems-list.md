@@ -6,6 +6,8 @@ The "Body systems" card on home lists all ten systems of mockup 01. Respiratory 
 
 ## Screens
 
+Since [#9](9-detail-screen.md) the explanation is no longer inline: the Respiratory row links to its detail screen when it is in caution or warning. The screenshots below predate that change.
+
 ### No check-ins yet
 Respiratory shows "No data"; the nine placeholders follow in mockup 01 order.
 ![No data](img/4-no-data.png)

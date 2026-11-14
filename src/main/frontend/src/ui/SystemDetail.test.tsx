@@ -1,0 +1,362 @@
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { CheckIn } from '../domain/checkIn'
+import type { Rule } from '../domain/rules'
+import { mockStatuses } from '../infrastructure/mockStatuses'
+import ruleRows from '../infrastructure/rules.json'
+import { reading, setup as baseSetup, submitSpo2 } from '../test/renderApp'
+
+const [SPO01, SPO02] = ruleRows as Rule[]
+const NOW = '2026-11-14T09:30:00Z'
+const MIN = 60_000
+
+const setup = (options: Parameters<typeof baseSetup>[0] = {}) => baseSetup({ placeholders: mockStatuses, ...options })
+const go = (hash: string) => window.history.replaceState(null, '', hash)
+const detail = (system = 'Respiratory') => screen.getByRole('region', { name: `${system} detail` })
+const findDetail = (system = 'Respiratory') => screen.findByRole('region', { name: `${system} detail` })
+const region = (name: string) => within(detail()).getByRole('region', { name })
+const queryRegion = (name: string) => within(detail()).queryByRole('region', { name })
+const chart = () => detail().querySelector('svg[role="img"]') as SVGSVGElement
+const points = () => [...chart().querySelectorAll('circle.chart-point')]
+const titles = () => points().map((p) => p.querySelector('title')?.textContent)
+const markers = () => [...chart().querySelectorAll('text.chart-marker')].map((m) => m.textContent)
+
+async function openWith(seed: CheckIn[], options: Parameters<typeof baseSetup>[0] = {}) {
+  go('#/systems/Respiratory')
+  const s = setup({ seed, ...options })
+  s.renderApp()
+  await within(await findDetail()).findByRole('heading', { level: 2, name: 'Respiratory' })
+  return s
+}
+
+afterEach(() => {
+  vi.useRealTimers()
+  go('/')
+})
+
+describe('Detail navigation', () => {
+  it('AC5: clicking a flagged row opens the detail in place of Home', async () => {
+    setup().renderApp()
+    await submitSpo2(92)
+    await userEvent.click(await screen.findByRole('link', { name: /Respiratory/ }))
+
+    expect(window.location.hash).toBe('#/systems/Respiratory')
+    expect(await findDetail()).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Body systems' })).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Check-in' })).toBeNull()
+  })
+
+  it('AC6: the back link returns Home and focuses the Body systems heading', async () => {
+    await openWith([reading('a', NOW, 92)])
+
+    expect(within(detail()).getByRole('link', { name: '← Body systems' })).toHaveAttribute('href', '#/')
+    act(() => {
+      go('#/')
+      window.dispatchEvent(new HashChangeEvent('hashchange'))
+    })
+
+    const heading = await screen.findByRole('heading', { name: 'Body systems' })
+    expect(screen.queryByRole('region', { name: 'Respiratory detail' })).toBeNull()
+    expect(heading).toHaveAttribute('tabindex', '-1')
+    expect(heading).toHaveFocus()
+  })
+
+  it('AC7: a hash at load opens the detail under the header and connection pill', async () => {
+    await openWith([reading('a', NOW, 92)])
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Health' })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Online')
+  })
+
+  it.each(['#/systems/Cognition', '#/systems/Nope', '#/systems/%E0%A4%A', '#/foo', '#/systems/Respiratory/x'])(
+    'AC8: %s at load goes Home with hash #/ and no focus move',
+    async (hash) => {
+      go(hash)
+      setup().renderApp()
+
+      expect(await screen.findByRole('region', { name: 'Body systems' })).toBeInTheDocument()
+      await waitFor(() => expect(window.location.hash).toBe('#/'))
+      expect(document.activeElement).toBe(document.body)
+    },
+  )
+
+  it('AC9: focus moves to the detail heading once, not on re-reads', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    await openWith([reading('a', NOW, 92)])
+
+    const heading = within(detail()).getByRole('heading', { level: 2, name: 'Respiratory' })
+    expect(heading).toHaveAttribute('tabindex', '-1')
+    expect(heading).toHaveFocus()
+
+    const back = within(detail()).getByRole('link', { name: '← Body systems' })
+    back.focus()
+    act(() => vi.advanceTimersByTime(60_000))
+    await act(async () => {})
+    expect(back).toHaveFocus()
+  })
+
+  it('AC9: clicking the row link also focuses the detail heading', async () => {
+    setup().renderApp()
+    await submitSpo2(92)
+    await userEvent.click(await screen.findByRole('link', { name: /Respiratory/ }))
+
+    expect(await within(await findDetail()).findByRole('heading', { level: 2, name: 'Respiratory' })).toHaveFocus()
+  })
+
+  it('AC10: an empty hash shows Home and stays empty', async () => {
+    go('/')
+    setup().renderApp()
+
+    expect(await screen.findByRole('region', { name: 'Body systems' })).toBeInTheDocument()
+    expect(window.location.hash).toBe('')
+  })
+})
+
+describe('Detail header and panels', () => {
+  it('AC11: caution header with value, age and source', async () => {
+    await openWith([reading('a', new Date(Date.parse(NOW) - 10 * MIN).toISOString(), 92)])
+
+    expect(detail()).toHaveTextContent('▲ CAUTION')
+    expect(detail()).toHaveTextContent('SpO₂ 92 % · 10 min ago · manual')
+  })
+
+  it('AC12: warning header with the octagon icon and the word', async () => {
+    await openWith([reading('a', NOW, 88)])
+
+    const badge = detail().querySelector('.badge') as HTMLElement
+    expect(badge.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+    expect(badge).toHaveTextContent('WARNING')
+    expect(detail()).toHaveTextContent('SpO₂ 88 % · just now · manual')
+  })
+
+  it('AC13: Explanation lists what, why, how decided and source with the rule tag', async () => {
+    await openWith([reading('a', NOW, 92)])
+
+    const explanation = region('Explanation')
+    expect([...explanation.querySelectorAll('dt')].map((d) => d.textContent)).toEqual(['What', 'Why it matters', 'How decided', 'Source'])
+    const values = [...explanation.querySelectorAll('dd')]
+    expect(values.slice(0, 3).map((d) => d.textContent)).toEqual([SPO01.what, SPO01.why, SPO01.howDecided])
+    expect(values[3]).toHaveTextContent(SPO01.source)
+    expect(values[3].querySelector('.tag.tag--rule')).toHaveTextContent('rule · SPO-01')
+  })
+
+  it('AC14: What next shows the rule next step', async () => {
+    await openWith([reading('a', NOW, 92)])
+
+    expect(region('What next')).toHaveTextContent(SPO01.next)
+  })
+
+  const tiers = () => within(region('Who to involve')).getAllByRole('listitem')
+  const current = () => tiers().filter((li) => li.getAttribute('aria-current') === 'true').map((li) => li.textContent)
+
+  it('AC15: Who to involve lists the four tiers with CMO selected', async () => {
+    await openWith([reading('a', NOW, 92)])
+
+    expect(region('Who to involve').querySelector('ol')).not.toBeNull()
+    expect(tiers().map((li) => li.textContent)).toEqual(['Self-care', 'CMO', 'Medical conference', 'Urgent ground'])
+    expect(current()).toEqual(['CMO'])
+  })
+
+  it('AC16: SpO₂ 88 shows SPO-02 and selects Urgent ground', async () => {
+    await openWith([reading('a', NOW, 88)])
+
+    ;[SPO02.what, SPO02.why, SPO02.howDecided].forEach((t) => expect(region('Explanation')).toHaveTextContent(t))
+    expect(region('Explanation')).toHaveTextContent('rule · SPO-02')
+    expect(region('What next')).toHaveTextContent(SPO02.next)
+    expect(current()).toEqual(['Urgent ground'])
+  })
+
+  it('AC17: a tier outside the four labels selects none', async () => {
+    await openWith([reading('a', NOW, 92)], { rules: [{ ...SPO01, tier: 'Ground' }, SPO02] })
+
+    expect(tiers()).toHaveLength(4)
+    expect(current()).toEqual([])
+  })
+})
+
+describe('Detail when not flagged', () => {
+  const noPanels = () => ['Explanation', 'What next', 'Who to involve'].forEach((n) => expect(queryRegion(n)).toBeNull())
+
+  it('AC18: nominal shows the reading and no action panels', async () => {
+    await openWith([reading('a', NOW, 96)])
+
+    expect(detail()).toHaveTextContent('✓ Nominal')
+    expect(detail()).toHaveTextContent('SpO₂ 96 % · just now · manual')
+    expect(detail()).toHaveTextContent('No caution or warning now.')
+    noPanels()
+  })
+
+  it('AC19: no data shows the empty chart message', async () => {
+    await openWith([])
+
+    expect(detail()).toHaveTextContent('No data')
+    expect(detail()).toHaveTextContent('No caution or warning now.')
+    expect(region('SpO₂ · last 7 days')).toHaveTextContent('No readings in the last 7 days')
+    expect(chart()).toBeNull()
+    noPanels()
+  })
+
+  it('AC20: a stale reading shows a hollow point and no marker', async () => {
+    await openWith([reading('a', '2026-11-13T09:29:00Z', 88)])
+
+    expect(detail()).toHaveTextContent('No recent data')
+    expect(detail()).toHaveTextContent('SpO₂ 88 % · data 1 d old · manual')
+    expect(detail()).toHaveTextContent('No caution or warning now.')
+    expect(points().map((p) => p.getAttribute('class'))).toEqual(['chart-point chart-point--stale'])
+    expect(titles()).toEqual(['88 % · stale · 13 Nov 09:29 UTC · manual'])
+    expect(markers()).toEqual([])
+  })
+
+  it('AC21: a re-read after 60 s turns the detail nominal', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    const s = await openWith([reading('a', NOW, 92)])
+    s.clock.now = new Date(Date.parse(NOW) + MIN)
+    s.repository.items.set('b', { checkIn: reading('b', s.clock.now.toISOString(), 96), pending: false })
+
+    act(() => vi.advanceTimersByTime(60_000))
+
+    expect(await within(detail()).findByText('✓ Nominal')).toBeInTheDocument()
+    expect(queryRegion('Explanation')).toBeNull()
+  })
+})
+
+describe('Detail chart', () => {
+  const week = () => [reading('a', '2026-11-08T08:00:00Z', 97), reading('b', '2026-11-13T08:15:00Z', 93), reading('c', '2026-11-14T09:20:00Z', 92)]
+
+  it('AC22: one point per reading in the window, titled, oldest first', async () => {
+    await openWith(week())
+
+    expect(region('SpO₂ · last 7 days').querySelectorAll('svg[role="img"]')).toHaveLength(1)
+    expect(chart()).toHaveAttribute('aria-label', 'SpO₂, last 7 days, 3 readings')
+    expect(titles()).toEqual([
+      '97 % · nominal · 8 Nov 08:00 UTC · manual',
+      '93 % · caution · 13 Nov 08:15 UTC · manual',
+      '92 % · caution · 14 Nov 09:20 UTC · manual',
+    ])
+  })
+
+  it('AC23: caution points carry the class and a ▲ marker; one data line', async () => {
+    await openWith(week())
+
+    expect(points().map((p) => p.getAttribute('class'))).toEqual([
+      'chart-point',
+      'chart-point chart-point--caution',
+      'chart-point chart-point--caution',
+    ])
+    expect(markers()).toEqual(['▲', '▲'])
+    expect(chart().querySelectorAll('polyline')).toHaveLength(1)
+  })
+
+  it('AC24: a warning point carries the class and a "!" marker', async () => {
+    await openWith([reading('a', NOW, 88)])
+
+    expect(points().map((p) => p.getAttribute('class'))).toEqual(['chart-point chart-point--warning'])
+    expect(markers()).toEqual(['!'])
+  })
+
+  it('AC25: threshold labels and the fixed 80–100 % grid', async () => {
+    await openWith(week())
+
+    expect(chart()).toHaveTextContent('SPO-01 · < 94 % caution')
+    expect(chart()).toHaveTextContent('SPO-02 · < 90 % warning')
+    const grid = [...chart().querySelectorAll('line.chart-grid')]
+    expect(grid.map((l) => l.getAttribute('data-value'))).toEqual(['80', '85', '90', '95', '100'])
+    ;['80 %', '85 %', '90 %', '95 %', '100 %'].forEach((label) => expect(within(chart() as unknown as HTMLElement).getByText(label)).toBeInTheDocument())
+  })
+
+  it('AC26: X labels at the UTC midnights in the window', async () => {
+    await openWith(week())
+
+    ;['8 Nov', '9 Nov', '10 Nov', '11 Nov', '12 Nov', '13 Nov', '14 Nov'].forEach((label) =>
+      expect(within(chart() as unknown as HTMLElement).getByText(label)).toBeInTheDocument(),
+    )
+  })
+
+  it('AC27: the window starts exactly 7 days back; one (stale) point, singular label, no line', async () => {
+    await openWith([reading('a', '2026-11-07T09:29:00Z', 96), reading('b', '2026-11-07T09:30:00Z', 95)])
+
+    expect(titles()).toEqual(['95 % · stale · 7 Nov 09:30 UTC · manual'])
+    expect(chart()).toHaveAttribute('aria-label', 'SpO₂, last 7 days, 1 reading')
+    expect(chart().querySelector('polyline')).toBeNull()
+  })
+
+  it('AC28: a value below 80 sits on the 80 % line', async () => {
+    await openWith([reading('a', NOW, 75)])
+
+    expect(titles()).toEqual(['75 % · warning · 14 Nov 09:30 UTC · manual'])
+    const floor = chart().querySelector('line.chart-grid[data-value="80"]')
+    expect(points()[0].getAttribute('cy')).toBe(floor?.getAttribute('y1'))
+  })
+
+  it('AC29: out-of-range values are not drawn', async () => {
+    const at = new Date(Date.parse(NOW) - 60 * MIN).toISOString()
+    await openWith([reading('a', at, 101), reading('b', at, 40), reading('c', at, 95)])
+
+    expect(points()).toHaveLength(1)
+  })
+
+  it('AC30: a check-in without SpO₂ means no data and no chart', async () => {
+    await openWith([{ id: 'a', recordedAt: NOW, heartRateBpm: 70, symptoms: [] }])
+
+    expect(detail()).toHaveTextContent('No data')
+    expect(detail()).toHaveTextContent('No readings in the last 7 days')
+  })
+})
+
+describe('Detail errors and offline', () => {
+  type S = ReturnType<typeof setup>
+  const failures: [string, (s: S, fail: boolean) => void][] = [
+    ['rules', (s, fail) => void (s.ruleSource.fail = fail)],
+    ['history', (s, fail) => void (s.repository.failList = fail)],
+  ]
+
+  it.each(failures)('AC35: when the %s fail, shows "Detail unavailable" and keeps the hash', async (_, setFail) => {
+    for (const system of ['Respiratory', 'Nope']) {
+      go(`#/systems/${system}`)
+      const s = setup()
+      setFail(s, true)
+      const { unmount } = s.renderApp()
+
+      expect(await within(await findDetail(system)).findByText('Detail unavailable')).toBeInTheDocument()
+      expect(within(detail(system)).getByRole('link', { name: '← Body systems' })).toBeInTheDocument()
+      expect(window.location.hash).toBe(`#/systems/${system}`)
+      unmount()
+    }
+  })
+
+  it.each(failures)('AC36: recovers from a %s failure on the next 60 s re-read', async (_, setFail) => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    go('#/systems/Respiratory')
+    const s = setup({ seed: [reading('a', NOW, 92)] })
+    setFail(s, true)
+    s.renderApp()
+    expect(await within(await findDetail()).findByText('Detail unavailable')).toBeInTheDocument()
+
+    setFail(s, false)
+    act(() => vi.advanceTimersByTime(60_000))
+
+    expect(await within(detail()).findByText('▲ CAUTION')).toBeInTheDocument()
+  })
+
+  it('AC37: while loading, the back link shows and no heading', async () => {
+    go('#/systems/Respiratory')
+    const s = setup()
+    vi.spyOn(s.statusReader, 'readDetail').mockReturnValue(new Promise(() => {}))
+    s.renderApp()
+
+    const shell = await findDetail()
+    expect(within(shell).getByRole('link', { name: '← Body systems' })).toBeInTheDocument()
+    expect(within(shell).queryByRole('heading', { level: 2 })).toBeNull()
+  })
+
+  it('AC38: works offline without calling the gateway', async () => {
+    const s = setup({ online: false })
+    s.renderApp()
+    await submitSpo2(92)
+    fireEvent.click(await screen.findByRole('link', { name: /Respiratory/ }))
+
+    expect(await within(await findDetail()).findByText('▲ CAUTION')).toBeInTheDocument()
+    expect(s.gateway.sent).toHaveLength(0)
+  })
+})

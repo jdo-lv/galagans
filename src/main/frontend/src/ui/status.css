@@ -1,4 +1,4 @@
-/* Body-system rows (mockup 01) and explanation rows (mockup 02). Colours and sizes: ideas/ui-guidelines.md. */
+/* Body-system rows (mockup 01). Colours and sizes: ideas/ui-guidelines.md. */
 .status-list {
   list-style: none;
   margin: 0;
@@ -37,46 +37,31 @@
   color: var(--color-text-muted);
 }
 
-.status-explanation {
-  --color-divider: var(--color-surface);
-  margin: var(--space-3) 0 0;
-  padding: var(--space-1) var(--space-4);
-  border-radius: var(--radius-item);
-  background: var(--color-inset);
-}
-
-.status-explanation > div {
-  display: grid;
-  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
-  gap: var(--space-3);
-  align-items: baseline;
-  padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--color-divider);
-}
-
-.status-explanation > div:last-child {
-  border-bottom: 0;
-}
-
-.status-explanation dt {
-  font-weight: 700;
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.status-explanation dd {
-  margin: 0;
-}
-
-@media (max-width: 599px) {
-  .status-explanation > div {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-  }
-}
-
 .status-unavailable {
   padding: var(--space-3) 0;
   color: var(--color-text-muted);
+}
+
+/* A flagged row opens its detail: the whole row is the target, the chevron is the link cue (ui-guidelines §5 exception to underlined links) */
+.status-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-item);
+}
+
+.status-link .status-head {
+  flex: 1;
+}
+
+.status-link:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.card a.status-link {
+  color: inherit;
 }
