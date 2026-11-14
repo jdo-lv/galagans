@@ -29,7 +29,7 @@ function Dash({ meaning }: { meaning: string }) {
   )
 }
 
-// Urgency is the badge; who acts is a separate neutral pill (ui-guidelines §5 "Status badge").
+// Urgency is the badge; who acts is a separate neutral pill (ui-guidelines §5 "Level badge").
 function ItemStatus({ item }: { item: PacketItem }) {
   switch (item.state) {
     case 'unrated':

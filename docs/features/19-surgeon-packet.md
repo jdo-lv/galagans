@@ -23,7 +23,7 @@ Seeded check-ins for every shot: SpO₂ 92 %, heart rate 63 bpm and sleep 5.5 h 
 ### Arrived (packet sent at 07:31, clock 07:46: arrival 07:45:05 has passed, the earliest reply is current)
 ![Arrived](img/19-arrived.png)
 
-### Caution row (SpO₂ 92 %: caution badge, rule tag, tier pill; heart rate, sleep and reaction time are "—" not rated; mood is stale)
+### Caution row (SpO₂ 92 %: caution badge, rule tag, tier pill; heart rate and sleep are "—" not rated; mood is stale; reaction time 268 ms is nominal under COG-01)
 ![Caution row](img/19-caution-row.png)
 
 ### Light theme (in transit)
@@ -36,7 +36,7 @@ Seeded check-ins for every shot: SpO₂ 92 %, heart rate 63 bpm and sleep 5.5 h 
 
 ## Mockup and deviations
 
-The screen follows the issue mock [19-mock.png](img/19-mock.png) and [19-mock-390.png](img/19-mock-390.png) ([source](19-surgeon-packet.mock.html)), which adapts [03-surgeon-packet.png](../../ideas/mockups/03-surgeon-packet.png). Styles follow [ui-guidelines.md](../../ideas/ui-guidelines.md) §5 "Surgeon packet", "Pills and tags" and "Status badge".
+The screen follows the issue mock [19-mock.png](img/19-mock.png) and [19-mock-390.png](img/19-mock-390.png) ([source](19-surgeon-packet.mock.html)), which adapts [03-surgeon-packet.png](../../ideas/mockups/03-surgeon-packet.png). Styles follow [ui-guidelines.md](../../ideas/ui-guidelines.md) §5 "Surgeon packet", "Pills and tags" and "Level badge". The badges are still today's caution and warning: the 0–5 levels of [alert-levels.md](../../ideas/alert-levels.md) reach the packet through `Badge` when they are built.
 
 Deviations from mockup 03, all decided in the issue:
 
@@ -44,8 +44,8 @@ Deviations from mockup 03, all decided in the issue:
 |---|---|
 | No FHIR panel, no "Review & edit", no crew or flight-day pills, no symptoms row | Out of scope: FHIR is F24 (pitch only), the check-in has no symptom input yet (F1), roles and flight day are F20/F21. |
 | The contents card is the next packet; the timeline card is the last packet sent | One screen state: Send always builds a new packet from the live draft. |
-| Unrated rows show "—" (Not rated), never "Nominal" | No rule row judges heart rate, sleep, mood or reaction time yet, so calling them nominal would claim a judgement no rule made. |
-| The tier is a separate neutral pill under the rule tag | ui-guidelines §5 "Status badge": urgency is the colour, who acts is a separate neutral pill. |
+| Unrated rows show "—" (Not rated), never "Nominal" | No rule row judges heart rate, sleep or mood yet, so calling them nominal would claim a judgement no rule made. Reaction time became rated on its own when COG-01 (#17) arrived. |
+| The tier is a separate neutral pill under the rule tag | ui-guidelines §5 "Level badge": urgency is the colour, who acts is a separate neutral pill. |
 | Done steps are filled dots, not checks | A check would read as the ✓ of Nominal in the same screen (one icon, one meaning). |
 | "Send packet" opens an inline confirm, not "Send now" | ui-guidelines §5 Buttons: consequential actions get confirm or undo. |
 | A seventh row, "Reaction time" | The PVT reading from #16 joins the packet like every other `READINGS` row. |

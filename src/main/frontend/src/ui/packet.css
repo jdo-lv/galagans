@@ -1,5 +1,5 @@
 /* Surgeon packet screen (issue #19, mock docs/features/img/19-mock.png). Colours and sizes: ideas/ui-guidelines.md.
-   The timeline is not a health status: neutral tokens only, never caution or warning. */
+   The timeline is not a health status: neutral tokens only, never a level colour. */
 .packet-home {
   align-self: flex-start;
   display: inline-flex;
