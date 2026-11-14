@@ -6,6 +6,8 @@ The "Body systems" card on home lists all ten systems of mockup 01. Respiratory 
 
 ## Screens
 
+Since [#17](17-cognition-rule.md) Cognition is no longer a placeholder: it comes from the PVT (rule COG-01) and shows "No data" until a test is done.
+
 Since [#9](9-detail-screen.md) the explanation is no longer inline: the Respiratory row links to its detail screen when it is in caution or warning. The screenshots below predate that change.
 
 ### No check-ins yet

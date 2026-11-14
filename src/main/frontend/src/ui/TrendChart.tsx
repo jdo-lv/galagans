@@ -1,7 +1,7 @@
 import { CHART_WINDOW_MS, type ChartPoint, type Indicator, type Rule } from '../domain/rules'
 
 // Plot area in viewBox units.
-const LEFT = 60
+const LEFT = 72
 const RIGHT = 620
 const TOP = 16
 const BOTTOM = 200

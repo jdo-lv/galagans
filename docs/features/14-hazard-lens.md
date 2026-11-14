@@ -6,6 +6,8 @@ Home has a Hazard lens card between Body systems and the right column. It holds 
 
 ## Screens
 
+Since [#17](17-cognition-rule.md) the Cognition label carries a badge when a slow PVT flags it (rule COG-01). The screenshots below predate that.
+
 ### Lens off (SpO₂ 97, 1280 px, light)
 "Pick a hazard to see which body systems it affects." No marks, no note.
 ![Lens off](img/14-off.png)
