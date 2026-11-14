@@ -2,7 +2,7 @@
 
 The "Body systems" card on home lists all ten systems of mockup 01. Respiratory is the only system with rules (SPO-01/02, [#1](1-spo2-core-loop.md)), so it shows real check-in data. The other nine show fixed synthetic values from `src/main/frontend/src/infrastructure/mockStatuses.ts`, always "✓ Nominal", labelled "synthetic", with no data age and no explanation. When a rule row is added for one of those systems, its placeholder disappears and the real status takes its place. Feature F6 in [features.md](../../ideas/features.md); issue [#4](https://github.com/jdo-lv/galagans/issues/4).
 
-**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080, click "+" (Add entry) in the header, type an SpO₂ value on its step, click "Next →" through the other steps and "Save check-in" on the last ([#29](29-check-in-questionnaire.md)). **Retake the screenshots** with the app running: `target/node/node docs/features/4-body-systems-list.shots.mjs` (script: [4-body-systems-list.shots.mjs](4-body-systems-list.shots.mjs)).
+**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080, click "+" (Add entry) in the header, type an SpO₂ value on its step, click "Next →" through the other steps, "Save check-in" on the last ([#29](29-check-in-questionnaire.md)), then "Done" ([#40](40-reporting-win.md)). **Retake the screenshots** with the app running: `target/node/node docs/features/4-body-systems-list.shots.mjs` (script: [4-body-systems-list.shots.mjs](4-body-systems-list.shots.mjs)).
 
 ## Screens
 

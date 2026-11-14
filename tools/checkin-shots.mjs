@@ -13,4 +13,5 @@ export async function saveCheckIn(page, fields = {}) {
     await next()
   }
   await next(800) // "Save check-in" on the symptoms step
+  await page.click('.check-in-complete .button-primary', 400) // "Done" on the completion (#40)
 }

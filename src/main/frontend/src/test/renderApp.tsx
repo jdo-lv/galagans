@@ -9,6 +9,7 @@ import { PacketUplink } from '../application/PacketUplink'
 import { PersonalHealthGateway } from '../application/PersonalHealthGateway'
 import { CombinedObservationHistory } from '../application/CombinedObservationHistory'
 import { RoutineReader } from '../application/RoutineReader'
+import { StreakReader } from '../application/StreakReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import { HealthBriefing } from '../application/HealthBriefing'
@@ -18,6 +19,7 @@ import type { CheckIn } from '../domain/checkIn'
 import type { Observation } from '../domain/observation'
 import type { CheckInHistory, ConnectivityMonitor } from '../domain/ports'
 import type { RoutinePlaceholder } from '../domain/routine'
+import type { ProcessCounter, SeedDay } from '../domain/streak'
 import type { Placeholder } from '../domain/rules'
 import { App } from '../ui/App'
 import { ServicesProvider } from '../ui/ServicesContext'
@@ -95,6 +97,8 @@ export function setup({
   placeholders = [] as Placeholder[],
   rules = RULES,
   routinePlaceholders = [] as RoutinePlaceholder[],
+  streakSeed = [] as SeedDay[],
+  counters = [] as ProcessCounter[],
   random = () => 0,
 } = {}) {
   const clock = { now: new Date(now) }
@@ -112,6 +116,7 @@ export function setup({
   const statusReader = new SystemStatusReader(ruleSource, device.history, () => clock.now, placeholders)
   const routineReader = new RoutineReader(repository, () => clock.now, routinePlaceholders)
   const { voice, voiceSession } = voiceFakes({ recorder, statusReader, routineReader })
+  const streakReader = new StreakReader(repository, () => clock.now, streakSeed, counters)
   const services = {
     repository,
     connectivity,
@@ -121,6 +126,7 @@ export function setup({
     healthGateway: device.healthGateway,
     readingsReader,
     routineReader,
+    streakReader,
     random,
     ...packet.services,
     voiceSession,
@@ -136,6 +142,7 @@ export function setup({
     connectivity,
     statusReader: services.statusReader,
     routineReader: services.routineReader,
+    streakReader,
     readingsReader,
     packets: packet.packets,
     packetGateway: packet.packetGateway,
@@ -160,6 +167,7 @@ export async function saveCheckIn(fields: { heartRate?: number; spo2?: number; s
     await userEvent.click(within(checkIn).getByRole('button', { name: 'Next →' }))
   }
   await userEvent.click(within(checkIn).getByRole('button', { name: 'Save check-in' }))
+  await userEvent.click(await screen.findByRole('button', { name: 'Done' }))
   await screen.findByRole('region', { name: 'Body systems' })
 }
 
