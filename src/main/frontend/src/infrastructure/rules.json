@@ -1,0 +1,36 @@
+[
+  {
+    "id": "SPO-01",
+    "system": "Respiratory",
+    "indicator": "spo2Percent",
+    "label": "SpO₂",
+    "unit": "%",
+    "validMin": 50,
+    "validMax": 100,
+    "below": 94,
+    "status": "caution",
+    "tier": "CMO",
+    "what": "SpO₂ is below 94 %.",
+    "why": "Low oxygen saturation can mean hypoxia from a cabin atmosphere fault, fire or smoke.",
+    "howDecided": "Rule SPO-01: SpO₂ < 94 % → caution. Earth clinical convention, not a NASA in-flight limit (health-indicators §4).",
+    "next": "Re-measure: warm your hands, sit still for 1 minute, finger fully in, hand at heart level. Still below 94 % → tell the CMO now.",
+    "source": "research/health-indicators.md §4"
+  },
+  {
+    "id": "SPO-02",
+    "system": "Respiratory",
+    "indicator": "spo2Percent",
+    "label": "SpO₂",
+    "unit": "%",
+    "validMin": 50,
+    "validMax": 100,
+    "below": 90,
+    "status": "warning",
+    "tier": "Urgent ground",
+    "what": "SpO₂ is below 90 %.",
+    "why": "Low oxygen saturation can mean hypoxia from a cabin atmosphere fault, fire or smoke.",
+    "howDecided": "Rule SPO-02: SpO₂ < 90 % → warning. Earth clinical convention, not a NASA in-flight limit (health-indicators §4).",
+    "next": "CMO now and notify ground.",
+    "source": "research/health-indicators.md §4"
+  }
+]
