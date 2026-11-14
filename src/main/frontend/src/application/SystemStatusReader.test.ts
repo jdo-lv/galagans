@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { JsonRuleSource } from '../infrastructure/JsonRuleSource'
 import { FakeRepository, FakeRuleSource } from '../test/fakes'
 import type { Placeholder, Rule } from '../domain/rules'
+import { mockStatuses } from '../infrastructure/mockStatuses'
 import { SystemStatusReader } from './SystemStatusReader'
 
 describe('SystemStatusReader', () => {
@@ -43,6 +44,82 @@ describe('SystemStatusReader', () => {
       { system: 'Sleep', state: 'nominal', detail: 's', source: 'synthetic', rule: undefined },
     ] satisfies Placeholder[]
     expect(invalid).toHaveLength(2)
+  })
+
+  describe('readDetail', () => {
+    const NOW = new Date('2026-11-14T09:30:00Z')
+    const store = (...items: [string, string, number][]) => {
+      const repository = new FakeRepository()
+      items.forEach(([id, recordedAt, spo2Percent]) =>
+        repository.items.set(id, { checkIn: { id, recordedAt, spo2Percent, symptoms: [] }, pending: false }),
+      )
+      return repository
+    }
+    const reader = async (repository: FakeRepository) =>
+      new SystemStatusReader(new FakeRuleSource(await new JsonRuleSource().load()), repository, () => NOW, mockStatuses)
+
+    it('AC31: returns the list status, the system rules and the 7-day points oldest first', async () => {
+      const r = await reader(
+        store(['c', '2026-11-14T09:20:00Z', 92], ['a', '2026-11-08T08:00:00Z', 97], ['b', '2026-11-13T08:15:00Z', 93]),
+      )
+      const rules = await new JsonRuleSource().load()
+
+      const detail = await r.readDetail('Respiratory')
+
+      expect(detail?.status).toEqual((await r.read()).find((s) => s.system === 'Respiratory'))
+      expect(detail?.rules).toEqual(rules)
+      expect(detail?.points).toEqual([
+        { recordedAt: '2026-11-08T08:00:00Z', value: 97, status: 'nominal' },
+        { recordedAt: '2026-11-13T08:15:00Z', value: 93, status: 'caution' },
+        { recordedAt: '2026-11-14T09:20:00Z', value: 92, status: 'caution' },
+      ])
+    })
+
+    it('AC32: a placeholder or unknown system has no detail', async () => {
+      const r = await reader(store())
+
+      expect(await r.readDetail('Cognition')).toBeUndefined()
+      expect(await r.readDetail('Nope')).toBeUndefined()
+    })
+
+    it('AC33: an empty store gives no data, the rules and no points', async () => {
+      const detail = await (await reader(store())).readDetail('Respiratory')
+
+      expect(detail?.status.state).toBe('no-data')
+      expect(detail?.rules.map((r) => r.id)).toEqual(['SPO-01', 'SPO-02'])
+      expect(detail?.points).toEqual([])
+    })
+
+    it('AC34: equal times put the less severe reading first', async () => {
+      const detail = await (await reader(store(['b', '2026-11-14T09:00:00Z', 96], ['a', '2026-11-14T09:00:00Z', 88]))).readDetail(
+        'Respiratory',
+      )
+
+      expect(detail?.points.map((p) => p.value)).toEqual([96, 88])
+    })
+
+    it('the newest point of a stale status is stale; older points keep their status', async () => {
+      const detail = await (
+        await reader(store(['a', '2026-11-12T09:00:00Z', 92], ['b', '2026-11-13T09:29:00Z', 88]))
+      ).readDetail('Respiratory')
+
+      expect(detail?.points.map((p) => p.status)).toEqual(['caution', 'stale'])
+    })
+
+    it('keeps readings from exactly 7 days ago, drops older and out-of-range values', async () => {
+      const detail = await (
+        await reader(
+          store(
+            ['a', '2026-11-07T09:29:00Z', 96],
+            ['b', '2026-11-07T09:30:00Z', 95],
+            ['c', '2026-11-14T08:30:00Z', 101],
+            ['d', '2026-11-14T08:30:00Z', 40],
+          ),
+        )
+      ).readDetail('Respiratory')
+
+      expect(detail?.points.map((p) => p.value)).toEqual([95])
+    })
   })
 
   it('rejects when the rules fail to load', async () => {
