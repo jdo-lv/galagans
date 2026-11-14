@@ -1,18 +1,21 @@
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { toPacketItem } from '../application/packetItems'
 import type { CheckIn } from '../domain/checkIn'
 import type { StoredPacket } from '../domain/packet'
 import { READINGS, type ReadingPlaceholder } from '../domain/readings'
-import { toPacketItem } from '../application/packetItems'
+import type { Rule } from '../domain/rules'
 import { mockReadings } from '../infrastructure/mockReadings'
+import ruleRows from '../infrastructure/rules.json'
 import { setup } from '../test/renderApp'
 
 // Local times, so the tests pass in any TZ.
 const at = (h: number, m: number, s = 0, day = 14) => new Date(2026, 10, day, h, m, s)
 const go = (hash: string) => window.history.replaceState(null, '', hash)
 
-type Options = { now?: Date; seed?: CheckIn[]; online?: boolean; readingPlaceholders?: ReadingPlaceholder[] }
+type Options = { now?: Date; seed?: CheckIn[]; online?: boolean; readingPlaceholders?: ReadingPlaceholder[]; rules?: Rule[] }
+const RULES = ruleRows as Rule[]
 const setupAt = ({ now = at(7, 31), ...rest }: Options = {}) => setup({ ...rest, now: now.toISOString() })
 
 const PILL_NAME = 'Surgeon packet. Ground link: one-way delay 14 min 05 s (demo)'
@@ -212,13 +215,14 @@ describe('Next packet contents', () => {
     expect(status.querySelector('.tag, .pill')).toBeNull()
   })
 
+  // Reaction time runs without COG-01 (#17) here: the AC is about an indicator with no rule rows.
   it.each([
     ['Heart rate', { heartRateBpm: 63 }, '63 bpm', 'manual'],
     ['Sleep', { sleepHours: 7 }, '7 h', 'manual'],
     ['Mood', { mood: 3 }, '3 / 5', 'manual'],
     ['Reaction time', { pvtMedianMs: 268, pvtLapses: 0, pvtFalseStarts: 0 }, '268 ms', 'in-app test'],
   ])('AC12: %s with no rule rows is "—" Not rated, with value, age and source', async (label, fields, shown, source) => {
-    await openWithContents({ seed: [stored('a', ago(10), fields)] })
+    await openWithContents({ seed: [stored('a', ago(10), fields)], rules: RULES.filter((r) => r.indicator !== 'pvtMedianMs') })
 
     const row = cells(label)
     expect(within(row.status).getByText('—')).toHaveAttribute('aria-hidden', 'true')
@@ -227,6 +231,18 @@ describe('Next packet contents', () => {
     expect(row.value).toHaveTextContent(shown)
     expect(row.value).toHaveTextContent('10 min ago')
     expect(within(row.source).getByText(source)).toHaveClass('tag')
+  })
+
+  it.each([
+    [268, '✓ Nominal', null],
+    [312, '▲ CAUTION', 'rule · COG-01'],
+  ])('AC12: with its rule row (COG-01, #17), Reaction time %i ms is rated %s', async (medianMs, badge, ruleTag) => {
+    await openWithContents({ seed: [stored('a', ago(10), { pvtMedianMs: medianMs, pvtLapses: 0, pvtFalseStarts: 0 })] })
+
+    const { status } = cells('Reaction time')
+    expect(within(status).getByText(badge)).toHaveClass('badge')
+    expect(within(status).queryByText('Not rated')).toBeNull()
+    if (ruleTag) expect(within(status).getByText(ruleTag)).toHaveClass('tag--rule')
   })
 
   it('AC13: no sleep reading → "—" No reading, the No data badge and no source tag', async () => {
