@@ -16,8 +16,7 @@ import type { Observation } from '../domain/observation'
 import type { CheckInHistory, ConnectivityMonitor } from '../domain/ports'
 import type { ReadingPlaceholder } from '../domain/readings'
 import type { RoutinePlaceholder } from '../domain/routine'
-import type { Placeholder, Rule } from '../domain/rules'
-import ruleRows from '../infrastructure/rules.json'
+import type { Placeholder } from '../domain/rules'
 import { App } from '../ui/App'
 import { ServicesProvider } from '../ui/ServicesContext'
 import {
@@ -30,6 +29,7 @@ import {
   FakeRuleSource,
   FakeRepository,
 } from './fakes'
+import { RULES } from './rules'
 
 export const reading = (id: string, recordedAt: string, spo2Percent?: number): CheckIn => ({
   id,
@@ -81,7 +81,7 @@ export function setup({
   observationSeed = [] as Observation[],
   online = true,
   placeholders = [] as Placeholder[],
-  rules = ruleRows as Rule[],
+  rules = RULES,
   routinePlaceholders = [] as RoutinePlaceholder[],
   readingPlaceholders = [] as ReadingPlaceholder[],
   random = () => 0,

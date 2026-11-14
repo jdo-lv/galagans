@@ -7,9 +7,8 @@ import { RoutineReader } from '../application/RoutineReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import type { CheckIn } from '../domain/checkIn'
-import type { Rule } from '../domain/rules'
 import { mockReadings } from '../infrastructure/mockReadings'
-import rules from '../infrastructure/rules.json'
+import { RULES } from '../test/rules'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { mockStatuses } from '../infrastructure/mockStatuses'
 import { observationFakes, packetFakes, pvt, setup as setupApp } from '../test/renderApp'
@@ -27,7 +26,7 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
   const connectivity = new FakeConnectivity()
   connectivity.online = online
   const gateway = new FakeGateway()
-  const ruleSource = new FakeRuleSource(rules as Rule[])
+  const ruleSource = new FakeRuleSource(RULES)
   const synchronizer = new SyncService(repository, gateway, connectivity)
   const device = observationFakes(repository, () => clock.now)
   const readingsReader = new LatestReadingsReader(ruleSource, device.history, () => clock.now, mockReadings)

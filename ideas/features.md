@@ -56,19 +56,20 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **How:** pre-flight values (in the demo: a pre-loaded profile) set a band per indicator, e.g. "your PVT: 250–285 ms".
 - **Example:** 108/70 BP is fine for this astronaut even if it looks low on Earth.
 - **Needs:** F1.
+- **Status:** a pre-loaded synthetic pre-flight profile (`infrastructure/baseline.json`) gives the PVT baseline 265 ms (issue #28). COG-01 flags a median above baseline + 15 % (304.75 ms), and the Cognition chart draws the baseline as "your pre-flight normal · 265 ms · synthetic". SpO₂ keeps its absolute clinical guardrails. Missing: the band (min–max, with F11), other indicators.
 
 #### F4. Rules engine and rule table · Must
 - **What:** the "brain". A table of simple, readable rules: *if* this indicator does *this*, *then* status, action, who to involve, and the source that justifies it.
 - **Why:** judges and doctors can read every rule and see where it comes from. No AI makes medical decisions (a design constraint).
 - **How:** each rule is one row in a JSON file; the code evaluates them after every new reading. Rule example COG-02: "PVT median > corridor + 15% or ≥ 5 lapses → Cognition level 3 "check" → tell the CMO today. Source: Dev et al. 2024".
 - **Needs:** F3. The rule table itself must be written and checked by a person, with sources from `research/`.
-- **Status:** `rules.json` holds SPO-01 (SpO₂ < 94 % → caution), SPO-02 (< 90 % → warning) and COG-01 (PVT median > 305 ms → Cognition caution, issue #17), validated on load and evaluated on the tablet after each save and every 60 s. Data age and source label come per indicator from the reading spec (SpO₂ 24 h "manual", PVT 4 d "in-app test"). Runs without F3 for now: SpO₂ thresholds are the Earth clinical convention, and COG-01 uses a synthetic 265 ms baseline + 15 % (team heuristic). Missing: other indicators and rows, personal baseline.
+- **Status:** `rules.json` holds SPO-01 (SpO₂ < 94 % → caution), SPO-02 (< 90 % → warning) and COG-01 (PVT median > pre-flight baseline + 15 % = 304.75 ms → Cognition caution, issues #17 and #28), validated on load and evaluated on the tablet after each save and every 60 s. Data age and source label come per indicator from the reading spec (SpO₂ 24 h "manual", PVT 4 d "in-app test"). SpO₂ thresholds are the Earth clinical convention; COG-01 is relative to the F3 profile (synthetic 265 ms; +15 % is a team heuristic), and its texts are filled from it. Missing: other indicators and rows.
 
 #### F5. Explanation and next step (detail screen) · Must
 - **What:** tapping a flagged item opens a screen with four answers: **what** changed, **why it matters**, **how the app decided** (the rule and its source), **what to do next**, plus the escalation tier with buttons "Share with CMO" / "Add to surgeon packet".
 - **Why:** it answers the challenge's five questions on every screen. NASA display guidance says to always explain what, why and what next.
 - **Needs:** F4. See mockup [02-detail.png](mockups/02-detail.png).
-- **Status:** a caution or warning row on home opens the system's detail screen (`#/systems/<system>`). It shows the status, a 7-day trend chart with the rule thresholds, what / why / how decided / source, what next, and the four escalation tiers with the rule's tier selected (issue #9). Missing: the adaptation corridor (F11) and the "Share with CMO" / "Add to surgeon packet" buttons.
+- **Status:** a caution or warning row on home opens the system's detail screen (`#/systems/<system>`). It shows the status, a 7-day trend chart with the rule thresholds (and, for Cognition, the pre-flight baseline line, issue #28), what / why / how decided / source, what next, and the four escalation tiers with the rule's tier selected (issue #9). Missing: the adaptation corridor (F11) and the "Share with CMO" / "Add to surgeon packet" buttons.
 
 #### F6. Body map (home screen) · Must
 - **What:** a human figure plus a list of body systems, each with a status on the 0–5 [alert scale](alert-levels.md): nominal, to do, watch, check, treat or emergency.

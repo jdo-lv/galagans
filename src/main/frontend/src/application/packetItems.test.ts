@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { READINGS, type LatestReading } from '../domain/readings'
-import type { Rule } from '../domain/rules'
-import rules from '../infrastructure/rules.json'
+import { RULES } from '../test/rules'
 import { toPacketItem } from './packetItems'
 
-const [SPO01, SPO02] = rules as Rule[]
+const [SPO01, SPO02] = RULES
 const spec = (key: string) => READINGS.find((s) => s.key === key)!
 const AT = '2026-11-14T07:21:00.000Z'
 

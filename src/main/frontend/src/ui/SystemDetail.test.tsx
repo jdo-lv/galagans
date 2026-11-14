@@ -2,12 +2,11 @@ import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
-import type { Rule } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
-import ruleRows from '../infrastructure/rules.json'
+import { RULES } from '../test/rules'
 import { pvt, reading, setup as baseSetup, submitSpo2 } from '../test/renderApp'
 
-const [SPO01, SPO02] = ruleRows as Rule[]
+const [SPO01, SPO02] = RULES
 const NOW = '2026-11-14T09:30:00Z'
 const MIN = 60_000
 
@@ -302,6 +301,13 @@ describe('Detail chart', () => {
     expect(detail()).toHaveTextContent('No data')
     expect(detail()).toHaveTextContent('No readings in the last 7 days')
   })
+
+  it('AC12 (#28): the SpO₂ chart has no baseline line', async () => {
+    await openWith(week())
+
+    expect(chart().querySelector('.chart-baseline')).toBeNull()
+    expect(chart()).not.toHaveTextContent('pre-flight normal')
+  })
 })
 
 describe('Detail errors and offline', () => {
@@ -372,7 +378,7 @@ describe('Cognition detail (#17)', () => {
   const cog = (name: string) => within(detail('Cognition')).getByRole('region', { name })
   const cogChart = () => detail('Cognition').querySelector('svg[role="img"]') as SVGSVGElement
   const cogPoints = () => [...cogChart().querySelectorAll('circle.chart-point')]
-  const COG01 = (ruleRows as Rule[]).find((r) => r.id === 'COG-01')!
+  const COG01 = RULES.find((r) => r.id === 'COG-01')!
   const week = () => [at('2026-11-10T09:00:00Z', 268), at('2026-11-14T09:20:00Z', 312)]
 
   it('AC12: caution header, explanation, what next and the CMO tier', async () => {
@@ -401,7 +407,7 @@ describe('Cognition detail (#17)', () => {
       '268 ms · nominal · 10 Nov 09:00 UTC · in-app test',
       '312 ms · caution · 14 Nov 09:20 UTC · in-app test',
     ])
-    expect(cogChart()).toHaveTextContent('COG-01 · > 305 ms caution')
+    expect(cogChart()).toHaveTextContent('COG-01 · > 304.75 ms caution')
     expect([...cogChart().querySelectorAll('line.chart-grid')].map((l) => l.getAttribute('data-value'))).toEqual([
       '200', '250', '300', '350', '400',
     ])
@@ -414,6 +420,34 @@ describe('Cognition detail (#17)', () => {
     expect(detail('Cognition')).toHaveTextContent('PVT median 312 ms · data 4 d old · in-app test')
     expect(detail('Cognition')).toHaveTextContent('No caution or warning now.')
     expect(cogPoints().map((p) => p.getAttribute('class'))).toEqual(['chart-point chart-point--stale'])
+  })
+
+  const baselineLine = () => cogChart().querySelector('line.chart-baseline')
+  const baselineLabel = () =>
+    [...cogChart().querySelectorAll('text.chart-label')].find((t) => t.textContent === 'your pre-flight normal · 265 ms · synthetic')
+
+  it.each([
+    ['current', () => week()],
+    ['stale', () => [pvt('p', ago(4 * 24 * 60 * MIN + MIN), 312)]],
+  ])('AC10 (#28): with %s readings the chart shows the 265 ms baseline line and label', async (_, seed) => {
+    await openCognition(seed())
+
+    const grid = (v: number) => Number(cogChart().querySelector(`line.chart-grid[data-value="${v}"]`)?.getAttribute('y1'))
+    const y265 = grid(250) + ((grid(300) - grid(250)) * 15) / 50
+    expect(baselineLine()).toHaveAttribute('data-value', '265')
+    expect(Number(baselineLine()?.getAttribute('y1'))).toBeCloseTo(y265)
+    expect(baselineLabel()).toHaveAttribute('text-anchor', 'end')
+    expect(baselineLabel()).toHaveAttribute('x', baselineLine()?.getAttribute('x2'))
+    expect(Number(baselineLabel()?.getAttribute('y'))).toBeCloseTo(y265 + 16)
+    expect(cogChart()).toHaveTextContent('COG-01 · > 304.75 ms caution')
+  })
+
+  it('AC11 (#28): no PVT readings shows no chart and no baseline', async () => {
+    await openCognition([])
+
+    expect(detail('Cognition')).toHaveTextContent('No data')
+    expect(detail('Cognition').querySelector('svg[role="img"]')).toBeNull()
+    expect(detail('Cognition')).not.toHaveTextContent('pre-flight normal')
   })
 
   it('AC15: a PVT above 400 ms sits on the 400 ms line with its real value in the title', async () => {

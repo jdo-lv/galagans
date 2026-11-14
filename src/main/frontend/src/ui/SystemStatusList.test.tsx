@@ -2,10 +2,10 @@ import { act, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Rule } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
-import rules from '../infrastructure/rules.json'
+import { RULES } from '../test/rules'
 import { pvt, reading, setup, submitSpo2 } from '../test/renderApp'
 
-const [SPO01, SPO02] = rules as Rule[]
+const [SPO01, SPO02] = RULES
 const texts = (rule: Rule) => [rule.what, rule.why, rule.howDecided, rule.next]
 const MIN = 60_000
 const HOUR = 60 * MIN
@@ -329,8 +329,15 @@ describe('Cognition from the PVT (#17)', () => {
     expect(list()).not.toHaveTextContent('PVT 268 ms · within your baseline')
   })
 
-  it('AC5: 305 is nominal with no link (above is strict)', async () => {
+  it('AC2 (#28): 305 is a caution against the 265 ms baseline + 15 % (304.75 ms)', async () => {
     await show([pvt('p', NOW, 305)])
+
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CAUTION'))
+    expect(within(cognition()).getByRole('link')).toHaveAttribute('href', '#/systems/Cognition')
+  })
+
+  it('AC3 (#28): 304 is nominal with no link', async () => {
+    await show([pvt('p', NOW, 304)])
 
     await vi.waitFor(() => expect(cognition()).toHaveTextContent('✓ Nominal'))
     expect(within(cognition()).queryByRole('link')).toBeNull()

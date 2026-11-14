@@ -41,12 +41,12 @@
     "unit": "ms",
     "validMin": 130,
     "validMax": 10000,
-    "above": 305,
+    "aboveBaselinePercent": 15,
     "status": "caution",
     "tier": "CMO",
-    "what": "Your PVT median is above 305 ms (synthetic baseline 265 ms + 15 %).",
+    "what": "Your PVT median is above {limit} ms, {percent} % slower than your pre-flight baseline ({baseline} ms).",
     "why": "PVT slows early in flight in ISS crews, and nights of 6 h or less of sleep slow it further. Slower attention raises the risk of performance errors.",
-    "howDecided": "Rule COG-01: PVT median > 305 ms → caution. Baseline 265 ms is a synthetic example value (mockup 02); +15 % is a team heuristic, not a NASA limit. No adaptation corridor yet.",
+    "howDecided": "Rule COG-01: PVT median > {limit} ms (pre-flight baseline {baseline} ms + {percent} %) → caution. The baseline is a synthetic pre-loaded profile; +{percent} % is a team heuristic, not a NASA limit. No adaptation corridor yet.",
     "next": "Tell the CMO today and repeat the test tomorrow morning.",
     "source": "research/health-indicators.md §13; research/long-duration-literature.md [L5]"
   }
