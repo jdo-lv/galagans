@@ -31,7 +31,7 @@
 <div class="sim">
   <div class="top">
     <h1>Device Simulator</h1>
-    <span class="pill">Broker <b class="num">ws://localhost:9001</b> · connected</span>
+    <span class="pill">Device link <b class="num">ws://192.168.1.20:8080/ws/devices</b> · connected</span>
     <span class="pill">All data simulated</span>
   </div>
   <div class="cols">
@@ -40,7 +40,7 @@
       <div class="devices">
         <section class="card dev">
           <h3>Pulse oximeter <span class="tag">publishing</span></h3>
-          <div class="muted-s">MQTT JSON · <span class="num">crew/a1/oximeter</span></div>
+          <div class="muted-s">WebSocket JSON · <span class="num">crew/a1/oximeter</span></div>
           <div class="value">97 % · 63 bpm</div>
           <div class="muted-s">source: synthetic</div>
           <input class="slider" type="range" min="80" max="100" value="97" aria-label="SpO₂ override">
@@ -49,15 +49,15 @@
         <section class="card dev dev--off"><h3>Wrist bracelet <span class="tag">not built</span></h3><div class="muted-s">Live HR broadcast · GATT 0x180D · 0x2A37</div></section>
         <section class="card dev dev--off"><h3>BP cuff <span class="tag">not built</span></h3><div class="muted-s">GATT 0x1810 · char 0x2A35</div></section>
         <section class="card dev dev--off"><h3>Thermometer <span class="tag">not built</span></h3><div class="muted-s">GATT 0x1809 · char 0x2A1C</div></section>
-        <section class="card dev dev--off"><h3>Environment node <span class="tag">not built</span></h3><div class="muted-s">Wi-Fi · MQTT JSON</div></section>
-        <section class="card dev dev--off"><h3>Dosimeter <span class="tag">not built</span></h3><div class="muted-s">Wi-Fi · MQTT JSON</div></section>
+        <section class="card dev dev--off"><h3>Environment node <span class="tag">not built</span></h3><div class="muted-s">Wi-Fi · JSON</div></section>
+        <section class="card dev dev--off"><h3>Dosimeter <span class="tag">not built</span></h3><div class="muted-s">Wi-Fi · JSON</div></section>
       </div>
       <section class="card">
-        <h2 class="card-heading">MQTT traffic</h2>
+        <h2 class="card-heading">Device traffic</h2>
         <div class="log"><span class="k">09:31:00</span>  crew/a1/oximeter  {"id":"5e1c…","t":"2026-11-14T09:31:00.000Z","spo2_pct":97,"pulse_bpm":63,"src":"synthetic"}
 <span class="k">09:30:12</span>  crew/a1/oximeter  {"id":"a90f…","t":"2026-11-14T09:30:12.000Z","spo2_pct":91,"pulse_bpm":61,"src":"synthetic"}
 <span class="k">09:30:00</span>  crew/a1/oximeter  {"id":"07b2…","t":"2026-11-14T09:30:00.000Z","spo2_pct":97,"pulse_bpm":63,"src":"synthetic"}
-<span class="k">09:29:00</span>  not sent · broker disconnected</div>
+<span class="k">09:29:00</span>  not sent · device link disconnected</div>
       </section>
     </div>
     <div class="stack">
