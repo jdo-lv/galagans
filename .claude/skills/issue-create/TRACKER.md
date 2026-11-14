@@ -25,8 +25,9 @@ gh issue list --label ready-for-agent
 ## Spec sections
 
 An issue body has exactly these `###` sections, in order:
-`Problem`, `Acceptance criteria`, `Out of scope`, `Touch points`, `Design notes`, `Sources`, `Docs`, `Open questions`.
+`Problem`, `Mock` (UI issues only), `Acceptance criteria`, `Out of scope`, `Touch points`, `Design notes`, `Sources`, `Docs`, `Open questions`.
 
 - **Feature reference:** `Problem` names the feature id from `ideas/features.md` (e.g. F11) when there is one.
+- **Mock:** UI issues embed a screenshot of the screen as it will look after the change: `![<screen> mock](https://github.com/jdo-lv/galagans/blob/<sha>/docs/features/img/<n>-mock.png?raw=true)` (commit permalink, so it survives branch deletion; the repo is private, so the image shows to signed-in members only). One line under it names the mockup in `ideas/mockups/` it follows and any deviation.
 - **Sources:** every threshold, rule row, hint or medical claim in the issue, with its `research/` file and section (and source id, e.g. `[S26]`). `None` when the issue has none.
 - **Docs:** UI issues always include `docs/features/<n>-<slug>.md` (feature doc with screenshots). Plus which of `ideas/crew-health-companion.md`, `ideas/features.md`, `ideas/mockups/src/*`, `README.md` or `CLAUDE.md` change. `None` when nothing does.
