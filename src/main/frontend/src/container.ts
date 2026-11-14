@@ -1,4 +1,5 @@
 import { CheckInRecorder, type CheckInRecording } from './application/CheckInRecorder'
+import { LatestReadingsReader } from './application/LatestReadingsReader'
 import { SyncService } from './application/SyncService'
 import type { Synchronizer } from './application/Synchronizer'
 import { SystemStatusReader } from './application/SystemStatusReader'
@@ -7,6 +8,7 @@ import { BrowserConnectivityMonitor } from './infrastructure/BrowserConnectivity
 import { HttpCheckInGateway } from './infrastructure/HttpCheckInGateway'
 import { IndexedDbCheckInRepository } from './infrastructure/IndexedDbCheckInRepository'
 import { JsonRuleSource } from './infrastructure/JsonRuleSource'
+import { mockReadings } from './infrastructure/mockReadings'
 import { mockStatuses } from './infrastructure/mockStatuses'
 
 export interface Services {
@@ -15,6 +17,7 @@ export interface Services {
   repository: CheckInRepository
   connectivity: ConnectivityMonitor
   statusReader: SystemStatusReader
+  readingsReader: LatestReadingsReader
 }
 
 /** Composition root: the only place that picks concrete implementations. */
@@ -28,6 +31,7 @@ export function createServices(): Services & { startSync: () => () => void } {
     synchronizer: syncService,
     recorder: new CheckInRecorder(repository, syncService),
     statusReader: new SystemStatusReader(new JsonRuleSource(), repository, undefined, mockStatuses),
+    readingsReader: new LatestReadingsReader(new JsonRuleSource(), repository, undefined, mockReadings),
     startSync: () => syncService.start(),
   }
 }

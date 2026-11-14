@@ -160,6 +160,12 @@ a:hover {
   gap: var(--gap-targets);
 }
 
+ul.tile-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 /* Label row: "HEART RATE / BPM" */
 .tile-label {
   font-weight: 700;
@@ -246,6 +252,67 @@ a:hover {
 
 .field-tile input:focus {
   outline: none;
+}
+
+/* Metric tile: a static reading, inset like a field tile but with no edge because it isn't a control (§2.4) */
+.metric-tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-inset);
+  border-radius: var(--radius-card);
+}
+
+/* Reading and icon (or badge); either wraps when the tile is too narrow */
+.metric-tile__top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* A wrapped icon or badge stays on the right */
+.metric-tile__icon,
+.metric-tile .badge {
+  margin-left: auto;
+}
+
+/* The unit may wrap under the value at the space between them */
+.metric-tile__reading {
+  min-width: 0;
+}
+
+.metric-tile__unit {
+  font-weight: 700;
+}
+
+/* Centres the 22 px icon on the first line of the 28 px value */
+.metric-tile__icon {
+  margin-top: var(--space-1);
+}
+
+/* "/ 4 min ago" and "(1-h avg)" move to the next line whole instead of breaking inside */
+.metric-tile .tile-label__suffix {
+  white-space: nowrap;
+}
+
+.metric-tile--stale :is(.value, .metric-tile__unit) {
+  color: var(--color-text-muted-on-inset);
+}
+
+/* Read by screen readers, not shown */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Buttons */
