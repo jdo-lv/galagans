@@ -1,5 +1,14 @@
 import type { CheckIn } from '../domain/checkIn'
-import type { CheckInGateway, CheckInHistory, CheckInRepository, ConnectivityMonitor, RuleSource } from '../domain/ports'
+import type { Packet, StoredPacket } from '../domain/packet'
+import type {
+  CheckInGateway,
+  CheckInHistory,
+  CheckInRepository,
+  ConnectivityMonitor,
+  PacketGateway,
+  PacketRepository,
+  RuleSource,
+} from '../domain/ports'
 import type { Rule } from '../domain/rules'
 
 export class FakeRepository implements CheckInRepository, CheckInHistory {
@@ -70,3 +79,41 @@ export class FakeConnectivity implements ConnectivityMonitor {
 }
 
 export const checkIn = (id: string): CheckIn => ({ id, recordedAt: '2026-11-14T08:00:00Z', symptoms: [] })
+
+const byBuiltAt = (a: StoredPacket, b: StoredPacket) => Date.parse(a.builtAt) - Date.parse(b.builtAt)
+
+export class FakePacketRepository implements PacketRepository {
+  items = new Map<string, StoredPacket>()
+  failAdd = false
+  failLatest = false
+
+  async add(packet: Packet) {
+    if (this.failAdd) throw new Error('storage failed')
+    this.items.set(packet.id, { ...packet, state: 'queued' })
+  }
+  async listQueued() {
+    return [...this.items.values()].filter((p) => p.state === 'queued').sort(byBuiltAt)
+  }
+  async markSent(id: string, sentAt: string) {
+    const stored = this.items.get(id)
+    if (stored) this.items.set(id, { ...stored, state: 'sent', sentAt })
+  }
+  async latest() {
+    if (this.failLatest) throw new Error('storage failed')
+    return [...this.items.values()].sort(byBuiltAt).at(-1)
+  }
+}
+
+export class FakePacketGateway implements PacketGateway {
+  sent: Packet[] = []
+  calls = 0
+  /** 0-based call numbers that fail like a network error or a non-2xx. */
+  failCalls = new Set<number>()
+
+  async send(packet: Packet) {
+    if (this.failCalls.has(this.calls++)) throw new Error('offline')
+    this.sent.push(packet)
+  }
+}
+
+export const packet = (id: string, builtAt: string): Packet => ({ id, builtAt, oneWayDelayMs: 845_000, note: '', items: [] })
