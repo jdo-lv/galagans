@@ -11,7 +11,13 @@ data class PacketRequest(
     val note: String? = null,
     val items: List<PacketItemRequest>?,
 ) {
-    fun toDomain() = Packet(id!!, builtAt!!, oneWayDelayMs!!, note.orEmpty(), items!!.map { it.toDomain() })
+    fun toDomain() = Packet(
+        id = id!!,
+        builtAt = builtAt!!,
+        oneWayDelayMs = oneWayDelayMs!!,
+        note = if (note.isNullOrBlank()) "" else note,
+        items = items!!.map { it.toDomain() },
+    )
 }
 
 data class PacketItemRequest(
