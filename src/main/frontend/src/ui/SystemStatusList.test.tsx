@@ -2,6 +2,7 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CheckInRecorder } from '../application/CheckInRecorder'
+import { LatestReadingsReader } from '../application/LatestReadingsReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import type { CheckIn } from '../domain/checkIn'
@@ -34,6 +35,7 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
     synchronizer,
     recorder: new CheckInRecorder(repository, synchronizer, undefined, () => clock.now),
     statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now, placeholders),
+    readingsReader: new LatestReadingsReader(ruleSource, repository, () => clock.now),
   }
   return {
     clock,
