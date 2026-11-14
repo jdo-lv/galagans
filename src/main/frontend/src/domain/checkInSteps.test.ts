@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CHECK_IN_STEPS, checkNumber, secondsLeft, toDraft, type NumberStep } from './checkInSteps'
+import { answeredCount, CHECK_IN_STEPS, checkNumber, secondsLeft, SYMPTOMS, toDraft, type NumberStep } from './checkInSteps'
 import { READINGS } from './readings'
 import { CHECK_IN_ROUTINE } from './routine'
 
@@ -65,5 +65,23 @@ describe('toDraft', () => {
     expect(toDraft({ symptoms: 'none' })).toStrictEqual({ symptoms: [], symptomsAnswered: true })
     expect(toDraft({ symptoms: [] })).toStrictEqual({ symptoms: [] })
     expect(toDraft({})).toStrictEqual({ symptoms: [] })
+  })
+})
+
+describe('Reporting is a win (#40)', () => {
+  it('AC2: every symptom row has its next step; swelling goes to the CMO only', () => {
+    const raise = 'consider raising with your CMO, or at your next private medical conference.'
+    expect(Object.fromEntries(SYMPTOMS.map((s) => [s.id, s.next]))).toEqual({
+      headache: raise,
+      congestion: raise,
+      rash: raise,
+      'neck-face-swelling': 'tell your CMO.',
+      'back-pain': raise,
+    })
+  })
+
+  it('AC3: answeredCount counts the steps with a present field, symptoms when answered', () => {
+    expect(answeredCount({ heartRateBpm: 63, kss: 7, symptoms: [], symptomsAnswered: true })).toBe(3)
+    expect(answeredCount({ symptoms: [] })).toBe(0)
   })
 })

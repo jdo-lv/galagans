@@ -33,13 +33,21 @@ export type ChoicesStep = Base & { kind: 'choices'; field: 'symptoms'; noneLabel
 
 export type CheckInStep = NumberStep | ScaleStep | ChoicesStep
 
-/** research/health-indicators.md "Symptom checklist" row; ids are stored, so rewording a label doesn't change data. */
+// Escalation after a logged symptom: CMO, then the private medical conference, weekly or on request
+// (research/existing-systems.md [S8, S14, S15], research/countermeasures.md [C15]).
+const RAISE = 'consider raising with your CMO, or at your next private medical conference.'
+
+/**
+ * research/health-indicators.md "Symptom checklist" row; ids are stored, so rewording a label doesn't change data.
+ * `next` is the step shown after the symptom is logged (#40).
+ */
 export const SYMPTOMS = [
-  { id: 'headache', label: 'Headache' },
-  { id: 'congestion', label: 'Congestion' },
-  { id: 'rash', label: 'Rash' },
-  { id: 'neck-face-swelling', label: 'Neck or face swelling' },
-  { id: 'back-pain', label: 'Back pain' },
+  { id: 'headache', label: 'Headache', next: RAISE },
+  { id: 'congestion', label: 'Congestion', next: RAISE },
+  { id: 'rash', label: 'Rash', next: RAISE },
+  // Possible jugular clot: flag neck swelling for the CMO (research/long-duration-literature.md "Veins / clotting" [L4]).
+  { id: 'neck-face-swelling', label: 'Neck or face swelling', next: 'tell your CMO.' },
+  { id: 'back-pain', label: 'Back pain', next: RAISE },
 ] as const
 
 // 15 s per step is a team heuristic: the research times the full sleep diary and checklist at 1 min, these are shorter.
@@ -134,6 +142,11 @@ export type Answers = Partial<{
   mood: number
   symptoms: string[] | 'none'
 }>
+
+/** How many steps of `CHECK_IN_STEPS` the saved check-in answered; the symptom step counts only when answered. */
+export function answeredCount(draft: CheckInDraft): number {
+  return CHECK_IN_STEPS.filter((step) => (step.kind === 'choices' ? draft.symptomsAnswered === true : draft[step.field] !== undefined)).length
+}
 
 /** Skipped answers stay absent: "not answered" is never stored as a value. */
 export function toDraft(answers: Answers): CheckInDraft {
