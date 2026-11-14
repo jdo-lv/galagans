@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { formatAge, formatDelay, formatStaleAge, formatTime } from '../application/formatAge'
-import { NOTE_MAX, ONE_WAY_DELAY_MS, type PacketItem } from '../domain/packet'
-import { PrivateIcon } from './icons'
+import { packetTimeline, type TimelineStep } from '../application/packetTimeline'
+import { NOTE_MAX, ONE_WAY_DELAY_MS, type PacketItem, type StoredPacket } from '../domain/packet'
+import { PrivateIcon, StepCurrentIcon, StepDoneIcon, StepPendingIcon } from './icons'
 import './packet.css'
 import { useServices } from './ServicesContext'
 import { Badge } from './SystemStatusList'
@@ -91,6 +92,61 @@ function PacketContents({ state }: { state: PeriodicState<PacketItem[]> }) {
           </tbody>
         </table>
       )}
+    </Card>
+  )
+}
+
+const STEP_ICONS: Record<TimelineStep['state'], typeof StepDoneIcon> = {
+  done: StepDoneIcon,
+  current: StepCurrentIcon,
+  pending: StepPendingIcon,
+}
+
+/** Clock times in a step's detail in the data font. */
+function WithTimes({ text }: { text: string }) {
+  return text.split(/(\d{2}:\d{2})/).map((part, i) =>
+    i % 2 === 1 ? (
+      <span key={i} className="num">
+        {part}
+      </span>
+    ) : (
+      part
+    ),
+  )
+}
+
+function Timeline({ last, now }: { last: StoredPacket | undefined; now: Date }) {
+  const { steps, roundTripMs } = packetTimeline(last, now)
+  if (roundTripMs === undefined) return <p className="muted">No packet sent yet.</p>
+  return (
+    <>
+      <ol className="packet-steps">
+        {steps.map((step) => {
+          const Icon = STEP_ICONS[step.state]
+          return (
+            <li key={step.name} className={`packet-step packet-step--${step.state}`} aria-current={step.state === 'current' ? 'step' : undefined}>
+              <span className="packet-step__dot">
+                <Icon size={20} />
+              </span>
+              <span className="packet-step__name">{step.name}</span>
+              <span className="packet-step__detail">
+                <WithTimes text={step.detail} />
+              </span>
+              <span className="visually-hidden">{step.state}</span>
+            </li>
+          )
+        })}
+      </ol>
+      <p className="muted">{`Round trip ≥ ${formatDelay(roundTripMs)}. Don't wait for the ground on anything in "What next": your on-board actions already apply.`}</p>
+    </>
+  )
+}
+
+function LastPacket({ state }: { state: PeriodicState<StoredPacket | undefined> }) {
+  return (
+    <Card title="Last packet · store-and-forward">
+      {state.kind === 'unavailable' && <p className="muted">Packet status unavailable</p>}
+      {state.kind === 'ready' && <Timeline last={state.data} now={state.now} />}
     </Card>
   )
 }
@@ -195,13 +251,17 @@ function NoteAndSend({ contentsReady, onSent }: { contentsReady: boolean; onSent
 
 /** The surgeon packet screen (F14, issue #19): the live draft, a crew note, inline send and the last packet's timeline. */
 export function SurgeonPacket() {
-  const { packetDraftReader } = useServices()
+  const { packetDraftReader, lastPacketReader, packetUplink } = useServices()
+  // Two reads, so each card can fail on its own.
   const draft = usePeriodicRead(packetDraftReader)
+  const last = usePeriodicRead(lastPacketReader)
   const headingId = useId()
   const heading = useRef<HTMLHeadingElement>(null)
 
   // Once per opening, so a re-read never steals focus.
   useEffect(() => heading.current?.focus(), [])
+
+  useEffect(() => packetUplink.subscribe(last.refresh), [packetUplink, last.refresh])
 
   return (
     <section className="packet stack" aria-labelledby={headingId}>
@@ -219,10 +279,11 @@ export function SurgeonPacket() {
       </div>
       <div className="layout">
         <div className="stack">
+          <LastPacket state={last.state} />
           <PacketContents state={draft.state} />
         </div>
         <div className="stack">
-          <NoteAndSend contentsReady={draft.state.kind === 'ready'} onSent={() => {}} />
+          <NoteAndSend contentsReady={draft.state.kind === 'ready'} onSent={last.refresh} />
         </div>
       </div>
     </section>

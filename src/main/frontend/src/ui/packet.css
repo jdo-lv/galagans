@@ -28,6 +28,94 @@
   margin-top: 2px;
 }
 
+/* Last packet timeline: four steps on one line joined by an edge-coloured rule, vertical on phones */
+ol.packet-steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-2) 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+/* The rule runs from the first dot's centre to the last one's, behind the dots */
+.packet-steps::before {
+  content: '';
+  position: absolute;
+  left: 12.5%;
+  right: 12.5%;
+  top: 17px;
+  border-top: 2px solid var(--color-edge);
+}
+
+.packet-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  text-align: center;
+}
+
+.packet-step__dot {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--color-text);
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+.packet-step__name {
+  font-weight: 700;
+}
+
+.packet-step--current .packet-step__dot {
+  border-style: dashed;
+}
+
+.packet-step--pending {
+  color: var(--color-text-muted);
+}
+
+.packet-step--pending .packet-step__dot {
+  border-color: var(--color-edge);
+}
+
+.packet-step--pending .packet-step__name {
+  font-weight: 500;
+}
+
+@media (max-width: 599px) {
+  ol.packet-steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .packet-steps::before {
+    left: 17px;
+    right: auto;
+    top: 18px;
+    bottom: 18px;
+    border-top: 0;
+    border-left: 2px solid var(--color-edge);
+  }
+
+  .packet-step {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    column-gap: var(--space-3);
+    align-items: center;
+    text-align: left;
+  }
+
+  .packet-step__dot {
+    grid-row: span 2;
+  }
+}
+
 /* Next packet contents: uppercase muted column labels, rows divided like the body-system list */
 .packet-table {
   width: 100%;

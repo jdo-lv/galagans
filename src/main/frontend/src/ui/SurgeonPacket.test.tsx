@@ -2,6 +2,7 @@ import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
+import type { StoredPacket } from '../domain/packet'
 import { READINGS, type ReadingPlaceholder } from '../domain/readings'
 import { toPacketItem } from '../application/packetItems'
 import { mockReadings } from '../infrastructure/mockReadings'
@@ -48,6 +49,31 @@ const noteCard = () => screen.getByRole('region', { name: 'Crew note (optional)'
 const confirmButton = () => screen.getByRole('button', { name: /^Confirm send/ })
 const cancelButton = () => screen.getByRole('button', { name: 'Cancel' })
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+
+const timeline = () => screen.getByRole('region', { name: 'Last packet · store-and-forward' })
+/** Each step as "name | detail (state word)". */
+const steps = () =>
+  within(timeline())
+    .queryAllByRole('listitem')
+    .map((li) => `${li.querySelector('.packet-step__name')?.textContent} | ${li.querySelector('.packet-step__detail')?.textContent} (${li.querySelector('.visually-hidden')?.textContent})`)
+const ROUND_TRIP_28 = 'Round trip ≥ 28 min 10 s. Don\'t wait for the ground on anything in "What next": your on-board actions already apply.'
+
+const storedPacket = (fields: Partial<StoredPacket> = {}): StoredPacket => ({
+  id: 'p1',
+  builtAt: at(7, 31).toISOString(),
+  oneWayDelayMs: 845_000,
+  note: '',
+  items: [],
+  state: 'queued',
+  ...fields,
+})
+const withPackets = (...packets: StoredPacket[]) => (s: Setup) => packets.forEach((p) => s.packets.items.set(p.id, p))
+
+async function openWithTimeline(options: Options = {}, before?: (s: Setup) => void) {
+  const s = await openPacket(options, before)
+  await waitFor(() => expect(within(timeline()).queryByText(/No packet sent yet|Round trip|unavailable/)).not.toBeNull())
+  return s
+}
 
 /** Status, Value and Source cells of the row whose Item is `label`. */
 function cells(label: string) {
@@ -349,6 +375,17 @@ describe('Crew note and send', () => {
     expect(within(noteCard()).getByText('0 / 500')).toBeInTheDocument()
   })
 
+  it('AC21: the timeline shows the new packet without waiting for the 60 s re-read', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    await openWithTimeline({ online: false })
+    expect(within(timeline()).getByText('No packet sent yet.')).toBeInTheDocument()
+    await userEvent.click(sendButton())
+
+    await userEvent.click(confirmButton())
+
+    await waitFor(() => expect(steps()[1]).toBe('Queued for uplink | 07:31 (current)'))
+  })
+
   it('AC22: Confirm send and Cancel are disabled while saving, and a double click stores one packet', async () => {
     const s = await openWithContents({ online: false })
     let release!: () => void
@@ -420,5 +457,114 @@ describe('Crew note and send', () => {
     await waitFor(() => expect(s.packets.items.size).toBe(1))
     expect(s.packetGateway.calls).toBe(0)
     expect([...s.packets.items.values()][0].state).toBe('queued')
+  })
+})
+
+describe('Last packet timeline', () => {
+  it('AC25: no packet → "No packet sent yet.", no steps, no round trip', async () => {
+    await openWithTimeline()
+
+    expect(within(timeline()).getByText('No packet sent yet.')).toBeInTheDocument()
+    expect(steps()).toEqual([])
+    expect(timeline()).not.toHaveTextContent('Round trip')
+  })
+
+  it('AC26: a queued packet built at 07:31 waits at "Queued for uplink"', async () => {
+    await openWithTimeline({ now: at(7, 35), online: false }, withPackets(storedPacket()))
+
+    expect(steps()).toEqual([
+      'Packet built | 07:31 (done)',
+      'Queued for uplink | 07:31 (current)',
+      'In transit | waits for ground link (pending)',
+      'Earliest reply | — (pending)',
+    ])
+  })
+
+  it('AC27: when an uplink pass sends it at 07:40, the steps move on without a reload', async () => {
+    const s = await openWithTimeline({ now: at(7, 35), online: false }, withPackets(storedPacket()))
+
+    s.clock.now = at(7, 40)
+    s.connectivity.online = true
+    await act(() => s.packetUplink.sync())
+
+    await waitFor(() =>
+      expect(steps()).toEqual([
+        'Packet built | 07:31 (done)',
+        'Queued for uplink | 07:31 (done)',
+        'In transit | arrives ~07:54 (current)',
+        'Earliest reply | ~08:08 + surgeon time (pending)',
+      ]),
+    )
+  })
+
+  it('AC28: the stored delay sets the times and the round trip', async () => {
+    await openWithTimeline({ now: at(7, 40, 30) }, withPackets(storedPacket({ oneWayDelayMs: 60_000, state: 'sent', sentAt: at(7, 40).toISOString() })))
+
+    expect(steps()).toContain('In transit | arrives ~07:41 (current)')
+    expect(steps()).toContain('Earliest reply | ~07:42 + surgeon time (pending)')
+    expect(within(timeline()).getByText(/^Round trip/).textContent).toMatch(/^Round trip ≥ 2 min 00 s\./)
+  })
+
+  it('AC29: at 07:46 a packet sent at 07:31 has arrived and the reply is current', async () => {
+    await openWithTimeline({ now: at(7, 46) }, withPackets(storedPacket({ state: 'sent', sentAt: at(7, 31).toISOString() })))
+
+    expect(steps()).toEqual([
+      'Packet built | 07:31 (done)',
+      'Queued for uplink | 07:31 (done)',
+      'Arrived | ~07:45 (done)',
+      'Earliest reply | ~07:59 + surgeon time (current)',
+    ])
+  })
+
+  it('AC30: a failing packet store shows "Packet status unavailable"; contents and Send packet are unaffected', async () => {
+    await openWithContents({}, (s) => (s.packets.failLatest = true))
+
+    expect(await within(timeline()).findByText('Packet status unavailable')).toBeInTheDocument()
+    expect(within(contents()).getByRole('table')).toBeInTheDocument()
+    expect(sendButton()).toBeEnabled()
+  })
+
+  it.each([
+    ['queued', storedPacket()],
+    ['sent', storedPacket({ state: 'sent', sentAt: at(7, 31).toISOString() })],
+  ])('AC31: a %s packet shows the round trip line', async (_, p) => {
+    await openWithTimeline({ now: at(7, 35) }, withPackets(p))
+
+    expect(within(timeline()).getByText(/^Round trip/)).toHaveTextContent(ROUND_TRIP_28)
+  })
+
+  it('AC32: of two packets, the one with the newest builtAt shows', async () => {
+    await openWithTimeline(
+      { now: at(7, 45), online: false },
+      withPackets(storedPacket({ id: 'new', builtAt: at(7, 40).toISOString() }), storedPacket({ id: 'old', builtAt: at(7, 31).toISOString() })),
+    )
+
+    expect(steps()[0]).toBe('Packet built | 07:40 (done)')
+  })
+
+  it('AC33: each step state has its icon, hidden word, and aria-current on the current step', async () => {
+    await openWithTimeline({ now: at(7, 35) }, withPackets(storedPacket()))
+
+    const [done, current, pending] = within(timeline()).getAllByRole('listitem')
+    expect(done.querySelector('svg.tabler-icon-circle-filled')).not.toBeNull()
+    expect(done).not.toHaveAttribute('aria-current')
+    expect(current.querySelector('svg.tabler-icon-arrow-right')).not.toBeNull()
+    expect(current).toHaveAttribute('aria-current', 'step')
+    expect(current.querySelector('.visually-hidden')).toHaveTextContent('current')
+    expect(pending.querySelector('svg.tabler-icon-dots')).not.toBeNull()
+    expect(pending).not.toHaveAttribute('aria-current')
+    expect(pending.querySelector('.visually-hidden')).toHaveTextContent('pending')
+    expect(done.querySelector('.visually-hidden')).toHaveTextContent('done')
+  })
+
+  it('AC17: the timeline re-reads every 60 s', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    const s = await openWithTimeline()
+    expect(steps()).toEqual([])
+
+    s.packets.items.set('p1', storedPacket({ state: 'sent', sentAt: at(7, 31).toISOString() }))
+    act(() => vi.advanceTimersByTime(60_000))
+
+    await waitFor(() => expect(steps()[2]).toBe('In transit | arrives ~07:45 (current)'))
   })
 })
