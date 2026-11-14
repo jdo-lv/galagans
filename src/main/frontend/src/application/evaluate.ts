@@ -1,9 +1,9 @@
 import type { CheckIn } from '../domain/checkIn'
-import { STALE_AFTER_MS, type Rule, type Status, type SystemStatus } from '../domain/rules'
+import { STALE_AFTER_MS, type Indicator, type Rule, type Status, type SystemStatus } from '../domain/rules'
 
 const SEVERITY: Record<Status, number> = { nominal: 0, caution: 1, warning: 2 }
 
-interface Reading {
+export interface IndicatorReading {
   id: string
   recordedAt: string
   time: number
@@ -25,19 +25,30 @@ function classify(rows: Rule[], value: number): { status: Status; rule?: Rule } 
 }
 
 /** Newest first; equal timestamps → more severe, then lower id. */
-function compare(a: Reading, b: Reading): number {
+function compare(a: IndicatorReading, b: IndicatorReading): number {
   return b.time - a.time || SEVERITY[b.status] - SEVERITY[a.status] || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
 }
 
-function evaluateSystem(system: string, rows: Rule[], checkIns: CheckIn[], now: Date): SystemStatus {
-  const { indicator, validMin, validMax, label, unit } = rows[0]
-  const readings: Reading[] = []
+/** Newest finite value of `indicator` within [validMin, validMax], classified against `rows`. */
+export function latestReading(
+  checkIns: CheckIn[],
+  indicator: Indicator,
+  validMin: number,
+  validMax: number,
+  rows: Rule[],
+): IndicatorReading | undefined {
+  const readings: IndicatorReading[] = []
   for (const checkIn of checkIns) {
     const value = checkIn[indicator]
     if (typeof value !== 'number' || !Number.isFinite(value) || value < validMin || value > validMax) continue
     readings.push({ id: checkIn.id, recordedAt: checkIn.recordedAt, time: Date.parse(checkIn.recordedAt), value, ...classify(rows, value) })
   }
-  const latest = readings.sort(compare)[0]
+  return readings.sort(compare)[0]
+}
+
+function evaluateSystem(system: string, rows: Rule[], checkIns: CheckIn[], now: Date): SystemStatus {
+  const { indicator, validMin, validMax, label, unit } = rows[0]
+  const latest = latestReading(checkIns, indicator, validMin, validMax, rows)
   if (!latest) return { system, state: 'no-data', source: 'manual' }
 
   const shown = { system, label, unit, value: latest.value, recordedAt: latest.recordedAt, source: 'manual' as const }
