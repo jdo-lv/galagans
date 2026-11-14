@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { AppHeader } from "./AppHeader";
 import { CheckInForm } from "./CheckInForm";
 import { HazardLens } from "./HazardLens";
 import { LatestReadings } from "./LatestReadings";
+import { PvtCard } from "./PvtCard";
+import { PvtTest } from "./PvtTest";
 import { StatusBar } from "./StatusBar";
 import { SystemDetail } from "./SystemDetail";
 import { SystemStatusList } from "./SystemStatusList";
@@ -30,11 +32,22 @@ export function App() {
     if (route.kind === "unknown") goHome();
   }, [route, goHome]);
 
+  const refreshAll = useCallback(() => {
+    refresh();
+    statuses.refresh();
+    readings.refresh();
+    routine.refresh();
+  }, [refresh, statuses.refresh, readings.refresh, routine.refresh]);
+
   return (
     <div className="app">
       <AppHeader />
       <StatusBar online={online} pending={pending} />
-      {route.kind === "system" ? (
+      {route.kind === "pvt" ? (
+        <main>
+          <PvtTest onSaved={refreshAll} />
+        </main>
+      ) : route.kind === "system" ? (
         <main>
           <SystemDetail
             key={route.system}
@@ -64,6 +77,7 @@ export function App() {
               }
             />
             <LatestReadings state={readings.state} />
+            <PvtCard />
             <section className="card" aria-labelledby="checkin-heading">
               <h2 id="checkin-heading" className="card-heading">
                 Check-in
@@ -71,10 +85,7 @@ export function App() {
               <CheckInForm
                 onSubmit={async (draft) => {
                   await recorder.record(draft);
-                  refresh();
-                  statuses.refresh();
-                  readings.refresh();
-                  routine.refresh();
+                  refreshAll();
                 }}
               />
             </section>

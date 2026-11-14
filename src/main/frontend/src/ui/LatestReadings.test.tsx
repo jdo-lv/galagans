@@ -37,6 +37,7 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
     statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now),
     readingsReader: new LatestReadingsReader(ruleSource, repository, () => clock.now, mockReadings),
     routineReader: new RoutineReader(repository, () => clock.now),
+    random: () => 0,
   }
   return {
     clock,
@@ -290,7 +291,7 @@ describe('LatestReadings', () => {
     expect(s.gateway.sent).toHaveLength(0)
   })
 
-  it('AC19: the right column stacks Today\'s routine, Latest readings and the Check-in card', async () => {
+  it('AC19: the right column stacks Today\'s routine, Latest readings, the Reaction test card (#16) and the Check-in card', async () => {
     const { container } = setup().renderApp()
     await tiles()
 
@@ -305,6 +306,7 @@ describe('LatestReadings', () => {
     expect([...column.children]).toEqual([
       screen.getByRole('region', { name: "Today's routine" }),
       panel(),
+      screen.getByRole('region', { name: 'Reaction test' }),
       screen.getByRole('region', { name: 'Check-in' }),
     ])
   })

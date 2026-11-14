@@ -23,6 +23,7 @@ function setup(online: boolean) {
     statusReader: new SystemStatusReader(new FakeRuleSource(), repository),
     readingsReader: new LatestReadingsReader(new FakeRuleSource(), repository),
     routineReader: new RoutineReader(repository),
+    random: () => 0,
   }
   render(
     <ServicesProvider services={services}>

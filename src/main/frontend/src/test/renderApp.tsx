@@ -37,6 +37,7 @@ export function setup({
   placeholders = [] as Placeholder[],
   rules = ruleRows as Rule[],
   routinePlaceholders = [] as RoutinePlaceholder[],
+  random = () => 0,
 } = {}) {
   const clock = { now: new Date(now) }
   const repository = new FakeRepository()
@@ -54,6 +55,7 @@ export function setup({
     statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now, placeholders),
     readingsReader: new LatestReadingsReader(ruleSource, repository, () => clock.now),
     routineReader: new RoutineReader(repository, () => clock.now, routinePlaceholders),
+    random,
   }
   return {
     clock,
