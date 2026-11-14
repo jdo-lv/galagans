@@ -1,7 +1,6 @@
 import type { CheckIn } from '../domain/checkIn'
-import type { Rule, Status, SystemStatus } from '../domain/rules'
+import { STALE_AFTER_MS, type Rule, type Status, type SystemStatus } from '../domain/rules'
 
-const STALE_AFTER_MS = 24 * 60 * 60 * 1000
 const SEVERITY: Record<Status, number> = { nominal: 0, caution: 1, warning: 2 }
 
 interface Reading {
