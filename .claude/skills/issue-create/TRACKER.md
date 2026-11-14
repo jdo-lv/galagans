@@ -1,6 +1,6 @@
 # Tracker
 
-Issues of `billygk/galagans` (default branch `main`); state is the label.
+Issues of `jdo-lv/galagans` (default branch `main`); state is the label.
 
 ## Labels
 
