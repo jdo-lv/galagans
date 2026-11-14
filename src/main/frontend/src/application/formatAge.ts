@@ -18,6 +18,12 @@ export function formatStaleAge(recordedAt: string, now: Date): string {
   return `data ${formatOldAge(recordedAt, now)}`
 }
 
+/** A delay as whole minutes and two-digit seconds: "14 min 05 s". */
+export function formatDelay(ms: number): string {
+  const seconds = Math.floor(ms / 1000)
+  return `${Math.floor(seconds / 60)} min ${String(seconds % 60).padStart(2, '0')} s`
+}
+
 /** Local time as zero-padded 24-h "HH:MM". */
 export function formatTime(recordedAt: string): string {
   const d = new Date(recordedAt)
