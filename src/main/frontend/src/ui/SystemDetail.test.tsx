@@ -5,7 +5,7 @@ import type { CheckIn } from '../domain/checkIn'
 import type { Rule } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
 import ruleRows from '../infrastructure/rules.json'
-import { reading, setup as baseSetup, submitSpo2 } from '../test/renderApp'
+import { pvt, reading, setup as baseSetup, submitSpo2 } from '../test/renderApp'
 
 const [SPO01, SPO02] = ruleRows as Rule[]
 const NOW = '2026-11-14T09:30:00Z'
@@ -69,7 +69,7 @@ describe('Detail navigation', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Online')
   })
 
-  it.each(['#/systems/Cognition', '#/systems/Nope', '#/systems/%E0%A4%A', '#/foo', '#/systems/Respiratory/x'])(
+  it.each(['#/systems/Sleep', '#/systems/Nope', '#/systems/%E0%A4%A', '#/foo', '#/systems/Respiratory/x'])(
     'AC8: %s at load goes Home with hash #/ and no focus move',
     async (hash) => {
       go(hash)
@@ -358,5 +358,69 @@ describe('Detail errors and offline', () => {
 
     expect(await within(await findDetail()).findByText('▲ CAUTION')).toBeInTheDocument()
     expect(s.gateway.sent).toHaveLength(0)
+  })
+})
+
+describe('Cognition detail (#17)', () => {
+  const at = (iso: string, ms: number) => pvt(iso, iso, ms)
+  const ago = (ms: number) => new Date(Date.parse(NOW) - ms).toISOString()
+  async function openCognition(seed: CheckIn[]) {
+    go('#/systems/Cognition')
+    setup({ seed }).renderApp()
+    await within(await findDetail('Cognition')).findByRole('heading', { level: 2, name: 'Cognition' })
+  }
+  const cog = (name: string) => within(detail('Cognition')).getByRole('region', { name })
+  const cogChart = () => detail('Cognition').querySelector('svg[role="img"]') as SVGSVGElement
+  const cogPoints = () => [...cogChart().querySelectorAll('circle.chart-point')]
+  const COG01 = (ruleRows as Rule[]).find((r) => r.id === 'COG-01')!
+  const week = () => [at('2026-11-10T09:00:00Z', 268), at('2026-11-14T09:20:00Z', 312)]
+
+  it('AC12: caution header, explanation, what next and the CMO tier', async () => {
+    await openCognition(week())
+
+    expect(detail('Cognition')).toHaveTextContent('▲ CAUTION')
+    expect(detail('Cognition')).toHaveTextContent('PVT median 312 ms · 10 min ago · in-app test')
+    const values = [...cog('Explanation').querySelectorAll('dd')]
+    expect(values.slice(0, 3).map((d) => d.textContent)).toEqual([COG01.what, COG01.why, COG01.howDecided])
+    expect(values[3]).toHaveTextContent(COG01.source)
+    expect(values[3].querySelector('.tag.tag--rule')).toHaveTextContent('rule · COG-01')
+    expect(cog('What next')).toHaveTextContent(COG01.next)
+    const current = within(cog('Who to involve'))
+      .getAllByRole('listitem')
+      .filter((li) => li.getAttribute('aria-current') === 'true')
+      .map((li) => li.textContent)
+    expect(current).toEqual(['CMO'])
+  })
+
+  it('AC13: the PVT chart with titles, the COG-01 line and the 200–400 ms grid', async () => {
+    await openCognition(week())
+
+    expect(cog('PVT median · last 7 days').querySelector('svg[role="img"]')).toBe(cogChart())
+    expect(cogChart()).toHaveAttribute('aria-label', 'PVT median, last 7 days, 2 readings')
+    expect(cogPoints().map((p) => p.querySelector('title')?.textContent)).toEqual([
+      '268 ms · nominal · 10 Nov 09:00 UTC · in-app test',
+      '312 ms · caution · 14 Nov 09:20 UTC · in-app test',
+    ])
+    expect(cogChart()).toHaveTextContent('COG-01 · > 305 ms caution')
+    expect([...cogChart().querySelectorAll('line.chart-grid')].map((l) => l.getAttribute('data-value'))).toEqual([
+      '200', '250', '300', '350', '400',
+    ])
+  })
+
+  it('AC14: a PVT older than 4 days is stale on the detail too', async () => {
+    await openCognition([pvt('p', ago(4 * 24 * 60 * MIN + MIN), 312)])
+
+    expect(detail('Cognition')).toHaveTextContent('No recent data')
+    expect(detail('Cognition')).toHaveTextContent('PVT median 312 ms · data 4 d old · in-app test')
+    expect(detail('Cognition')).toHaveTextContent('No caution or warning now.')
+    expect(cogPoints().map((p) => p.getAttribute('class'))).toEqual(['chart-point chart-point--stale'])
+  })
+
+  it('AC15: a PVT above 400 ms sits on the 400 ms line with its real value in the title', async () => {
+    await openCognition([pvt('p', NOW, 450)])
+
+    const top = cogChart().querySelector('line.chart-grid[data-value="400"]')
+    expect(cogPoints()[0].getAttribute('cy')).toBe(top?.getAttribute('y1'))
+    expect(cogPoints()[0].querySelector('title')).toHaveTextContent('450 ms')
   })
 })

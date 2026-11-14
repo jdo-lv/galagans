@@ -4,7 +4,7 @@ import ruleRows from './rules.json'
 
 const STRING_FIELDS = ['id', 'system', 'indicator', 'label', 'unit', 'tier', 'what', 'why', 'howDecided', 'next', 'source']
 const NUMBER_FIELDS = ['validMin', 'validMax']
-const INDICATORS: Indicator[] = ['heartRateBpm', 'spo2Percent', 'sleepHours', 'mood']
+const INDICATORS: Indicator[] = ['heartRateBpm', 'spo2Percent', 'sleepHours', 'mood', 'pvtMedianMs']
 
 function validate(row: unknown, index: number): Rule {
   const fail = (reason: string): never => {
