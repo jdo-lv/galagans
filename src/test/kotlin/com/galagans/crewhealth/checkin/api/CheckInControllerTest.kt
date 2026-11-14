@@ -34,6 +34,13 @@ class CheckInControllerTest(@Autowired private val client: WebTestClient) {
     }
 
     @Test
+    fun `accepts a PVT-only check-in and ignores the fields it does not store yet`() {
+        post("""{"checkIns":[{"id":"p","recordedAt":"2026-11-14T08:00:00Z","pvtMedianMs":312,"pvtLapses":6,"pvtFalseStarts":1,"symptoms":[]}]}""")
+            .expectStatus().isOk
+            .expectBody().jsonPath("$.acceptedIds[0]").isEqualTo("p")
+    }
+
+    @Test
     fun `rejects a mood outside 1 to 5`() {
         post("""{"checkIns":[{"id":"a","recordedAt":"2026-11-14T08:00:00Z","mood":9}]}""")
             .expectStatus().isBadRequest

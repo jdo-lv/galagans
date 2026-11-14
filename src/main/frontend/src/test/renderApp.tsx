@@ -20,6 +20,15 @@ export const reading = (id: string, recordedAt: string, spo2Percent?: number): C
   symptoms: [],
 })
 
+export const pvt = (id: string, recordedAt: string, medianMs: number): CheckIn => ({
+  id,
+  recordedAt,
+  pvtMedianMs: medianMs,
+  pvtLapses: 0,
+  pvtFalseStarts: 0,
+  symptoms: [],
+})
+
 /** The whole app on fakes, with a clock the test moves. */
 export function setup({
   now = '2026-11-14T09:30:00Z',
@@ -28,6 +37,7 @@ export function setup({
   placeholders = [] as Placeholder[],
   rules = ruleRows as Rule[],
   routinePlaceholders = [] as RoutinePlaceholder[],
+  random = () => 0,
 } = {}) {
   const clock = { now: new Date(now) }
   const repository = new FakeRepository()
@@ -45,6 +55,7 @@ export function setup({
     statusReader: new SystemStatusReader(ruleSource, repository, () => clock.now, placeholders),
     readingsReader: new LatestReadingsReader(ruleSource, repository, () => clock.now),
     routineReader: new RoutineReader(repository, () => clock.now, routinePlaceholders),
+    random,
   }
   return {
     clock,

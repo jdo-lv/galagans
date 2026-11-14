@@ -1,0 +1,59 @@
+/* PVT test screens (issue #16, mock docs/features/img/16-mock.png). Never a status colour: a slow response isn't a caution. */
+.pvt-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.pvt-head .card-heading {
+  margin-bottom: 0;
+}
+
+.pvt-target {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 300px;
+  padding: var(--space-4);
+  border: 1px solid var(--color-edge);
+  border-radius: var(--radius-card);
+  background: var(--color-inset);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.pvt-target:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.pvt-target .value {
+  font-size: var(--text-hero);
+}
+
+.pvt-result {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.pvt-result dt {
+  color: var(--color-text-muted);
+}
+
+.pvt-result dd {
+  margin: 0;
+  text-align: right;
+}
+
+.pvt-home {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+}
