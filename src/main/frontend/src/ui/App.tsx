@@ -1,3 +1,4 @@
+import { AppHeader } from './AppHeader'
 import { CheckInForm } from './CheckInForm'
 import { StatusBar } from './StatusBar'
 import { useServices } from './ServicesContext'
@@ -10,15 +11,17 @@ export function App() {
   const { pending, refresh } = usePendingCount()
 
   return (
-    <main>
-      <h1>Crew Health Companion</h1>
+    <div className="app">
+      <AppHeader />
       <StatusBar online={online} pending={pending} />
-      <CheckInForm
-        onSubmit={async (draft) => {
-          await recorder.record(draft)
-          refresh()
-        }}
-      />
-    </main>
+      <main>
+        <CheckInForm
+          onSubmit={async (draft) => {
+            await recorder.record(draft)
+            refresh()
+          }}
+        />
+      </main>
+    </div>
   )
 }

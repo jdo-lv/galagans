@@ -8,7 +8,7 @@ body{width:1280px;height:800px;background:#1B1B1B;color:#DADADA;font-family:Inte
 .dot:after{content:"";position:absolute;inset:2px;border-radius:50%;background:#DADADA}
 .pill{white-space:nowrap;border:1px solid #868375;background:transparent;border-radius:16px;padding:6px 10px;color:#CFCFCF;font-size:12px}
 .pill b{color:#DADADA}
-.pill.due{border-color:#FFC72C;color:#DADADA;background:transparent}
+.pill.due{border-color:#7FA6F0;color:#DADADA;background:transparent}
 .sp{flex:1}
 .panel{background:#52574E;border:1px solid #868375;border-radius:16px;position:absolute}
 .ph{font-size:13px;letter-spacing:1.2px;font-weight:700;color:#CFCFCF;text-transform:uppercase}

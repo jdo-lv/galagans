@@ -248,6 +248,8 @@ Research for the NASA Space Apps 2026 challenge "Create Health Monitoring Softwa
 
 ## Team palette (Health Palette Prototype)
 
+Usage rules (semantic tokens, type, components, contrast for every allowed pair): [ui-guidelines.md](../ideas/ui-guidelines.md). The gaps listed below are resolved there.
+
 Design source: [Health Palette Prototype.html](Health%20Palette%20Prototype.html) (open in a browser; three boards: Splash, Today, Palette contrast check). Ratios below are WCAG 2.1, recomputed from the hex values on 2026-11-14.
 
 | Token | Light | Dark |
