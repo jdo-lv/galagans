@@ -15,6 +15,7 @@ Follow `.claude/skills/issue-implement/SKILL.md` step by step, and load `.claude
 - **Stay in your worktree.** Use paths relative to it. Never `cd` to the main checkout, never run `git worktree` commands, never stash or reset other work.
 - **Scope.** Touch only the files in the issue's Touch points plus their tests and the docs it names. If an AC needs another file that another issue is likely to change (`container.ts`, `domain/ports.ts`, `pom.xml`, `package.json`, `CLAUDE.md`), keep the edit minimal and append-only, and mention it in the PR under "Shared files touched".
 - **Builds in parallel.** Each worktree has its own `target/` and `node_modules`; run the commands from the skill inside your worktree. Don't start `mvn spring-boot:run` or `npm run dev` (fixed ports collide).
+- **Screenshots.** For the feature doc, serve your worktree's build with `cd src/main/frontend && npm run preview -- --port <free port> --strictPort` (pick the port with `node -e "const s=require('net').createServer().listen(0,()=>{console.log(s.address().port);s.close()})"`), point the shots script at it, and stop the server when done. `/api` isn't served there, so the app runs offline; that's fine for crew-app screens.
 - **No review loop.** After `mvn clean verify` is green, ship as the skill says.
 
 Return only this block as your final message:

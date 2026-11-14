@@ -23,6 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Offline-first flow: the check-in is written to IndexedDB as pending, `SyncService` posts pending items to `POST /api/checkins/sync` when online (on start, after each save, on the `online` event) and marks the accepted ids synced. The server upsert is idempotent by client-generated id.
 - Placeholder PWA icons in `public/pwa-*.png` are flat color squares.
 - Follow SOLID as defined in `ideas/crew-health-companion.md` ("Engineering principles: SOLID"): interfaces only at boundaries or with a second implementation; new rules, devices and questionnaires are added as rows, adapters or files, not by editing existing branches.
+- UI copies the feature's mockup in `ideas/mockups/` and only uses the tokens in `ideas/mockups/src/base.css` (team palette). Fonts bundled or `system-ui`, never a CDN.
 - The crew loop (gateway, rules engine, statuses, explanations) runs in the frontend. The backend is the ground station: it receives, stores and shows; never put crew-facing rules there.
 
 ## Issue workflow
@@ -39,6 +40,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `ideas/viability-checklist.md`: gates G1–G5, scoring criteria, common fixes and the idea template. Every team idea goes through it.
 - `ideas/crew-health-companion.md`: lead idea (daily check-in, body map, rules engine, Device Simulator, surgeon packet), with mockups in `ideas/mockups/*.png`. Mockup sources: `ideas/mockups/src/*.html` with palette tokens in `base.css`; re-render with `ideas/mockups/src/render.sh`.
 - `ideas/features.md`: every feature of the lead idea in plain words, glossary, build order.
+- `docs/features/<n>-<slug>.md`: one per implemented UI issue, with screenshots of each state from the running app (`docs/features/img/`), the mockup it follows and deviations. Screenshots retaken by `docs/features/<n>-<slug>.shots.mjs` using `tools/cdp.mjs`.
 - `ai-log.md`: AI tool use log for the submission.
 - `spaceChallenges.md`: unsourced overview table with mangled journal citations. Don't cite it; trace claims to `research/` instead.
 

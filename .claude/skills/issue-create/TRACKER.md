@@ -29,4 +29,4 @@ An issue body has exactly these `###` sections, in order:
 
 - **Feature reference:** `Problem` names the feature id from `ideas/features.md` (e.g. F11) when there is one.
 - **Sources:** every threshold, rule row, hint or medical claim in the issue, with its `research/` file and section (and source id, e.g. `[S26]`). `None` when the issue has none.
-- **Docs:** which of `ideas/crew-health-companion.md`, `ideas/features.md`, `ideas/mockups/src/*`, `README.md` or `CLAUDE.md` change. `None` when nothing does.
+- **Docs:** UI issues always include `docs/features/<n>-<slug>.md` (feature doc with screenshots). Plus which of `ideas/crew-health-companion.md`, `ideas/features.md`, `ideas/mockups/src/*`, `README.md` or `CLAUDE.md` change. `None` when nothing does.
