@@ -103,7 +103,7 @@ a:hover {
   color: var(--color-text-muted);
 }
 
-/* Home layout (mockup 01): systems panel beside a narrower check-in panel, stacked on narrow screens */
+/* Two-column screen layout (home, detail): main panel beside a 380 px panel, stacked on narrow screens */
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
@@ -114,6 +114,45 @@ a:hover {
 @media (max-width: 860px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Home (mockup 01): Body systems | Hazard lens | right column from 1200 px; below that the lens sits under
+   Body systems, and on phones everything stacks. Body systems always comes first. */
+.layout--home {
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'systems side'
+    'lens side';
+}
+
+.layout--home > .systems {
+  grid-area: systems;
+}
+
+.layout--home > .lens {
+  grid-area: lens;
+}
+
+.layout--home > .stack {
+  grid-area: side;
+}
+
+@media (min-width: 1200px) {
+  .layout--home {
+    grid-template-columns: minmax(0, 300px) minmax(0, 1fr) minmax(0, 380px);
+    grid-template-rows: auto;
+    grid-template-areas: 'systems lens side';
+  }
+}
+
+@media (max-width: 860px) {
+  .layout--home {
+    grid-template-rows: auto;
+    grid-template-areas:
+      'systems'
+      'lens'
+      'side';
   }
 }
 

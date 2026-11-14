@@ -75,7 +75,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **Why:** the challenge suggests a clickable human figure. One glance shows where attention is needed.
 - **How:** NASA display rules: quiet when all is fine; yellow = caution, red = warning, **always with an icon and a word**, never color alone. Each value shows its unit, age and source ("4 min ago · simulated"). Missing data shows as "data 8 d old", never as a health alarm.
 - **Needs:** F4. See mockup [01-body-map.png](mockups/01-body-map.png).
-- **Status:** the "Body systems" list on home shows Respiratory (from SpO₂) as nominal, caution, warning, "No data", or "No recent data" with the data age when the reading is older than 24 h; source label "manual". The other nine systems of mockup 01 show synthetic nominal placeholder values labelled "synthetic" (`infrastructure/mockStatuses.ts`); a system drops its placeholder once a rule covers it. The "Latest readings" tiles show the newest heart rate, SpO₂, sleep and mood from manual check-ins with unit, data age and the tag "manual". SpO₂ carries the Respiratory caution or warning badge, a value older than 24 h looks stale, and a field never entered shows "—". Blood pressure and cabin CO₂ are synthetic tiles (`infrastructure/mockReadings.ts`). Missing: the human figure, rules for the other systems, hazard lens.
+- **Status:** the "Body systems" list on home shows Respiratory (from SpO₂) as nominal, caution, warning, "No data", or "No recent data" with the data age when the reading is older than 24 h; source label "manual". The other nine systems of mockup 01 show synthetic nominal placeholder values labelled "synthetic" (`infrastructure/mockStatuses.ts`); a system drops its placeholder once a rule covers it. The "Latest readings" tiles show the newest heart rate, SpO₂, sleep and mood from manual check-ins with unit, data age and the tag "manual". SpO₂ carries the Respiratory caution or warning badge, a value older than 24 h looks stale, and a field never entered shows "—". Blood pressure and cabin CO₂ are synthetic tiles (`infrastructure/mockReadings.ts`). The human figure sits in the Hazard lens card (issue #14): six display-only labels (Cognition, Eyes, Lungs, Heart, Kidneys, Bone & muscle) that stay quiet when nominal and show the status badge for caution or warning. Missing: rules for the other systems, tapping a figure item to open its detail.
 
 ### Inputs for the demo
 
@@ -119,6 +119,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **Why:** the five hazards are NASA's own framing and the first link judges published. It teaches the astronaut why each check exists.
 - **How:** a fixed table (hazard → systems → checks) and a highlight style on the body map. No new data.
 - **Needs:** F6.
+- **Status:** Implemented. A Hazard lens card on home (issue #14): five hazard toggles, a caption per hazard (what it does, the systems it affects, the checks that watch it, the source), and the body figure. The selected hazard marks its Body systems rows and figure labels and dims the rest, never dims a caution or warning, never changes a status, and is remembered on the device.
 
 #### F13. "Reporting is a win" · Must
 - **What:** logging a symptom counts as a completed check-in and never breaks a streak.
