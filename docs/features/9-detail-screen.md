@@ -28,6 +28,13 @@ The newest point is hollow with no marker. Old data shows its age, never an alar
 ### No data
 ![No data](img/9-no-data.png)
 
+### Light theme (caution)
+![Caution, light](img/9-caution-light.png)
+
+### Phone, 390 px (caution)
+The columns stack. The chart keeps 16 px labels by scrolling sideways, and it opens on the newest readings, so the Y-axis labels are scrolled out of view at first.
+![Caution, phone](img/9-caution-phone.png)
+
 "Detail unavailable" (rules or storage fail to load) can't be triggered from the running app; it's covered by `SystemDetail.test.tsx` (AC35, AC36). Unknown routes (`#/systems/Cognition`, `#/foo`) go back to Home (AC8).
 
 ## Mockup and deviations
@@ -41,4 +48,5 @@ Layout follows [02-detail.png](../../ideas/mockups/02-detail.png) and the issue 
 | Who to involve is a 2 × 2 grid, not four in a row | At the app's body text size "Medical conference" doesn't fit in a quarter of the 380 px column. |
 | One "What next" step, not a numbered list | Each rule row has a single `next` text. |
 | No latest-value label on the chart | The header already shows the latest value with its age and source. |
+| On phones the chart scrolls sideways instead of shrinking | Its labels stay at 16 px (ui-guidelines §8). |
 | Chart markers show icon + colour without the word | The word is in each point's title and the header badge; recorded as an exception in ui-guidelines §2.3. |

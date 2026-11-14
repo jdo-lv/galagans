@@ -1,6 +1,9 @@
 /* Detail screen (mockup 02, issue #9). Colours and sizes: ideas/ui-guidelines.md. */
 .detail-back {
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
 }
 
 .detail-head {
@@ -94,9 +97,15 @@
 }
 
 /* Trend chart (ui-guidelines §5 "Charts") */
+/* Labels are 16 viewBox units; below 600 px wide they would shrink under 16 px, so phones scroll the chart instead */
+.chart-scroll {
+  overflow-x: auto;
+}
+
 .trend-chart {
   display: block;
   width: 100%;
+  min-width: 600px;
   height: auto;
 }
 
@@ -112,7 +121,7 @@
 .chart-label {
   fill: var(--color-text-muted);
   font-family: var(--font-data);
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .chart-line {
@@ -143,6 +152,6 @@
 
 .chart-marker {
   fill: var(--color-text);
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
 }

@@ -1,7 +1,7 @@
 import { CHART_WINDOW_MS, type ChartPoint, type Indicator, type Rule } from '../domain/rules'
 
 // Plot area in viewBox units.
-const LEFT = 48
+const LEFT = 60
 const RIGHT = 620
 const TOP = 16
 const BOTTOM = 200
@@ -40,18 +40,18 @@ export function TrendChart({ rules, points, now, source }: { rules: Rule[]; poin
   return (
     <svg
       className="trend-chart"
-      viewBox="0 0 640 230"
+      viewBox="0 0 640 236"
       role="img"
       aria-label={`${label}, last 7 days, ${points.length} ${points.length === 1 ? 'reading' : 'readings'}`}
     >
       {grid.map((v) => (
         <g key={v}>
           <line className="chart-grid" data-value={v} x1={LEFT} x2={RIGHT} y1={y(v)} y2={y(v)} />
-          <text className="chart-label" x={LEFT - 6} y={y(v) + 4} textAnchor="end">{`${v} ${unit}`}</text>
+          <text className="chart-label" x={LEFT - 6} y={y(v) + 5} textAnchor="end">{`${v} ${unit}`}</text>
         </g>
       ))}
       {midnights.map((t) => (
-        <text key={t} className="chart-label" x={x(t)} y={222} textAnchor="middle">
+        <text key={t} className="chart-label" x={x(t)} y={228} textAnchor="middle">
           {dayLabel.format(t)}
         </text>
       ))}
@@ -77,7 +77,7 @@ export function TrendChart({ rules, points, now, source }: { rules: Rule[]; poin
             <title>{`${p.value} ${unit} · ${p.status} · ${timeLabel.format(Date.parse(p.recordedAt)).replace(',', '')} UTC · ${source}`}</title>
           </circle>
           {MARKER[p.status] && (
-            <text className="chart-marker" x={p.cx} y={p.cy - 11} textAnchor="middle">
+            <text className="chart-marker" x={p.cx} y={p.cy - 12} textAnchor="middle">
               {MARKER[p.status]}
             </text>
           )}

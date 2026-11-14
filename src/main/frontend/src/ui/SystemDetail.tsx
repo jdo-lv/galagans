@@ -21,6 +21,19 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
+// On phones the chart scrolls sideways; it opens on the newest readings, once, so re-reads keep the user's position.
+function ChartScroll({ children }: { children: ReactNode }) {
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (box.current) box.current.scrollLeft = box.current.scrollWidth
+  }, [])
+  return (
+    <div ref={box} className="chart-scroll">
+      {children}
+    </div>
+  )
+}
+
 function DetailBody({ detail, now, headingRef }: { detail: Detail; now: Date; headingRef: React.Ref<HTMLHeadingElement> }) {
   const { status, rules, points } = detail
   const { rule, recordedAt } = status
@@ -29,7 +42,9 @@ function DetailBody({ detail, now, headingRef }: { detail: Detail; now: Date; he
   const chart = (
     <Card title={`${rules[0].label} · last 7 days`}>
       {points.length > 0 ? (
-        <TrendChart rules={rules} points={points} now={now} source={status.source} />
+        <ChartScroll>
+          <TrendChart rules={rules} points={points} now={now} source={status.source} />
+        </ChartScroll>
       ) : (
         <p className="muted">No readings in the last 7 days</p>
       )}
