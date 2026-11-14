@@ -1,6 +1,13 @@
 import type { CheckIn } from '../domain/checkIn'
 import type { CheckInHistory } from '../domain/ports'
-import { CHECK_IN_ROUTINE, type CheckInRoutineItem, type RoutineItem, type RoutinePlaceholder, type RoutineState } from '../domain/routine'
+import {
+  CHECK_IN_ROUTINE,
+  type CheckInRoutineItem,
+  type PvtRoutineItem,
+  type RoutineItem,
+  type RoutinePlaceholder,
+  type RoutineState,
+} from '../domain/routine'
 
 const minutes = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3))
 
@@ -29,8 +36,12 @@ export class RoutineReader {
 
   async read(): Promise<RoutineItem[]> {
     const now = this.now()
-    const doneAt = firstToday(await this.history.list(), now)
+    const checkIns = await this.history.list()
+    // A PVT result is not the morning check-in; an empty check-in still is (#10).
+    const doneAt = firstToday(checkIns.filter((c) => c.pvtMedianMs === undefined), now)
     const checkIn: CheckInRoutineItem = { kind: 'check-in', ...CHECK_IN_ROUTINE, state: doneAt ? 'done' : stateAt(now), doneAt }
-    return [checkIn, ...this.placeholders]
+    const pvtDoneAt = firstToday(checkIns.filter((c) => c.pvtMedianMs !== undefined), now)
+    const pvt: PvtRoutineItem = pvtDoneAt ? { kind: 'pvt', label: 'PVT (3 min)', doneAt: pvtDoneAt } : { kind: 'pvt', label: 'PVT (3 min)' }
+    return [checkIn, pvt, ...this.placeholders]
   }
 }

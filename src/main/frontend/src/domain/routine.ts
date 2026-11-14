@@ -19,4 +19,7 @@ export type CheckInRoutineItem = {
 /** Stand-in for a routine item the app can't do yet; has no state and never claims anything happened. */
 export type RoutinePlaceholder = { kind: 'placeholder'; label: string; detail: string; source: 'synthetic' }
 
-export type RoutineItem = CheckInRoutineItem | RoutinePlaceholder
+/** The PVT (#16): done when a PVT result exists today. */
+export type PvtRoutineItem = { kind: 'pvt'; label: 'PVT (3 min)'; doneAt?: string }
+
+export type RoutineItem = CheckInRoutineItem | PvtRoutineItem | RoutinePlaceholder
