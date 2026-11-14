@@ -1,5 +1,5 @@
 import { DEVICES } from '../domain/devices'
-import { deviceMessage, isValidInput, nominalValues, SIM_DEVICES } from './simDevices'
+import { deviceMessage, isValidInput, SIM_DEVICES } from './simDevices'
 
 const NOW = new Date('2026-11-14T09:30:00.000Z')
 const sim = (name: string) => SIM_DEVICES.find((s) => s.name === name)!
@@ -11,21 +11,8 @@ describe('SIM_DEVICES', () => {
     expect(SIM_DEVICES.map((s) => s.device.id).sort()).toEqual(DEVICES.map((d) => d.id).sort())
   })
 
-  it.each(SIM_DEVICES.map((s) => [s.name, s] as const))('%s: nominal values are valid inputs and the slider stays in limits', (_, s) => {
-    for (const f of s.fields) expect(isValidInput(f.nominal.toFixed(f.decimals), f)).toBe(true)
-    const slider = s.fields.find((f) => f.field.key === s.override.key)!.field
-    expect([s.override.min >= slider.validMin, s.override.max <= slider.validMax]).toEqual([true, true])
-  })
-
-  it('formats each card value', () => {
-    expect(SIM_DEVICES.map((s) => s.format(nominalValues(s)))).toEqual([
-      '97 % · 63 bpm',
-      '63 bpm',
-      '108/70 mmHg · 63 bpm',
-      '36.8 °C',
-      '2.3 mmHg · 22.0 °C · 45 % RH',
-      '0.50 mSv/day',
-    ])
+  it.each(SIM_DEVICES.map((s) => [s.name, s] as const))('%s: starting values are valid inputs', (_, s) => {
+    for (const f of s.fields) expect(isValidInput(String(f.nominal), f)).toBe(true)
   })
 })
 

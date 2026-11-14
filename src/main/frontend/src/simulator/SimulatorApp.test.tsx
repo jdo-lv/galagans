@@ -40,16 +40,16 @@ function renderSimulator(publisher = new FakePublisher()) {
   return { publisher, ...view }
 }
 
-const card = (name: string) => screen.getByRole('region', { name })
-const oximeterCard = () => card('Pulse oximeter')
-const oximeterSlider = () => within(oximeterCard()).getByRole('slider')
-const oximeterPayloads = (publisher: FakePublisher) => publisher.published.filter((m) => m.topic === 'crew/a1/oximeter').map((m) => JSON.stringify(m.payload))
-const scenarioRow = (name: string) => screen.getAllByRole('listitem').find((li) => li.textContent?.includes(name))!
-const spo2Field = () => screen.getByLabelText('SpO₂ %')
-const pulseField = () => screen.getByLabelText('Pulse bpm')
-const publishButton = () => screen.getByRole('button', { name: 'Publish' })
-const logLines = () => within(screen.getByRole('region', { name: 'Device traffic' })).getByRole('log').textContent!.split('\n')
+const section = (name: string) => screen.getByRole('region', { name })
+const field = (device: string, label: string) => within(section(device)).getByLabelText(label)
+const every = (device: string) => within(section(device)).getByLabelText(/Every/)
+const button = (device: string, name: string) => within(section(device)).getByRole('button', { name })
+const statusLine = (device: string) => within(section(device)).getByRole('status')
+const linkPill = () => screen.getByText(/^Device link/).closest('.pill')!
+const type = (input: HTMLElement, value: string) => fireEvent.change(input, { target: { value } })
 const advance = (ms: number) => act(() => vi.advanceTimersByTime(ms))
+
+const DEVICES = ['Pulse oximeter', 'Wrist bracelet', 'BP cuff', 'Thermometer', 'Environment node', 'Dosimeter']
 
 beforeEach(() => {
   ids = 0
@@ -60,315 +60,172 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers())
 
 describe('SimulatorApp', () => {
-  it('AC12: shows the heading, the device link and simulated pills, a theme toggle and the four cards', () => {
+  it('shows the heading, the device link and simulated pills, a theme toggle and one section per device', () => {
     const { publisher } = renderSimulator()
 
     expect(screen.getByRole('heading', { level: 1, name: 'Device Simulator' })).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent(`Device link ${URL} · connected`)
+    expect(linkPill()).toHaveTextContent(`Device link ${URL} · connected`)
     expect(screen.getByText('All data simulated')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Switch to (dark|light) mode/ })).toBeInTheDocument()
-    for (const name of ['Virtual devices', 'Scenarios', 'Inject one reading', 'Device traffic']) {
-      expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument()
-    }
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(DEVICES)
+    expect(screen.queryByText('Scenarios')).toBeNull()
 
     publisher.setState('disconnected')
-    expect(screen.getByRole('status')).toHaveTextContent(`Device link ${URL} · disconnected`)
+    expect(linkPill()).toHaveTextContent(`Device link ${URL} · disconnected`)
   })
 
-  it('AC14: lists the six devices in order, each with its topic, nominal value and override slider, and an empty inject form', () => {
+  it.each([
+    ['Pulse oximeter', 'crew/a1/oximeter', [['SpO₂ %', '97'], ['Pulse bpm', '63']]],
+    ['Wrist bracelet', 'crew/a1/wrist/hr', [['Heart rate bpm', '63']]],
+    ['BP cuff', 'crew/a1/bp', [['Systolic mmHg', '108'], ['Diastolic mmHg', '70'], ['Pulse bpm', '63']]],
+    ['Thermometer', 'crew/a1/thermometer', [['Temperature °C', '36.8']]],
+    ['Environment node', 'module/hab/env', [['CO₂ (1-h avg) mmHg', '2.3'], ['Cabin temp °C', '22'], ['Humidity % RH', '45']]],
+    ['Dosimeter', 'module/hab/dose', [['Dose rate mSv/day', '0.5'], ['30-day BFO dose mGy-Eq', '95']]],
+  ])('%s shows its topic, every metric at its starting value, Every 60 s, Start, Send now and "Not sent yet"', (device, topic, metrics) => {
     renderSimulator()
 
-    const cards = within(screen.getByRole('region', { name: 'Virtual devices' })).getAllByRole('region')
-    expect(cards.map((c) => within(c).getByRole('heading', { level: 3 }).textContent)).toEqual([
-      'Pulse oximeter',
-      'Wrist bracelet',
-      'BP cuff',
-      'Thermometer',
-      'Environment node',
-      'Dosimeter',
-    ])
-    const expected = [
-      ['crew/a1/oximeter', '97 % · 63 bpm', 'SpO₂ override · 97 %'],
-      ['crew/a1/wrist/hr', '63 bpm', 'Heart rate override · 63 bpm'],
-      ['crew/a1/bp', '108/70 mmHg · 63 bpm', 'Systolic override · 108 mmHg'],
-      ['crew/a1/thermometer', '36.8 °C', 'Temperature override · 36.8 °C'],
-      ['module/hab/env', '2.3 mmHg · 22.0 °C · 45 % RH', 'CO₂ override · 2.3 mmHg'],
-      ['module/hab/dose', '0.50 mSv/day', 'Dose rate override · 0.50 mSv/day'],
-    ]
-    cards.forEach((c, i) => {
-      const [topic, value, slider] = expected[i]
-      expect(c).toHaveTextContent(`WebSocket JSON · ${topic}`)
-      expect(c).toHaveTextContent(value)
-      expect(c).toHaveTextContent('source: synthetic')
-      expect(within(c).getByRole('slider', { name: slider })).toBeInTheDocument()
-      expect(within(c).queryByText('not built')).toBeNull()
-    })
-
-    const inject = screen.getByRole('region', { name: 'Inject one reading' })
-    expect(inject).toHaveTextContent('Pulse oximeter · source: synthetic')
-    expect(within(inject).getByRole('combobox', { name: 'Device' })).toHaveValue('oximeter')
-    for (const field of [spo2Field(), pulseField()]) {
-      expect(field).toHaveAttribute('type', 'text')
-      expect(field).toHaveAttribute('inputMode', 'numeric')
-      expect(field).toHaveValue('')
-    }
+    expect(section(device)).toHaveTextContent(`${topic} · source: synthetic`)
+    for (const [label, value] of metrics) expect(field(device, label)).toHaveValue(value)
+    expect(every(device)).toHaveValue('60')
+    expect(button(device, 'Start')).toBeEnabled()
+    expect(button(device, 'Send now')).toBeEnabled()
+    expect(statusLine(device)).toHaveTextContent('Not sent yet')
+    expect(within(section(device)).queryByText(/sending every/)).toBeNull()
   })
 
-  it('AC15: lists the six scenarios in order, only Nominal day runnable', () => {
-    renderSimulator()
-
-    const rows = within(screen.getByRole('region', { name: 'Scenarios' })).getAllByRole('listitem')
-    const names = ['Nominal day', 'CO₂ build-up', 'Resting HR drift', 'Orthostatic risk', 'Solar particle event', 'Sensor dropout']
-    expect(rows).toHaveLength(6)
-    rows.forEach((row, i) => {
-      expect(row).toHaveTextContent(names[i])
-      const run = within(row).getByRole('button', { name: 'Run' })
-      if (i === 0) {
-        expect(run).toBeEnabled()
-        expect(within(row).queryByText('not built')).toBeNull()
-      } else {
-        expect(run).toBeDisabled()
-        expect(within(row).getByText('not built')).toBeInTheDocument()
-      }
-    })
-  })
-
-  it('AC16: the oximeter card shows its topic, source, nominal value and the SpO₂ override slider', () => {
-    renderSimulator()
-
-    const card = oximeterCard()
-    expect(card).toHaveTextContent('WebSocket JSON · crew/a1/oximeter')
-    expect(card).toHaveTextContent('source: synthetic')
-    expect(card).toHaveTextContent('97 % · 63 bpm')
-    const slider = within(card).getByRole('slider', { name: 'SpO₂ override · 97 %' })
-    expect(slider).toHaveAttribute('min', '80')
-    expect(slider).toHaveAttribute('max', '100')
-    expect(slider).toHaveAttribute('step', '1')
-    expect(slider).toHaveValue('97')
-  })
-
-  it('AC17: the slider changes the label, the card value and the next tick, and publishes nothing itself', () => {
+  it('Send now publishes the current values once on the device topic, keys in contract order', () => {
     const { publisher } = renderSimulator()
+    type(field('BP cuff', 'Systolic mmHg'), '150')
+    type(field('BP cuff', 'Pulse bpm'), '')
 
-    fireEvent.change(oximeterSlider(), { target: { value: '91' } })
-    expect(within(oximeterCard()).getByRole('slider', { name: 'SpO₂ override · 91 %' })).toBeInTheDocument()
-    expect(oximeterCard()).toHaveTextContent('91 % · 63 bpm')
-    expect(publisher.published).toHaveLength(0)
+    fireEvent.click(button('BP cuff', 'Send now'))
 
-    fireEvent.click(within(scenarioRow('Nominal day')).getByRole('button', { name: 'Run' }))
-    fireEvent.change(oximeterSlider(), { target: { value: '93' } })
-    advance(60_000)
-    expect(oximeterPayloads(publisher).map((p) => JSON.parse(p).spo2_pct)).toEqual([91, 93])
-
-    fireEvent.change(spo2Field(), { target: { value: '85' } })
-    fireEvent.click(publishButton())
-    expect(oximeterCard()).toHaveTextContent('93 % · 63 bpm')
+    expect(publisher.published.map((m) => m.topic)).toEqual(['crew/a1/bp'])
+    expect(publisher.payloads()).toEqual(['{"id":"id-1","t":"2026-11-14T09:30:00.000Z","systolic_mmhg":150,"diastolic_mmhg":70,"src":"synthetic"}'])
+    expect(statusLine('BP cuff')).toHaveTextContent('Last sent 09:30:00')
   })
 
-  it('AC18: Run publishes every device\'s nominal reading at once and shows the running row and tags', () => {
+  it('decimals go out as numbers: the dosimeter sends rate and 30-day dose', () => {
     const { publisher } = renderSimulator()
+    type(field('Dosimeter', '30-day BFO dose mGy-Eq'), '130.5')
 
-    fireEvent.click(within(scenarioRow('Nominal day')).getByRole('button', { name: 'Run' }))
+    fireEvent.click(button('Dosimeter', 'Send now'))
 
-    expect(publisher.published.map((m) => m.topic)).toEqual([
-      'crew/a1/oximeter',
-      'crew/a1/wrist/hr',
-      'crew/a1/bp',
-      'crew/a1/thermometer',
-      'module/hab/env',
-      'module/hab/dose',
-    ])
+    expect(publisher.payloads()).toEqual(['{"id":"id-1","t":"2026-11-14T09:30:00.000Z","dose_rate_msv_day":0.5,"dose_30d_mgy_eq":130.5,"src":"synthetic"}'])
+  })
+
+  it.each([
+    ['Pulse oximeter', 'SpO₂ %', ''],
+    ['Pulse oximeter', 'SpO₂ %', '91.0'],
+    ['Pulse oximeter', 'SpO₂ %', '49'],
+    ['Thermometer', 'Temperature °C', '36.85'],
+    ['Environment node', 'Humidity % RH', '101'],
+    ['Dosimeter', 'Dose rate mSv/day', 'abc'],
+  ])('%s %s %j disables Start and Send now', (device, label, value) => {
+    renderSimulator()
+
+    type(field(device, label), value)
+
+    expect(button(device, 'Start')).toBeDisabled()
+    expect(button(device, 'Send now')).toBeDisabled()
+  })
+
+  it('an empty optional field is left out of the payload', () => {
+    const { publisher } = renderSimulator()
+    type(field('Pulse oximeter', 'Pulse bpm'), '')
+
+    fireEvent.click(button('Pulse oximeter', 'Send now'))
+
+    expect(publisher.payloads()).toEqual(['{"id":"id-1","t":"2026-11-14T09:30:00.000Z","spo2_pct":97,"src":"synthetic"}'])
+  })
+
+  it.each(['0', '3601', '1.5', '', 'x'])('Every %j disables Start but not Send now', (value) => {
+    renderSimulator()
+
+    type(every('Wrist bracelet'), value)
+
+    expect(button('Wrist bracelet', 'Start')).toBeDisabled()
+    expect(button('Wrist bracelet', 'Send now')).toBeEnabled()
+  })
+
+  it('Start sends at once, then every N s with the values of that moment; the tag shows the period', () => {
+    const { publisher } = renderSimulator()
+    type(every('Wrist bracelet'), '5')
+
+    fireEvent.click(button('Wrist bracelet', 'Start'))
+    expect(within(section('Wrist bracelet')).getByText('sending every 5 s')).toHaveClass('tag')
+    expect(every('Wrist bracelet')).toBeDisabled()
+    type(field('Wrist bracelet', 'Heart rate bpm'), '120')
+    advance(5_000)
+
     expect(publisher.payloads()).toEqual([
-      '{"id":"id-1","t":"2026-11-14T09:30:00.000Z","spo2_pct":97,"pulse_bpm":63,"src":"synthetic"}',
-      '{"id":"id-2","t":"2026-11-14T09:30:00.000Z","hr_bpm":63,"src":"synthetic"}',
-      '{"id":"id-3","t":"2026-11-14T09:30:00.000Z","systolic_mmhg":108,"diastolic_mmhg":70,"pulse_bpm":63,"src":"synthetic"}',
-      '{"id":"id-4","t":"2026-11-14T09:30:00.000Z","temp_c":36.8,"src":"synthetic"}',
-      '{"id":"id-5","t":"2026-11-14T09:30:00.000Z","co2_mmhg_1h":2.3,"temp_c":22,"rh_pct":45,"src":"synthetic"}',
-      '{"id":"id-6","t":"2026-11-14T09:30:00.000Z","dose_rate_msv_day":0.5,"src":"synthetic"}',
+      '{"id":"id-1","t":"2026-11-14T09:30:00.000Z","hr_bpm":63,"src":"synthetic"}',
+      '{"id":"id-2","t":"2026-11-14T09:30:05.000Z","hr_bpm":120,"src":"synthetic"}',
     ])
-    const row = scenarioRow('Nominal day')
-    expect(row).toHaveTextContent('running · every 60 s')
-    expect(within(row).getByRole('button', { name: 'Stop' })).toBeInTheDocument()
-    expect(screen.getAllByText('publishing')).toHaveLength(6)
+    expect(statusLine('Wrist bracelet')).toHaveTextContent('Last sent 09:30:05')
   })
 
-  it('AC19: one more reading every 60 000 ms with a new id and the clock at that moment', () => {
+  it('devices run on their own periods', () => {
     const { publisher } = renderSimulator()
-    fireEvent.click(within(scenarioRow('Nominal day')).getByRole('button', { name: 'Run' }))
+    type(every('Wrist bracelet'), '5')
+    fireEvent.click(button('Wrist bracelet', 'Start'))
+    fireEvent.click(button('Environment node', 'Start'))
 
     advance(60_000)
 
-    expect(publisher.published).toHaveLength(12)
-    expect(oximeterPayloads(publisher)[1]).toBe('{"id":"id-7","t":"2026-11-14T09:31:00.000Z","spo2_pct":97,"pulse_bpm":63,"src":"synthetic"}')
+    const count = (topic: string) => publisher.published.filter((m) => m.topic === topic).length
+    expect([count('crew/a1/wrist/hr'), count('module/hab/env'), count('crew/a1/oximeter')]).toEqual([13, 2, 0])
   })
 
-  it('AC20: Stop ends the scenario, the row shows Run again and the tag goes', () => {
+  it('Stop ends the sending, the tag goes and Start comes back', () => {
     const { publisher } = renderSimulator()
-    fireEvent.click(within(scenarioRow('Nominal day')).getByRole('button', { name: 'Run' }))
+    fireEvent.click(button('Thermometer', 'Start'))
 
-    fireEvent.click(within(scenarioRow('Nominal day')).getByRole('button', { name: 'Stop' }))
+    fireEvent.click(button('Thermometer', 'Stop'))
     advance(60_000)
 
-    expect(publisher.published).toHaveLength(6)
-    expect(within(scenarioRow('Nominal day')).getByRole('button', { name: 'Run' })).toBeInTheDocument()
-    expect(within(oximeterCard()).queryByText('publishing')).toBeNull()
+    expect(publisher.published).toHaveLength(1)
+    expect(button('Thermometer', 'Start')).toBeInTheDocument()
+    expect(within(section('Thermometer')).queryByText(/sending every/)).toBeNull()
+    expect(every('Thermometer')).toBeEnabled()
   })
 
-  it('AC20: unmounting while running publishes nothing more', () => {
+  it('unmounting while sending sends nothing more', () => {
     const { publisher, unmount } = renderSimulator()
-    fireEvent.click(within(scenarioRow('Nominal day')).getByRole('button', { name: 'Run' }))
+    fireEvent.click(button('Thermometer', 'Start'))
 
     unmount()
     advance(60_000)
 
-    expect(publisher.published).toHaveLength(6)
+    expect(publisher.published).toHaveLength(1)
   })
 
-  it.each([
-    ['91', '', true],
-    ['91', '61', true],
-    ['50', '20', true],
-    ['100', '250', true],
-    ['', '', false],
-    ['91.0', '', false],
-    [' 91', '', false],
-    ['49', '', false],
-    ['101', '', false],
-    ['91', '19', false],
-    ['91', '251', false],
-    ['91', '6a', false],
-  ])('AC21: SpO₂ %j and Pulse %j → Publish enabled %s', (spo2, pulse, enabled) => {
-    renderSimulator()
-
-    fireEvent.change(spo2Field(), { target: { value: spo2 } })
-    fireEvent.change(pulseField(), { target: { value: pulse } })
-
-    if (enabled) expect(publishButton()).toBeEnabled()
-    else expect(publishButton()).toBeDisabled()
-  })
-
-  it('AC22: Publish sends the injected reading, keeps the fields, and a second click sends a new one', () => {
+  it('a value made invalid while sending skips the tick and says so', () => {
     const { publisher } = renderSimulator()
-    fireEvent.change(spo2Field(), { target: { value: '91' } })
-    fireEvent.change(pulseField(), { target: { value: '61' } })
+    fireEvent.click(button('Thermometer', 'Start'))
+    type(field('Thermometer', 'Temperature °C'), '')
 
-    fireEvent.click(publishButton())
-    advance(1_000)
-    fireEvent.click(publishButton())
-
-    expect(publisher.published.map((m) => m.topic)).toEqual(['crew/a1/oximeter', 'crew/a1/oximeter'])
-    expect(publisher.payloads()).toEqual([
-      '{"id":"id-1","t":"2026-11-14T09:30:00.000Z","spo2_pct":91,"pulse_bpm":61,"src":"synthetic"}',
-      '{"id":"id-2","t":"2026-11-14T09:30:01.000Z","spo2_pct":91,"pulse_bpm":61,"src":"synthetic"}',
-    ])
-    expect(spo2Field()).toHaveValue('91')
-    expect(pulseField()).toHaveValue('61')
-  })
-
-  it('AC22: with Pulse empty the payload has no pulse_bpm, while a scenario runs too', () => {
-    const { publisher } = renderSimulator()
-    fireEvent.click(within(scenarioRow('Nominal day')).getByRole('button', { name: 'Run' }))
-    fireEvent.change(spo2Field(), { target: { value: '88' } })
-
-    fireEvent.click(publishButton())
-
-    expect(publisher.payloads()[6]).toBe('{"id":"id-7","t":"2026-11-14T09:30:00.000Z","spo2_pct":88,"src":"synthetic"}')
-  })
-
-  it('AC23: the traffic card starts empty, then adds each message on top in UTC', () => {
-    renderSimulator()
-    expect(logLines()).toEqual(['No traffic yet'])
-
-    fireEvent.click(within(scenarioRow('Nominal day')).getByRole('button', { name: 'Run' }))
-
-    const lines = logLines()
-    expect(lines).toHaveLength(6)
-    expect(lines[0]).toBe('09:30:00  module/hab/dose  {"id":"id-6","t":"2026-11-14T09:30:00.000Z","dose_rate_msv_day":0.5,"src":"synthetic"}')
-    expect(lines[5]).toBe('09:30:00  crew/a1/oximeter  {"id":"id-1","t":"2026-11-14T09:30:00.000Z","spo2_pct":97,"pulse_bpm":63,"src":"synthetic"}')
-  })
-
-  it('AC23: keeps the newest 50 lines, not-sent lines included', () => {
-    const { publisher } = renderSimulator()
-    fireEvent.change(spo2Field(), { target: { value: '91' } })
-    for (let i = 0; i < 30; i++) fireEvent.click(publishButton())
-    publisher.setState('disconnected')
-    for (let i = 0; i < 25; i++) fireEvent.click(publishButton())
-
-    const lines = logLines()
-    expect(lines).toHaveLength(50)
-    expect(lines[0]).toBe('09:30:00  not sent · device link disconnected')
-    expect(lines.filter((l) => l.includes('not sent'))).toHaveLength(25)
-  })
-
-  it('AC24: an unsent tick is logged with the link state, the scenario keeps running and the tag reads not sending', () => {
-    const { publisher } = renderSimulator(new FakePublisher('connecting'))
-
-    fireEvent.click(within(scenarioRow('Nominal day')).getByRole('button', { name: 'Run' }))
-    expect(logLines()[0]).toBe('09:30:00  not sent · device link connecting')
-    expect(screen.getAllByText('not sending')).toHaveLength(6)
-
-    publisher.setState('connected')
-    expect(within(oximeterCard()).getByText('publishing')).toBeInTheDocument()
-
-    publisher.setState('disconnected')
     advance(60_000)
-    expect(logLines()[0]).toBe('09:31:00  not sent · device link disconnected')
-    expect(scenarioRow('Nominal day')).toHaveTextContent('running · every 60 s')
+
+    expect(publisher.published).toHaveLength(1)
+    expect(statusLine('Thermometer')).toHaveTextContent('Not sent · check the values 09:31:00')
+  })
+
+  it('with the device link down nothing is sent or queued, and the status says so', () => {
+    const { publisher } = renderSimulator(new FakePublisher('disconnected'))
+
+    fireEvent.click(button('Dosimeter', 'Send now'))
+    fireEvent.click(button('Pulse oximeter', 'Start'))
+    expect(statusLine('Dosimeter')).toHaveTextContent('Not sent · device link disconnected 09:30:00')
+
+    publisher.setState('connecting')
+    advance(60_000)
+    expect(statusLine('Pulse oximeter')).toHaveTextContent('Not sent · device link connecting 09:31:00')
+    expect(within(section('Pulse oximeter')).getByText('sending every 60 s')).toBeInTheDocument()
     expect(publisher.published).toHaveLength(0)
   })
 
-  it('AC24: an unsent inject is logged too', () => {
-    renderSimulator(new FakePublisher('disconnected'))
-    fireEvent.change(spo2Field(), { target: { value: '91' } })
-
-    fireEvent.click(publishButton())
-
-    expect(logLines()).toEqual(['09:30:00  not sent · device link disconnected'])
-  })
-
-  it('each device\'s slider changes its own next reading: CO₂ 3.4 mmHg on the environment node', () => {
-    const { publisher } = renderSimulator()
-
-    fireEvent.change(within(card('Environment node')).getByRole('slider'), { target: { value: '3.4' } })
-    fireEvent.click(within(scenarioRow('Nominal day')).getByRole('button', { name: 'Run' }))
-
-    expect(card('Environment node')).toHaveTextContent('3.4 mmHg · 22.0 °C · 45 % RH')
-    const env = publisher.published.find((m) => m.topic === 'module/hab/env')!
-    expect(env.payload).toMatchObject({ co2_mmhg_1h: 3.4, temp_c: 22, rh_pct: 45 })
-  })
-
-  it('inject from another device: BP cuff needs systolic and diastolic, pulse is optional', () => {
-    const { publisher } = renderSimulator()
-    const inject = screen.getByRole('region', { name: 'Inject one reading' })
-
-    fireEvent.change(within(inject).getByRole('combobox', { name: 'Device' }), { target: { value: 'bp-cuff' } })
-    expect(inject).toHaveTextContent('BP cuff · source: synthetic')
-    fireEvent.change(screen.getByLabelText('Systolic mmHg'), { target: { value: '150' } })
-    expect(publishButton()).toBeDisabled()
-    fireEvent.change(screen.getByLabelText('Diastolic mmHg'), { target: { value: '95' } })
-    fireEvent.click(publishButton())
-
-    expect(publisher.published).toEqual([
-      { topic: 'crew/a1/bp', payload: { id: 'id-1', t: '2026-11-14T09:30:00.000Z', systolic_mmhg: 150, diastolic_mmhg: 95, src: 'synthetic' } },
-    ])
-  })
-
-  it('inject a decimal from the thermometer; switching device clears the fields', () => {
-    const { publisher } = renderSimulator()
-    const pick = () => within(screen.getByRole('region', { name: 'Inject one reading' })).getByRole('combobox', { name: 'Device' })
-    fireEvent.change(spo2Field(), { target: { value: '91' } })
-
-    fireEvent.change(pick(), { target: { value: 'thermometer' } })
-    const temp = screen.getByLabelText('Temperature °C')
-    expect(temp).toHaveValue('')
-    expect(temp).toHaveAttribute('inputMode', 'decimal')
-    fireEvent.change(temp, { target: { value: '38.4' } })
-    fireEvent.click(publishButton())
-
-    expect(publisher.published).toEqual([{ topic: 'crew/a1/thermometer', payload: { id: 'id-1', t: '2026-11-14T09:30:00.000Z', temp_c: 38.4, src: 'synthetic' } }])
-  })
-
-  it('AC27: the theme toggle stores under simulator.theme and leaves crew-health.theme alone', () => {
+  it('the theme toggle stores under simulator.theme and leaves crew-health.theme alone', () => {
     localStorage.setItem('crew-health.theme', 'light')
     renderSimulator()
 
