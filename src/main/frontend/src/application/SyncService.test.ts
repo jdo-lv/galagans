@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { checkIn, FakeConnectivity, FakeGateway, FakeRepository } from '../test/fakes'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { checkIn, FakeConnectivity, FakeGateway, FakeObservationRepository, FakeReadingSource, FakeRepository } from '../test/fakes'
+import { PersonalHealthGateway } from './PersonalHealthGateway'
 import { SyncService } from './SyncService'
 
 describe('SyncService', () => {
@@ -66,5 +67,17 @@ describe('SyncService', () => {
     await service.sync()
 
     expect(calls).toBe(1)
+  })
+
+  it('AC23: a stored device Observation is not part of what syncs', async () => {
+    const source = new FakeReadingSource()
+    const observations = new FakeObservationRepository()
+    new PersonalHealthGateway(source, observations).start()
+    source.emit({ id: 'm1', t: new Date().toISOString(), spo2_pct: 91, src: 'synthetic' })
+    await vi.waitFor(() => expect(observations.items.size).toBe(1))
+
+    await service.sync()
+
+    expect(gateway.sent).toEqual([[checkIn('a')]])
   })
 })

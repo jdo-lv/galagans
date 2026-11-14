@@ -56,19 +56,20 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **How:** pre-flight values (in the demo: a pre-loaded profile) set a band per indicator, e.g. "your PVT: 250–285 ms".
 - **Example:** 108/70 BP is fine for this astronaut even if it looks low on Earth.
 - **Needs:** F1.
+- **Status:** a pre-loaded synthetic pre-flight profile (`infrastructure/baseline.json`) gives the PVT baseline 265 ms (issue #28). COG-01 flags a median above baseline + 15 % (304.75 ms), and the Cognition chart draws the baseline as "your pre-flight normal · 265 ms · synthetic". SpO₂ keeps its absolute clinical guardrails. Missing: the band (min–max, with F11), other indicators.
 
 #### F4. Rules engine and rule table · Must
 - **What:** the "brain". A table of simple, readable rules: *if* this indicator does *this*, *then* status, action, who to involve, and the source that justifies it.
 - **Why:** judges and doctors can read every rule and see where it comes from. No AI makes medical decisions (a design constraint).
 - **How:** each rule is one row in a JSON file; the code evaluates them after every new reading. Rule example COG-02: "PVT median > corridor + 15% or ≥ 5 lapses → Cognition level 3 "check" → tell the CMO today. Source: Dev et al. 2024".
 - **Needs:** F3. The rule table itself must be written and checked by a person, with sources from `research/`.
-- **Status:** `rules.json` holds SPO-01 (SpO₂ < 94 % → caution), SPO-02 (< 90 % → warning) and COG-01 (PVT median > 305 ms → Cognition caution, issue #17), validated on load and evaluated on the tablet after each save and every 60 s. Data age and source label come per indicator from the reading spec (SpO₂ 24 h "manual", PVT 4 d "in-app test"). Runs without F3 for now: SpO₂ thresholds are the Earth clinical convention, and COG-01 uses a synthetic 265 ms baseline + 15 % (team heuristic). Missing: other indicators and rows, personal baseline.
+- **Status:** `rules.json` holds SPO-01 (SpO₂ < 94 % → caution), SPO-02 (< 90 % → warning) and COG-01 (PVT median > pre-flight baseline + 15 % = 304.75 ms → Cognition caution, issues #17 and #28), validated on load and evaluated on the tablet after each save and every 60 s. Data age and source label come per indicator from the reading spec (SpO₂ 24 h "manual", PVT 4 d "in-app test"). SpO₂ thresholds are the Earth clinical convention; COG-01 is relative to the F3 profile (synthetic 265 ms; +15 % is a team heuristic), and its texts are filled from it. Missing: other indicators and rows.
 
 #### F5. Explanation and next step (detail screen) · Must
 - **What:** tapping a flagged item opens a screen with four answers: **what** changed, **why it matters**, **how the app decided** (the rule and its source), **what to do next**, plus the escalation tier with buttons "Share with CMO" / "Add to surgeon packet".
 - **Why:** it answers the challenge's five questions on every screen. NASA display guidance says to always explain what, why and what next.
 - **Needs:** F4. See mockup [02-detail.png](mockups/02-detail.png).
-- **Status:** a caution or warning row on home opens the system's detail screen (`#/systems/<system>`). It shows the status, a 7-day trend chart with the rule thresholds, what / why / how decided / source, what next, and the four escalation tiers with the rule's tier selected (issue #9). Missing: the adaptation corridor (F11) and the "Share with CMO" / "Add to surgeon packet" buttons.
+- **Status:** a caution or warning row on home opens the system's detail screen (`#/systems/<system>`). It shows the status, a 7-day trend chart with the rule thresholds (and, for Cognition, the pre-flight baseline line, issue #28), what / why / how decided / source, what next, and the four escalation tiers with the rule's tier selected (issue #9). Missing: the adaptation corridor (F11) and the "Share with CMO" / "Add to surgeon packet" buttons.
 
 #### F6. Body map (home screen) · Must
 - **What:** a human figure plus a list of body systems, each with a status on the 0–5 [alert scale](alert-levels.md): nominal, to do, watch, check, treat or emergency.
@@ -98,6 +99,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **Why:** the rest of the app sees only one format, and swapping a fake device for a real one later only changes the connector.
 - **How (48 h):** one connector for MQTT JSON, one for manual entry, and one real Bluetooth heart-rate byte decoder (used by the bracelet) to show it's genuine. Nice-to-have: a "dock import" connector for the bracelet's batch file. Full standards stay on a slide.
 - **Needs:** F8's message format.
+- **Status:** oximeter JSON over MQTT (`crew/a1/oximeter`, issue #22) and manual entry reach one FHIR-shaped `Observation` store; a SpO₂ reading turns the Respiratory status and the SpO₂ / Heart rate tiles live, offline, with its source label. Missing: GATT byte decoders (oximeter `0x2A5E`, heart rate `0x2A37`), environment node, dosimeter, dock import, FHIR `Device` and `Patient` references.
 
 #### F10. Real data replay · Must
 - **What:** the simulator replays **real** NASA data: ISS cabin CO₂/temperature/humidity (OSDR EDA) and radiation (RadLab).
@@ -207,7 +209,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 | # | Feature | Track | When (target) | Why at this point |
 |---|---|---|---|---|
 | 0 | F1 check-in (partial), F2 offline sync | App | Done | Already in `src/` |
-| 1 | Message format and reading model (FHIR-shaped `Observation`, MQTT topics) | All | Sat 09:00–10:00 | The contract every track builds against |
+| 1 | Message format and reading model (FHIR-shaped `Observation`, MQTT topics) | All | Sat 09:00–10:00 | The contract every track builds against. Oximeter contract fixed in #22: topic `crew/a1/oximeter`, payload `{id, t, spo2_pct, pulse_bpm?, src}` |
 | 2 | F8 Device Simulator: environment node + oximeter, nominal scenario | Simulator | Sat from 10:00 | Independent; the demo depends on it |
 | 3 | F3 baseline + F4 rules engine with ~10 sourced rules | Rules | Sat from 10:00 | The core; everything else needs a status |
 | 4 | F1 complete (BP, temperature, symptoms) | App | Sat morning | Inputs for the rules |

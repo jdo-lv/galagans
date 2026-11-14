@@ -7,15 +7,14 @@ import type { StoredPacket } from '../domain/packet'
 import { READINGS, type ReadingPlaceholder } from '../domain/readings'
 import type { Rule } from '../domain/rules'
 import { mockReadings } from '../infrastructure/mockReadings'
-import ruleRows from '../infrastructure/rules.json'
 import { setup } from '../test/renderApp'
+import { RULES } from '../test/rules'
 
 // Local times, so the tests pass in any TZ.
 const at = (h: number, m: number, s = 0, day = 14) => new Date(2026, 10, day, h, m, s)
 const go = (hash: string) => window.history.replaceState(null, '', hash)
 
 type Options = { now?: Date; seed?: CheckIn[]; online?: boolean; readingPlaceholders?: ReadingPlaceholder[]; rules?: Rule[] }
-const RULES = ruleRows as Rule[]
 const setupAt = ({ now = at(7, 31), ...rest }: Options = {}) => setup({ ...rest, now: now.toISOString() })
 
 const PILL_NAME = 'Surgeon packet. Ground link: one-way delay 14 min 05 s (demo)'

@@ -1,12 +1,16 @@
+import { CombinedObservationHistory } from '../application/CombinedObservationHistory'
 import type { CheckIn } from '../domain/checkIn'
+import type { Observation } from '../domain/observation'
 import type { Packet, StoredPacket } from '../domain/packet'
 import type {
   CheckInGateway,
   CheckInHistory,
   CheckInRepository,
   ConnectivityMonitor,
+  ObservationRepository,
   PacketGateway,
   PacketRepository,
+  ReadingSource,
   RuleSource,
 } from '../domain/ports'
 import type { Rule } from '../domain/rules'
@@ -117,3 +121,32 @@ export class FakePacketGateway implements PacketGateway {
 }
 
 export const packet = (id: string, builtAt: string): Packet => ({ id, builtAt, oneWayDelayMs: 845_000, note: '', items: [] })
+
+export class FakeObservationRepository implements ObservationRepository {
+  items = new Map<string, Observation>()
+  failPut = false
+
+  async list() {
+    return [...this.items.values()]
+  }
+  async put(observation: Observation) {
+    if (this.failPut) throw new Error('storage failed')
+    this.items.set(observation.id, observation)
+  }
+}
+
+export class FakeReadingSource implements ReadingSource {
+  private listeners = new Set<(message: unknown) => void>()
+
+  subscribe(listener: (message: unknown) => void) {
+    this.listeners.add(listener)
+    return () => this.listeners.delete(listener)
+  }
+  emit(message: unknown) {
+    this.listeners.forEach((l) => l(message))
+  }
+}
+
+/** The history the rules read: the check-in store plus a device Observation store. */
+export const combinedHistory = (checkIns: CheckInHistory, observations = new FakeObservationRepository()) =>
+  new CombinedObservationHistory(checkIns, observations)

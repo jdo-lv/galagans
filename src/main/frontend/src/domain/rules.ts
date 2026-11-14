@@ -1,3 +1,6 @@
+import type { BaselineEntry } from './baseline'
+import type { ObservationSource } from './observation'
+
 export type Indicator = 'heartRateBpm' | 'spo2Percent' | 'sleepHours' | 'mood' | 'pvtMedianMs'
 
 export type Status = 'nominal' | 'caution' | 'warning'
@@ -26,6 +29,8 @@ export interface Rule {
   howDecided: string
   next: string
   source: string
+  /** Set when the threshold is relative to the pre-flight baseline (F3). */
+  baseline?: BaselineEntry
 }
 
 export interface SystemStatus {
@@ -37,7 +42,8 @@ export interface SystemStatus {
   recordedAt?: string
   /** Free-text sub line, only on placeholders. */
   detail?: string
-  source: 'manual' | 'synthetic' | 'in-app test'
+  /** Not set for no-data. */
+  source?: ObservationSource | 'synthetic'
   /** Only for caution and warning. */
   rule?: Rule
 }
@@ -53,6 +59,7 @@ export interface Placeholder {
 export interface ChartPoint {
   recordedAt: string
   value: number
+  source: ObservationSource
   status: Status | 'stale'
 }
 

@@ -1,9 +1,11 @@
 import { CheckInRecorder, type CheckInRecording } from './application/CheckInRecorder'
+import { CombinedObservationHistory } from './application/CombinedObservationHistory'
 import { LastPacketReader } from './application/LastPacketReader'
 import { LatestReadingsReader } from './application/LatestReadingsReader'
 import { PacketDraftReader } from './application/PacketDraftReader'
 import { PacketSender } from './application/PacketSender'
 import { PacketUplink } from './application/PacketUplink'
+import { PersonalHealthGateway } from './application/PersonalHealthGateway'
 import { RoutineReader } from './application/RoutineReader'
 import { SyncService } from './application/SyncService'
 import type { Synchronizer } from './application/Synchronizer'
@@ -13,8 +15,10 @@ import { BrowserConnectivityMonitor } from './infrastructure/BrowserConnectivity
 import { HttpCheckInGateway } from './infrastructure/HttpCheckInGateway'
 import { HttpPacketGateway } from './infrastructure/HttpPacketGateway'
 import { IndexedDbCheckInRepository } from './infrastructure/IndexedDbCheckInRepository'
+import { IndexedDbObservationRepository } from './infrastructure/IndexedDbObservationRepository'
 import { IndexedDbPacketRepository } from './infrastructure/IndexedDbPacketRepository'
 import { JsonRuleSource } from './infrastructure/JsonRuleSource'
+import { MqttReadingSource } from './infrastructure/MqttReadingSource'
 import { mockReadings } from './infrastructure/mockReadings'
 import { mockRoutine } from './infrastructure/mockRoutine'
 import { mockStatuses } from './infrastructure/mockStatuses'
@@ -25,6 +29,8 @@ export interface Services {
   repository: CheckInRepository
   connectivity: ConnectivityMonitor
   statusReader: SystemStatusReader
+  /** Tells the screens when a device reading was stored. */
+  healthGateway: { subscribe(listener: () => void): () => void }
   readingsReader: LatestReadingsReader
   routineReader: RoutineReader
   /** In [0, 1); the PVT's random wait (#16). */
@@ -36,11 +42,14 @@ export interface Services {
 }
 
 /** Composition root: the only place that picks concrete implementations. */
-export function createServices(): Services & { startSync: () => () => void } {
+export function createServices(): Services & { startSync: () => () => void; startGateway: () => () => void } {
   const repository = new IndexedDbCheckInRepository()
   const connectivity = new BrowserConnectivityMonitor()
   const syncService = new SyncService(repository, new HttpCheckInGateway(), connectivity)
-  const readingsReader = new LatestReadingsReader(new JsonRuleSource(), repository, undefined, mockReadings)
+  const observations = new IndexedDbObservationRepository()
+  const healthGateway = new PersonalHealthGateway(new MqttReadingSource(), observations)
+  const history = new CombinedObservationHistory(repository, observations)
+  const readingsReader = new LatestReadingsReader(new JsonRuleSource(), history, undefined, mockReadings)
   const packets = new IndexedDbPacketRepository()
   const packetUplink = new PacketUplink(packets, new HttpPacketGateway(), connectivity)
   return {
@@ -48,7 +57,8 @@ export function createServices(): Services & { startSync: () => () => void } {
     connectivity,
     synchronizer: syncService,
     recorder: new CheckInRecorder(repository, syncService),
-    statusReader: new SystemStatusReader(new JsonRuleSource(), repository, undefined, mockStatuses),
+    statusReader: new SystemStatusReader(new JsonRuleSource(), history, undefined, mockStatuses),
+    healthGateway,
     readingsReader,
     routineReader: new RoutineReader(repository, undefined, mockRoutine),
     random: Math.random,
@@ -56,6 +66,7 @@ export function createServices(): Services & { startSync: () => () => void } {
     lastPacketReader: new LastPacketReader(packets),
     packetSender: new PacketSender(readingsReader, packets, packetUplink),
     packetUplink,
+    startGateway: () => healthGateway.start(),
     startSync: () => {
       const stops = [syncService.start(), packetUplink.start()]
       return () => stops.forEach((stop) => stop())

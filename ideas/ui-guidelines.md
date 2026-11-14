@@ -159,7 +159,7 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre, i
 - **Surface:** an inset (`--color-inset`) tile in a card's tile grid, 16 px radius, no edge: it's static, not a control (§2.4).
 - **Row 1:** the value in `--text-value` with its unit in bold body text, and the metric's icon on the right. Mood shows as "3 / 5". A reading too wide for the tile wraps its unit under the value and moves the icon to the next line, still on the right.
 - **Row 2:** the field-tile label pattern: the label in uppercase, then "/" and the data age in muted text, in its own case: "SPO₂ / 4 min ago". The canvas used a unit or a date here; the unit moves next to the value.
-- **Row 3:** a source tag on every value shown ("manual", "synthetic", "in-app test"). Simulated, replayed and proxy readings say so.
+- **Row 3:** a source tag on every value shown ("manual", "synthetic", "in-app test", "oximeter · synthetic", "oximeter · replay", "oximeter · proxy"). Simulated, replayed and proxy readings say so.
 - **Missing:** "—" with the accessible text "No reading", and no unit, age or tag. **Stale** (older than the metric's expected interval): the value and unit in `--color-text-muted-on-inset` and the age spelled out ("8 d old"), with the icon and no status colour.
 - **Placeholder tile:** a reading the app can't take yet shows synthetic text and unit with the tag "synthetic", no data age and no badge (issue #7).
 - **Status:** an off-nominal tile shows a status badge in place of the icon. The tile surface itself never changes colour.
@@ -282,7 +282,7 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 
 ### Charts (for the detail screens)
 - **Plot area:** a `--color-inset` well inside the card, so the lines and the band keep contrast.
-- **Lines and bands:** data line in `--color-text`; the adaptation corridor is the only filled band (`--color-text` at about 20 % with a faint edge); the pre-flight baseline is a thin dashed `--color-text-muted` line at the baseline median, labelled "your pre-flight normal" ([mockup 02](mockups/02-detail.png)). No category colours: categories are told apart by name and icon ([health-categories.md](health-categories.md#how-categories-are-shown)).
+- **Lines and bands:** data line in `--color-text`; the adaptation corridor is the only filled band (`--color-text` at about 20 % with a faint edge); the pre-flight baseline is a thin dashed `--color-text-muted` line (`.chart-baseline`) at the baseline median, labelled "your pre-flight normal" with its value and source, bottom right ("your pre-flight normal · 265 ms · synthetic") ([mockup 02](mockups/02-detail.png)). No category colours: categories are told apart by name and icon ([health-categories.md](health-categories.md#how-categories-are-shown)).
 - **Points:** a point at level 2–5 takes its badge's fill and outline (a dark-theme Watch point is a yellow ring), with the level icon (18 px, `--color-text`) above it as the marker; stale or missing points are hollow, and the newest point of a stale level is hollow with no marker. The line itself never takes a level colour. The marker shows icon + colour without the word (§2.3 exception); each point's title gives value, level, UTC time and source.
 - **Thresholds:** one dashed `--color-text-muted` line per rule row, labelled with the rule and its level ("SPO-01 · < 94 % check"). Never a level colour.
 - **Range:** a fixed Y range per indicator (SpO₂ 80–100 %, grid every 5) so the threshold lines always show; values outside it sit on the edge.
