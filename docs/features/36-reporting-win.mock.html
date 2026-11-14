@@ -65,19 +65,19 @@ const streak = (todayKind) => `<section class="card"><h2 class="card-heading">Yo
 <p class="muted">Counts what you do, never your values. No comparison with your crewmates.</p>
 <p class="streak__count"><b>12</b><span>check-ins in a row · last 14 days below</span></p>
 <ol class="days">${seed.map((k, i) => cell(i + 1, k, false)).join('')}${cell(14, todayKind, true)}</ol>
-<p class="legend"><span>✓ check-in done</span><span>${I.symptom} symptom reported (counts as done)</span><span>${I.paused} sick or rest day: paused, never reset</span></p>
+<p class="legend"><span>✓ check-in done</span><span>${I.symptom} symptom reported (counts as done)</span><span>${I.paused} sick or rest day: paused, never reset</span><span>— no check-in</span></p>
 <p class="seed-note"><span class="tag">synthetic</span> Days before 14 Nov are a pre-loaded demo history.</p>
 <ul class="counters">
 <li><span>Exercise this week</span><p class="v">540 / 600 min</p><span class="muted">countermeasure minutes done</span> <span class="tag">synthetic</span></li>
 <li><span>Fluid log</span><p class="v">4 of 7 days</p><span class="muted">days you logged to target</span> <span class="tag">synthetic</span></li>
-<li><span>PVT sessions</span><p class="v">1 of 7</p><span class="muted">every 4th day, last 28 days</span></li>
+<li><span>PVT sessions</span><p class="v">0 of 7</p><span class="muted">every 4th day, last 28 days</span></li>
 </ul>
 <p class="never">Never shown here: heart rate, SpO₂, sleep hours, mood or any health value. Nothing is scored as good or bad.</p></section>`
 
 const complete = (body) => `<section class="card"><div class="complete__top"><span class="done-mark" aria-hidden="true">✓</span><div><h2 class="complete__title">Check-in complete · 08:05</h2><p class="muted"><span class="nowrap">6 steps</span> · <span class="nowrap">5 answered</span> · <span class="nowrap">1 min 22 s</span></p></div></div>${body}</section>`
 
 const states = {
-  symptom: () => complete(`<p class="ack">Logged: headache. Thanks for reporting.</p><p>Reporting a symptom counts as a completed check-in, and your streak continues.</p>
+  symptom: () => complete(`<p class="ack">Logged: headache. Thanks for reporting.</p><p>Reporting a symptom counts as a completed check-in and never breaks your streak.</p>
 <div class="next"><h3>What happens next</h3><p>Consider raising this with your CMO, or at your next private medical conference.</p></div>`) + streak('reported'),
   none: () => complete(`<p class="ack">No symptoms logged. Thanks for checking in.</p>`) + streak('done'),
 }
