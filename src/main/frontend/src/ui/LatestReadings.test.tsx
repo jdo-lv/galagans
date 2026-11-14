@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CheckInRecorder } from '../application/CheckInRecorder'
@@ -261,5 +261,41 @@ describe('LatestReadings', () => {
 
     expect(screen.getByRole('heading', { name: 'Latest readings' })).toBeInTheDocument()
     expect(within(panel()).queryByRole('listitem')).toBeNull()
+  })
+
+  it('AC18: re-reads every 60 s and updates the data age', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    const s = setup({ now: '2026-11-14T09:30:00Z', seed: [stored('a', '2026-11-14T09:30:00Z', { spo2Percent: 88 })] })
+    s.renderApp()
+    await tiles()
+    expect(tile('SpO₂')).toHaveTextContent('SpO₂ / just now')
+
+    s.clock.now = new Date(s.clock.now.getTime() + 60_000)
+    act(() => vi.advanceTimersByTime(60_000))
+
+    await waitFor(() => expect(tile('SpO₂')).toHaveTextContent('SpO₂ / 1 min ago'))
+  })
+
+  it('AC19: warns offline without calling the gateway', async () => {
+    const s = setup({ online: false })
+    s.renderApp()
+    await tiles()
+    await submit({ spo2: 88 })
+
+    await waitFor(() => expect(tile('SpO₂')).toHaveTextContent('WARNING'))
+    expect(s.gateway.sent).toHaveLength(0)
+  })
+
+  it('AC20: the right column stacks Latest readings above the Check-in card', async () => {
+    const { container } = setup().renderApp()
+    await tiles()
+
+    const layout = container.querySelector('main.layout')
+    const [systems, column, ...rest] = [...(layout?.children ?? [])]
+    expect(rest).toHaveLength(0)
+    expect(systems).toBe(screen.getByRole('region', { name: 'Body systems' }))
+    expect(column).toHaveClass('stack')
+    expect(column.tagName).toBe('DIV')
+    expect([...column.children]).toEqual([panel(), screen.getByRole('region', { name: 'Check-in' })])
   })
 })
