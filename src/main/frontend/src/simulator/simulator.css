@@ -1,0 +1,136 @@
+/* Device Simulator (issue #25, mock docs/features/img/25-mock.png). Operator page: no health levels, so neutral greys only. */
+.sim {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-4) var(--gutter);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.sim-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.sim-top h1 {
+  margin-right: var(--space-3);
+  font-size: var(--text-heading);
+}
+
+.sim-top .pill b {
+  overflow-wrap: anywhere;
+}
+
+.sim-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--gap-cards);
+  align-items: start;
+}
+
+.sim-devices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--gap-cards);
+}
+
+.sim-device {
+  display: grid;
+  gap: var(--space-1);
+  align-content: start;
+  min-height: 120px;
+  padding: var(--space-4);
+}
+
+.sim-device p {
+  margin: 0;
+}
+
+.sim-device .value {
+  white-space: nowrap;
+}
+
+.sim-device__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.sim-device__top h3 {
+  margin: 0;
+  font-size: var(--text-body);
+}
+
+.sim-device .tag {
+  white-space: nowrap;
+}
+
+.sim-device--off {
+  color: var(--color-text-muted);
+}
+
+.sim-slider {
+  width: 100%;
+  min-height: var(--target-min);
+  accent-color: var(--color-text);
+}
+
+.sim-slider:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.sim-scenarios {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sim-scenarios li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-targets);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.sim-scenarios li:last-child {
+  border-bottom: 0;
+}
+
+.sim-scenarios__state {
+  display: block;
+}
+
+.sim-inject {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap-targets);
+}
+
+.sim-inject .field-tile {
+  min-height: 0;
+}
+
+.sim-log {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-item);
+  background: var(--color-inset);
+  font-family: var(--font-data);
+  font-size: var(--text-body);
+  line-height: 1.7;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+@media (max-width: 860px) {
+  .sim-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

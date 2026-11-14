@@ -10,7 +10,7 @@ Write testable, maintainable code with the least structure that solves the probl
 ## Project rules (override everything below)
 
 - **Layering** (`CLAUDE.md`, "Code architecture"):
-  - Frontend `src/main/frontend/src`: `domain` (types, ports) ← `application` (use cases depending on ports) ← `infrastructure` (IndexedDB, HTTP, MQTT, browser adapters) and `ui` (React). `container.ts` is the only place that picks concrete classes.
+  - Frontend `src/main/frontend/src`: `domain` (types, ports) ← `application` (use cases depending on ports) ← `infrastructure` (IndexedDB, HTTP, WebSocket, browser adapters) and `ui` (React). `container.ts` is the only place that picks concrete classes.
   - Backend `com.galagans.crewhealth.<domain>`: `api` (controller, DTOs) → `application` (use cases behind interfaces) → `domain` (models, repository ports) ← `infrastructure` (adapters). Spring configuration wires concrete classes.
   - `domain` and `application` never import `infrastructure` or `ui`.
 - **Where logic lives:** the crew loop (gateway, rules engine, statuses, explanations) runs in the frontend and works offline. The backend is the ground station: it receives, stores and shows. Never put crew-facing rules in the backend.
