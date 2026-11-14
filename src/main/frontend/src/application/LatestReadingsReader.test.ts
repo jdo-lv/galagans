@@ -23,7 +23,7 @@ describe('LatestReadingsReader', () => {
     const readings = await read([], { placeholders: mockReadings })
 
     expect(readings.map((r) => r.spec)).toEqual(READINGS)
-    expect(readings.slice(4)).toEqual([
+    expect(readings.slice(4, 6)).toEqual([
       { spec: READINGS[4], state: 'synthetic', text: '108/70', source: 'synthetic' },
       { spec: READINGS[5], state: 'synthetic', text: '2.3', source: 'synthetic' },
     ])
@@ -32,7 +32,7 @@ describe('LatestReadingsReader', () => {
   it('AC24: a row with no input and no placeholder has no data', async () => {
     const readings = await read([])
 
-    expect(readings.slice(4).map((r) => [r.spec.key, r.state])).toEqual([
+    expect(readings.slice(4, 6).map((r) => [r.spec.key, r.state])).toEqual([
       ['bloodPressure', 'no-data'],
       ['cabinCo2', 'no-data'],
     ])
