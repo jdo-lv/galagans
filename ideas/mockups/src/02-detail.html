@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Detail: Cognition</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+main { display: grid; grid-template-columns: 800px 1fr; gap: 16px; padding: 16px 22px; }
+.title { display: flex; align-items: center; gap: 14px; margin: 2px 0 14px; }
+.title h1 { margin: 0; font-size: 26px; font-weight: 600; }
+.ex { display: grid; grid-template-columns: 150px 1fr; gap: 10px 14px; }
+.ex dt { font-size: 12px; font-weight: 700; letter-spacing: .1em; color: var(--muted); padding: 9px 0; }
+.ex dd { margin: 0; padding: 9px 0; border-bottom: 1px solid rgba(218,218,218,.14); }
+.step { padding: 11px 14px; margin-bottom: 8px; }
+.tiers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tiers div { height: 52px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 6px; border-radius: 10px; border: 1px solid rgba(218,218,218,.35); font-size: 13px; color: var(--muted); }
+.tiers .sel { background: var(--pill-bg); color: var(--pill-text); border-color: var(--pill-bg); font-weight: 700; }
+</style></head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg width="26" height="26" viewBox="0 0 28 28" aria-hidden="true"><path d="M24.83 12.09 A11 11 0 1 1 10.24 3.66" fill="none" stroke="#868375" stroke-width="3.5" stroke-linecap="round"/><path d="M14 3 A11 11 0 0 1 23.53 8.5" fill="none" stroke="#7FA6F0" stroke-width="3.5" stroke-linecap="round"/></svg>
+    <span>CREW HEALTH COMPANION</span>
+  </div>
+  <span class="chip">← Body map</span>
+  <span class="chip">Crew <b>A1</b></span>
+  <span class="chip">Flight day <b class="mono">142</b></span>
+  <span class="spacer"></span>
+  <span class="chip">Ground link: one-way delay <b class="mono">14 min 05 s</b></span>
+</header>
+<main>
+  <div>
+    <div class="title"><span class="st caution" style="height:32px;font-size:14px">▲ CAUTION</span><h1>Cognition · reaction time</h1></div>
+    <section class="card" style="margin-bottom:16px">
+      <h2 class="h">PVT median reaction time · last 30 days vs your baseline</h2>
+      <svg width="766" height="240" viewBox="0 0 766 240" role="img" aria-label="PVT median rising above baseline band" font-family="DM Mono, monospace" font-size="11">
+        <g fill="#CFCFCF"><text x="0" y="24">340</text><text x="0" y="80">300</text><text x="0" y="136">260</text><text x="0" y="192">220</text>
+          <text x="40" y="226">FD 112</text><text x="370" y="226">FD 127</text><text x="700" y="226">FD 142</text></g>
+        <g stroke="rgba(218,218,218,.14)"><line x1="40" x2="740" y1="20" y2="20"/><line x1="40" x2="740" y1="76" y2="76"/><line x1="40" x2="740" y1="132" y2="132"/><line x1="40" x2="740" y1="188" y2="188"/></g>
+        <rect x="40" y="76" width="700" height="56" fill="rgba(134,131,117,.45)" stroke="#868375" stroke-dasharray="4 3"/>
+        <text x="48" y="92" fill="#DADADA" font-family="Inter, sans-serif" font-size="11">your baseline band (pre-flight + FD 1–30)</text>
+        <polyline fill="none" stroke="#DADADA" stroke-width="2.5" points="58,125 136,119 218,128 298,115 378,121 458,111 538,104 618,79 698,44"/>
+        <g fill="#DADADA"><circle cx="58" cy="125" r="4"/><circle cx="136" cy="119" r="4"/><circle cx="218" cy="128" r="4"/><circle cx="298" cy="115" r="4"/><circle cx="378" cy="121" r="4"/><circle cx="458" cy="111" r="4"/><circle cx="538" cy="104" r="4"/><circle cx="618" cy="79" r="4"/></g>
+        <circle cx="698" cy="44" r="8" fill="#FFC72C" stroke="#1B1B1B" stroke-width="2"/>
+        <text x="610" y="36" fill="#FFC72C" font-size="13" font-weight="500">▲ 312 ms</text>
+      </svg>
+      <div class="sub" style="margin-top:6px">Today 07:16 · <span class="mono">312 ms</span> median, 6 lapses (&gt;500 ms) · baseline <span class="mono">265 ms</span>, 1 lapse · <span class="tag">in-app test</span></div>
+    </section>
+    <section class="card">
+      <h2 class="h">Explanation</h2>
+      <dl class="ex" style="margin:0">
+        <dt>WHAT</dt><dd>Your reaction time is 18% slower than your own baseline, with 6 lapses.</dd>
+        <dt>WHY IT MATTERS</dt><dd>Slower processing speed and attention are the cognitive changes most seen in ISS crews. Fatigue raises the risk during critical tasks.</dd>
+        <dt>HOW DECIDED</dt><dd>Rule COG-02: median &gt; baseline + 15% <i>or</i> lapses ≥ 5. Related signals: sleep &lt; 6 h for 3 nights, cabin CO₂ above the 1-h limit.</dd>
+        <dt>SOURCES</dt><dd class="sub" style="border:0">Dev et al. 2024 (Front Physiol) · NASA-STD-3001 [V1 3003] · Reaction Self Test (ISS)</dd>
+      </dl>
+    </section>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <section class="card">
+      <h2 class="h">What next</h2>
+      <div class="inset step">① Move tasks that need precision to later today if possible.</div>
+      <div class="inset step">② Check cabin CO₂ in your module. Ask the crew to verify the scrubber.</div>
+      <div class="inset step">③ Tonight: light below 10 lux 1 h before sleep, no caffeine after 14:00.</div>
+      <div class="inset step" style="margin:0">④ Repeat the PVT tomorrow morning.</div>
+    </section>
+    <section class="card">
+      <h2 class="h">Who to involve</h2>
+      <div class="tiers"><div>Self-care</div><div class="sel">✓ CMO</div><div>Private med. conf.</div><div>Urgent ground</div></div>
+      <p class="sub" style="margin:12px 0 14px">Tell your Crew Medical Officer today. If PVT is still slow tomorrow, the item is added to your next private medical conference.</p>
+      <span class="btn primary">Share with CMO</span> <span class="btn">Add to surgeon packet</span>
+    </section>
+  </div>
+</main>
+<div class="foot">Mockup · example values and rule, not medical guidance</div>
+</body></html>
