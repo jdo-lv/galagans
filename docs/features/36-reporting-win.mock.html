@@ -78,7 +78,7 @@ const complete = (body) => `<section class="card"><div class="complete__top"><sp
 
 const states = {
   symptom: () => complete(`<p class="ack">Logged: headache. Thanks for reporting.</p><p>Reporting a symptom counts as a completed check-in and never breaks your streak.</p>
-<div class="next"><h3>What happens next</h3><p>Consider raising this with your CMO, or at your next private medical conference.</p></div>`) + streak('reported'),
+<div class="next"><h3>What happens next</h3><p>Headache: consider raising with your CMO, or at your next private medical conference.</p></div>`) + streak('reported'),
   none: () => complete(`<p class="ack">No symptoms logged. Thanks for checking in.</p>`) + streak('done'),
 }
 const state = (states[location.hash.slice(1)] ?? states.symptom)()
