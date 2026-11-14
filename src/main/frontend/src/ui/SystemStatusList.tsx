@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { formatAge, formatStaleAge } from '../application/formatAge'
 import type { SystemStatus } from '../domain/rules'
 import { ChevronIcon, WarningIcon } from './icons'
@@ -62,11 +62,17 @@ function StatusRow({ status, now }: { status: SystemStatus; now: Date }) {
   )
 }
 
-export function SystemStatusList({ state }: { state: StatusListState }) {
+export function SystemStatusList({ state, focusHeading = false }: { state: StatusListState; focusHeading?: boolean }) {
   const headingId = useId()
+  const heading = useRef<HTMLHeadingElement>(null)
+
+  // Coming back from a detail lands on this heading.
+  useEffect(() => {
+    if (focusHeading) heading.current?.focus()
+  }, [focusHeading])
   return (
     <section className="card" aria-labelledby={headingId}>
-      <h2 id={headingId} className="card-heading">
+      <h2 id={headingId} ref={heading} tabIndex={-1} className="card-heading">
         Body systems
       </h2>
       {state.kind === 'unavailable' && <p className="status-unavailable">Status unavailable</p>}

@@ -1,0 +1,147 @@
+/* Detail screen (mockup 02, issue #9). Colours and sizes: ideas/ui-guidelines.md. */
+.detail-back {
+  align-self: flex-start;
+}
+
+.detail-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.detail-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.detail-title h2:focus {
+  outline: none;
+}
+
+.detail-next {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-item);
+  background: var(--color-inset);
+}
+
+.status-explanation {
+  --color-divider: var(--color-surface);
+  margin: var(--space-3) 0 0;
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-item);
+  background: var(--color-inset);
+}
+
+.status-explanation > div {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: baseline;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.status-explanation > div:last-child {
+  border-bottom: 0;
+}
+
+.status-explanation dt {
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.status-explanation dd {
+  margin: 0;
+}
+
+@media (max-width: 599px) {
+  .status-explanation > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}
+
+/* Who to involve: neutral tier strip; the selected tier is an inverse fill plus aria-current, never a status colour */
+.tiers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.tiers li {
+  display: grid;
+  place-items: center;
+  min-height: var(--target-min);
+  padding: var(--space-1);
+  text-align: center;
+  border: 1px solid var(--color-edge);
+  border-radius: var(--radius-item);
+}
+
+.tiers li[aria-current='true'] {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+  border-color: transparent;
+  font-weight: 700;
+}
+
+/* Trend chart (ui-guidelines §5 "Charts") */
+.trend-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chart-grid {
+  stroke: var(--color-divider);
+}
+
+.chart-threshold {
+  stroke: var(--color-text-muted);
+  stroke-dasharray: 6 4;
+}
+
+.chart-label {
+  fill: var(--color-text-muted);
+  font-family: var(--font-data);
+  font-size: 12px;
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--color-text);
+  stroke-width: 2;
+}
+
+.chart-point {
+  fill: var(--color-text);
+}
+
+.chart-point--caution {
+  fill: var(--color-caution);
+  stroke: var(--color-on-caution);
+  stroke-width: 1.5;
+}
+
+.chart-point--warning {
+  fill: var(--color-warning);
+}
+
+.chart-point--stale {
+  fill: none;
+  stroke: var(--color-text-muted);
+  stroke-width: 1.5;
+}
+
+.chart-marker {
+  fill: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
+}
