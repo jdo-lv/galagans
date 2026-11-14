@@ -35,6 +35,10 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': { target: 'http://localhost:8080', changeOrigin: true },
+      // F25 voice host (voice-host/compose.yaml): LLM, speech-to-text, read-aloud.
+      '/voice/llm': { target: 'http://localhost:8081', rewrite: (path) => path.replace(/^\/voice\/llm/, '') },
+      '/voice/stt': { target: 'http://localhost:8082', rewrite: (path) => path.replace(/^\/voice\/stt/, '') },
+      '/voice/tts': { target: 'http://localhost:8084', rewrite: (path) => path.replace(/^\/voice\/tts/, '') },
     },
   },
   test: {
