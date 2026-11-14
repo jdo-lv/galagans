@@ -150,3 +150,46 @@ export class FakeReadingSource implements ReadingSource {
 /** The history the rules read: the check-in store plus a device Observation store. */
 export const combinedHistory = (checkIns: CheckInHistory, observations = new FakeObservationRepository()) =>
   new CombinedObservationHistory(checkIns, observations)
+
+/** Stands in for the browser `WebSocket`: records every socket and `send`, and lets a test fire its events. */
+export class FakeWebSocket {
+  static instances: FakeWebSocket[] = []
+  static throwOnCreate = false
+
+  onopen: (() => void) | null = null
+  onclose: (() => void) | null = null
+  onerror: (() => void) | null = null
+  onmessage: ((event: { data: unknown }) => void) | null = null
+  readonly sent: string[] = []
+
+  constructor(readonly url: string) {
+    if (FakeWebSocket.throwOnCreate) throw new SyntaxError('bad url')
+    FakeWebSocket.instances.push(this)
+  }
+
+  static reset() {
+    FakeWebSocket.instances = []
+    FakeWebSocket.throwOnCreate = false
+  }
+  static get last(): FakeWebSocket {
+    return FakeWebSocket.instances[FakeWebSocket.instances.length - 1]
+  }
+
+  send(data: string) {
+    this.sent.push(data)
+  }
+  open() {
+    this.onopen?.()
+  }
+  close() {
+    this.onclose?.()
+  }
+  error() {
+    this.onerror?.()
+  }
+  message(data: unknown) {
+    this.onmessage?.({ data })
+  }
+}
+
+export const fakeWebSocketCtor = FakeWebSocket as unknown as typeof WebSocket
