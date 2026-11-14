@@ -101,6 +101,28 @@ class PacketControllerTest(
         )
     }
 
+    @Test
+    fun `AC5 accepts a 500-character note and 20 items`() {
+        val body = ac1BodyWith {
+            it["note"] = "x".repeat(500)
+            it["items"] = List(20) { _ -> it.items()[0] }
+        }
+
+        post(body).expectStatus().isOk
+    }
+
+    @Test
+    fun `AC6 ignores the crew app's own top-level fields`() {
+        val body = ac1BodyWith {
+            it["state"] = "queued"
+            it["sentAt"] = "2026-11-14T07:40:00Z"
+        }
+
+        post(body).expectStatus().isOk
+
+        assertEquals(listOf(AC1_PACKET), inbox.received)
+    }
+
     companion object {
         @JvmStatic
         fun blankNotes() = listOf(
