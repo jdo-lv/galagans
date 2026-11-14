@@ -1,59 +1,45 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Questionnaire</title>
-<link rel="stylesheet" href="theme.css">
-<style>
-main { display: grid; grid-template-columns: 840px 1fr; gap: 16px; padding: 16px 22px; align-items: start; }
-.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 18px; }
-.steps div { height: 40px; display: flex; align-items: center; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(218,218,218,.35); font-size: 13px; color: var(--muted); }
-.steps .done { color: var(--text); }
-.steps .cur { background: var(--pill-bg); color: var(--pill-text); border-color: var(--pill-bg); font-weight: 700; }
-h1 { margin: 6px 0 6px; font-size: 26px; font-weight: 600; }
-.scale { display: grid; grid-template-columns: repeat(9, 1fr); gap: 10px; margin: 24px 0 8px; }
-.scale div { height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: var(--inset); border: 1px solid rgba(218,218,218,.35); font: 400 28px var(--mono); }
-.scale .sel { background: var(--pill-bg); color: var(--pill-text); border-color: var(--pill-bg); }
-.anch { display: grid; grid-template-columns: repeat(9, 1fr); gap: 10px; font-size: 12px; color: var(--muted); text-align: center; min-height: 56px; }
-.nav { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
-.why { padding: 12px 14px; margin-bottom: 10px; }
-.why b { display: block; font-size: 11px; letter-spacing: .1em; color: var(--muted); margin-bottom: 4px; }
-</style></head>
-<body>
-<header class="top">
-  <div class="brand">
-    <svg width="26" height="26" viewBox="0 0 28 28" aria-hidden="true"><path d="M24.83 12.09 A11 11 0 1 1 10.24 3.66" fill="none" stroke="#868375" stroke-width="3.5" stroke-linecap="round"/><path d="M14 3 A11 11 0 0 1 23.53 8.5" fill="none" stroke="#7FA6F0" stroke-width="3.5" stroke-linecap="round"/></svg>
-    <span>CREW HEALTH COMPANION</span>
-  </div>
-  <span class="chip">Crew <b>A1</b> · private view</span>
-  <span class="chip">Flight day <b class="mono">142</b> · <span class="mono">07:14</span></span>
-  <span class="spacer"></span>
-  <span class="chip">about <b class="mono">50 s</b> left</span>
-</header>
-<main>
-  <section class="card" style="padding:20px">
-    <div class="steps"><div class="done">✓ Sleep diary</div><div class="cur">2 · Sleepiness</div><div>3 · Mood</div><div>4 · Symptoms</div></div>
-    <div class="sub">Morning check-in · Karolinska Sleepiness Scale (KSS)</div>
-    <h1>How sleepy do you feel right now?</h1>
-    <div class="sub" style="font-size:14px">Tap one number. Think about the last 5 minutes.</div>
-    <div class="scale"><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div class="sel">7</div><div>8</div><div>9</div></div>
-    <div class="anch"><span>Extremely alert</span><span></span><span>Alert</span><span></span><span>Neither alert nor sleepy</span><span></span><span style="color:var(--text)">Sleepy, no effort to stay awake</span><span></span><span>Very sleepy, fighting sleep</span></div>
-    <div class="nav"><span class="btn">← Back</span><span class="sub" style="flex:1;text-align:center">Skip is logged as "not answered", never as a value</span><span class="btn">Skip</span><span class="btn primary">Next →</span></div>
-    <p class="sub" style="margin:18px 0 0">🔒 Visible to: you and your flight surgeon. Not shared with crewmates.</p>
-  </section>
-  <div style="display:flex;flex-direction:column;gap:16px">
-    <section class="card">
-      <h2 class="h">Why you're seeing this</h2>
-      <div class="inset why"><b>SCHEDULED</b>Morning check-in window 07:00–09:00, per mission routine.</div>
-      <div class="inset why" style="margin:0"><b>ADDED BY A RULE</b>Step 4 includes the symptom checklist because cabin CO₂ (1-h avg) is above 2.5 mmHg.</div>
-    </section>
-    <section class="card">
-      <h2 class="h">Questionnaires · next</h2>
-      <div class="row"><span>Workload (Bedford)</span><span class="tag">daily 20:00</span></div>
-      <div class="row"><span>PVT (3 min)</span><span class="tag">every 4th day · FD 144</span></div>
-      <div class="row"><span>KSS + sleep re-check</span><span class="tag rule">rule · if PVT slow</span></div>
-      <div class="row"><span>PHQ-2 · GAD-7</span><span class="tag">weekly · Sun</span></div>
-      <div class="row"><span>Vision self-test</span><span class="tag">weekly · Wed</span></div>
-      <div class="row"><span>Motion sickness</span><span class="tag">event · gravity change</span></div>
-    </section>
-  </div>
-</main>
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tab{border:1px solid #868375;background:#3D403B;border-radius:8px;padding:10px 14px;font-size:13px;color:#CFCFCF}
+.tab.d{color:#CFCFCF}.tab.on{border-color:#7FA6F0;color:#DADADA;font-weight:700;background:#2A3550}
+.nums{display:grid;grid-template-columns:repeat(9,1fr);gap:10px;margin-top:22px}
+.n{height:82px;border:1px solid #868375;background:#3D403B;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700}
+.n.on{border:2px solid #7FA6F0;background:#2A3550;color:#7FA6F0}
+.an{display:grid;grid-template-columns:repeat(9,1fr);gap:10px;margin-top:8px;font-size:12px;color:#CFCFCF;text-align:center;line-height:1.35}
+.box{background:#3D403B;border-radius:8px;padding:10px 12px;margin-top:10px}
+.box b{font-size:12px;letter-spacing:1px;color:#CFCFCF}
+.q{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #2E2F2C;font-size:14px}
+.tg{font-size:11px;border-radius:4px;padding:2px 6px;background:#2A3550;color:#7FA6F0}.tg.r{background:#3a3216;color:#FFC72C}
+</style></head><body>
+<div class="top"><span class="brand"><span class="dot"></span>Crew Health Companion</span>
+<span class="pill">Crew <b>A1</b> · private view</span><span class="pill">Flight day <b>142</b> · 07:14</span><span class="sp"></span>
+<span class="pill">⏱ about <b>50 s</b> left</span></div>
+
+<div class="panel" style="left:22px;top:72px;width:840px;height:566px;padding:16px">
+<div class="tabs"><div class="tab d">✓ Sleep diary</div><div class="tab on">2 · Sleepiness</div><div class="tab">3 · Mood</div><div class="tab">4 · Symptoms</div></div>
+<div style="font-size:13px;color:#CFCFCF;margin-top:18px">Morning check-in · Karolinska Sleepiness Scale (KSS)</div>
+<div style="font-size:26px;font-weight:700;margin-top:6px">How sleepy do you feel right now?</div>
+<div style="font-size:14px;color:#CFCFCF;margin-top:6px">Tap one number. Think about the last 5 minutes.</div>
+<div class="nums"><div class="n">1</div><div class="n">2</div><div class="n">3</div><div class="n">4</div><div class="n">5</div><div class="n">6</div><div class="n on">7</div><div class="n">8</div><div class="n">9</div></div>
+<div class="an"><span>Extremely alert</span><span></span><span>Alert</span><span></span><span>Neither alert nor sleepy</span><span></span><span>Sleepy, no effort to stay awake</span><span></span><span>Very sleepy, fighting sleep</span></div>
+<div style="display:flex;align-items:center;margin-top:28px;gap:12px"><span class="btn2">← Back</span><span style="flex:1;text-align:center;font-size:13px;color:#CFCFCF">Skip is logged as "not answered", never as a value</span><span class="btn2">Skip</span><span class="btn" style="padding:11px 18px;font-size:14px">Next →</span></div>
+<div style="font-size:13px;color:#CFCFCF;margin-top:22px">🔒 Your answer stays private. Crewmates and the CMO see "check-in done" only; the flight surgeon sees what you choose to share.</div>
+</div>
+
+<div class="panel" style="left:878px;top:72px;width:380px;height:246px;padding:16px">
+<div class="ph">Why you're seeing this</div>
+<div class="box"><b>SCHEDULED</b><div style="font-size:14px;margin-top:4px">Morning check-in window 07:00–09:00, per mission routine.</div></div>
+<div class="box"><b>ADDED BY A RULE</b><div style="font-size:14px;margin-top:4px">Step 4 asks about headache first because cabin CO₂ (1-h avg) is above 2.5 mmHg.</div></div>
+</div>
+
+<div class="panel" style="left:878px;top:334px;width:380px;height:304px;padding:16px">
+<div class="ph" style="margin-bottom:4px">Questionnaires · next</div>
+<div class="q"><span>Workload (Bedford)</span><span class="tg">daily 20:00</span></div>
+<div class="q"><span>PVT (3 min)</span><span class="tg">every 4th day · today, after check-in</span></div>
+<div class="q"><span>KSS + sleep re-check</span><span class="tg r">rule · if PVT slow</span></div>
+<div class="q"><span>PHQ-2 · GAD-7</span><span class="tg">weekly · Sun</span></div>
+<div class="q"><span>Vision self-test</span><span class="tg">weekly · Wed</span></div>
+<div class="q" style="border:0"><span>Motion sickness</span><span class="tg r">event · gravity change</span></div>
+</div>
 <div class="foot">Mockup · example schedule and rules, not medical guidance</div>
 </body></html>

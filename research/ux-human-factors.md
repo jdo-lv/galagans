@@ -265,12 +265,12 @@ Gaps against the checklist above:
 - Contrast failures: khaki as a label on the light card (2.7:1) and on the dark card (1.9:1); card edge vs background (1.1:1 light, 2.3:1 dark, below the 3:1 for UI shapes); red label text `#DADADA` on `#C61E37` (4.1:1, large text only).
 - No night theme (item 10) and no colour-blind check (item 11).
 
-Applied in the restyled mockups (`ideas/mockups/src/theme.css`, 2026-11-14), dark theme:
+Applied in the restyled mockups (`ideas/mockups/src/base.css`, 2026-11-14; all 10 screens), dark theme:
 - Status set added: caution `#FFC72C` with `#1B1B1B` ink (11.0:1; 4.8:1 against the card), warning `#C61E37` reserved for warnings only, nominal = quiet muted "✓ Nominal" with no fill. Every status keeps icon + word.
 - Brand arc moved from red to blue. On dark, blue needs the tint `#7FA6F0` (7.1:1 on `#1B1B1B`); `#1651B6` is 2.4:1.
 - Card edge `#868375` (4.5:1 on `#1B1B1B`) fixes the 2.3:1 edge failure.
 - Selected and primary states use the design's pill (`#DADADA` on `#1B1B1B`), not yellow, so yellow only means caution. Rule-triggered items get a dashed tag, not yellow.
-- Simulator purple replaced by palette greys; architecture legend uses khaki / grey / blue tint / double border.
+- Simulator purple replaced by palette greys; nominal green dropped for the quiet muted style; architecture legend uses khaki / grey / blue tint / caution yellow.
 
 ## Gaps and unverified items
 

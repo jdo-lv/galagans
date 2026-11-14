@@ -1,78 +1,64 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Surgeon packet</title>
-<link rel="stylesheet" href="theme.css">
-<style>
-main { display: grid; grid-template-columns: 730px 1fr; gap: 16px; padding: 16px 22px; }
-.flow { position: relative; display: flex; justify-content: space-between; margin: 22px 20px 6px; }
-.flow::before { content: ""; position: absolute; left: 20px; right: 20px; top: 15px; height: 2px; background: rgba(218,218,218,.3); }
-.node { position: relative; width: 130px; text-align: center; font-size: 13px; }
-.dot { width: 32px; height: 32px; margin: 0 auto 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--bg); border: 2px solid var(--muted); font-weight: 700; }
-.dot.done { background: var(--pill-bg); color: var(--pill-text); border-color: var(--pill-bg); }
-.dot.now { border-color: var(--blue-tint); color: var(--blue-tint); }
-table { width: 100%; border-collapse: collapse; }
-th { text-align: left; font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--muted); padding: 8px 8px; border-bottom: 1px solid rgba(218,218,218,.3); }
-td { padding: 9px 8px; border-bottom: 1px solid rgba(218,218,218,.14); }
-td.v { font-family: var(--mono); }
-pre { margin: 0; padding: 12px; font: 11px/1.5 var(--mono); overflow: hidden; color: var(--text); white-space: pre; }
-</style></head>
-<body>
-<header class="top">
-  <div class="brand">
-    <svg width="26" height="26" viewBox="0 0 28 28" aria-hidden="true"><path d="M24.83 12.09 A11 11 0 1 1 10.24 3.66" fill="none" stroke="#868375" stroke-width="3.5" stroke-linecap="round"/><path d="M14 3 A11 11 0 0 1 23.53 8.5" fill="none" stroke="#7FA6F0" stroke-width="3.5" stroke-linecap="round"/></svg>
-    <span>CREW HEALTH COMPANION</span>
-  </div>
-  <span class="chip">Surgeon packet</span>
-  <span class="chip">Crew <b>A1</b> · shared with flight medicine only</span>
-  <span class="spacer"></span>
-  <span class="chip">Ground link: one-way delay <b class="mono">14 min 05 s</b></span>
-</header>
-<main>
-  <div style="display:flex;flex-direction:column;gap:16px">
-    <section class="card">
-      <h2 class="h">Store-and-forward status</h2>
-      <div class="flow">
-        <div class="node"><div class="dot done">✓</div>Packet built<div class="sub mono">07:31</div></div>
-        <div class="node"><div class="dot done">✓</div>Queued for uplink<div class="sub mono">07:31</div></div>
-        <div class="node"><div class="dot now">→</div>In transit<div class="sub">arrives ~<span class="mono">07:46</span></div></div>
-        <div class="node"><div class="dot">…</div>Earliest reply<div class="sub">~<span class="mono">08:00</span> + surgeon time</div></div>
-      </div>
-      <p class="sub" style="margin:10px 0 0">Round trip ≥ 28 min. Don't wait for the ground on anything in "What next": your on-board actions already apply.</p>
-    </section>
-    <section class="card">
-      <h2 class="h">Packet contents · 14 FHIR resources</h2>
-      <table>
-        <tr><th>ITEM</th><th>STATUS</th><th>VALUE</th><th>SOURCE</th></tr>
-        <tr><td>PVT median RT</td><td><span class="st caution">▲ CAUTION</span></td><td class="v">312 ms <span class="sub">(baseline 265)</span></td><td><span class="tag">in-app test</span></td></tr>
-        <tr><td>Cabin CO₂ 1-h avg</td><td><span class="st caution">▲ CAUTION</span></td><td class="v">3.2 mmHg</td><td><span class="tag">EDA replay</span></td></tr>
-        <tr><td>Sleep, 7-day avg</td><td><span class="st nominal">✓ Nominal</span></td><td class="v">5.9 h</td><td><span class="tag">actigraph · simulated</span></td></tr>
-        <tr><td>SpO₂ / HR</td><td><span class="st nominal">✓ Nominal</span></td><td class="v">97 % / 61 bpm</td><td><span class="tag">BLE · simulated</span></td></tr>
-        <tr><td>Blood pressure</td><td><span class="st nominal">✓ Nominal</span></td><td class="v">108/70 mmHg</td><td><span class="tag">manual</span></td></tr>
-        <tr><td style="border:0">Symptoms</td><td style="border:0" class="sub">—</td><td style="border:0">mild headache since FD 141</td><td style="border:0"><span class="tag">check-in</span></td></tr>
-      </table>
-    </section>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:16px">
-    <section class="card">
-      <h2 class="h">Crew note (optional)</h2>
-      <div class="inset" style="padding:12px 14px">Headache started yesterday afternoon in the hab module. Slept badly two nights.</div>
-    </section>
-    <section class="card">
-      <h2 class="h">Example resource · Observation</h2>
-      <div class="inset"><pre>{
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+.stp{display:flex;justify-content:space-between;position:relative;margin:30px 10px 0}
+.stp:before{content:"";position:absolute;left:30px;right:30px;top:13px;height:3px;background:#868375}
+.st{text-align:center;width:150px;position:relative;font-size:13px}
+.st .c{width:28px;height:28px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;background:#52574E;border:2px solid #7FA6F0;font-weight:700}
+.st .c.y{border-color:#FFC72C;color:#FFC72C}.st .c.g{border-color:#868375;color:#CFCFCF}
+.st small{color:#CFCFCF;font-size:12px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th{font-size:12px;letter-spacing:1px;color:#CFCFCF;text-align:left;padding:8px;border-bottom:1px solid #2E2F2C}
+td{padding:9px 8px;border-bottom:1px solid #2E2F2C;font-size:14px}
+pre{background:#1B1B1B;border-radius:8px;padding:12px;font-size:11.5px;line-height:1.5;color:#DADADA;margin-top:10px;white-space:pre}
+</style></head><body>
+<div class="top"><span class="brand"><span class="dot"></span>Crew Health Companion</span>
+<span class="pill">Surgeon packet</span><span class="pill">Crew <b>A1</b> · shared with flight medicine only</span><span class="pill">Flight day <b>142</b> · 07:31</span><span class="sp"></span>
+<span class="pill">Ground link: one-way delay <b>14 min 05 s</b></span></div>
+
+<div class="panel" style="left:22px;top:72px;width:780px;height:204px;padding:16px">
+<div class="ph">Store-and-forward status</div>
+<div class="stp">
+<div class="st"><div class="c">✓</div>Packet built<br><small>07:31</small></div>
+<div class="st"><div class="c">✓</div>Queued for uplink<br><small>07:31</small></div>
+<div class="st"><div class="c y">⇢</div>In transit<br><small>arrives ~07:46</small></div>
+<div class="st"><div class="c g">…</div>Earliest reply<br><small>~08:00 + surgeon time</small></div>
+</div>
+<div style="font-size:13px;color:#CFCFCF;margin-top:14px">Round trip ≥ 28 min. Don't wait for the ground on anything in "What next": your on-board actions already apply.</div>
+</div>
+
+<div class="panel" style="left:22px;top:292px;width:780px;height:420px;padding:16px">
+<div class="ph">Packet contents · 15 FHIR resources</div>
+<table>
+<tr><th>ITEM</th><th>STATUS</th><th>VALUE</th><th>SOURCE</th></tr>
+<tr><td>PVT median RT</td><td><span class="cau">▲ CAUTION</span></td><td>312 ms (baseline 265)</td><td><span class="tag">in-app test</span></td></tr>
+<tr><td>Cabin CO₂ 1-h avg</td><td><span class="cau">▲ CAUTION</span></td><td>3.2 mmHg</td><td><span class="tag">EDA replay</span></td></tr>
+<tr><td>Sleep, last 3 nights</td><td><span class="cau">▲ CAUTION</span></td><td>5.6 h avg (&lt; 6 h)</td><td><span class="tag">bracelet · dock FD 141</span> <span class="tag">check-in</span></td></tr>
+<tr><td>Heart rate</td><td><span class="nom">● Nominal</span></td><td>63 bpm</td><td><span class="tag">bracelet · simulated</span></td></tr>
+<tr><td>SpO₂</td><td><span class="nom">● Nominal</span></td><td>97 %</td><td><span class="tag">oximeter · simulated</span></td></tr>
+<tr><td>Blood pressure</td><td><span class="nom">● Nominal</span></td><td>108/70 mmHg</td><td><span class="tag">manual</span></td></tr>
+<tr><td>Symptoms</td><td>—</td><td>mild headache since FD 141</td><td><span class="tag">check-in</span></td></tr>
+</table>
+</div>
+
+<div class="panel" style="left:818px;top:72px;width:440px;height:168px;padding:16px">
+<div class="ph">Crew note (optional)</div>
+<div style="background:#3D403B;border-radius:8px;padding:12px;margin-top:12px;font-size:14px;line-height:1.5">Headache started yesterday afternoon in the hab module. Slept badly two nights.</div>
+</div>
+
+<div class="panel" style="left:818px;top:256px;width:440px;height:330px;padding:16px">
+<div class="ph">Example resource · Observation</div>
+<pre>{
   "resourceType": "Observation",
   "status": "final",
   "code": { "text": "PVT median reaction time" },
   "valueQuantity": { "value": 312, "unit": "ms" },
-  "effectiveDateTime": "2035-03-14T07:16:00Z",
+  "effectiveDateTime": "2035-03-14T07:19:00Z",
   "subject": { "reference": "Patient/crew-a1" },
   "device":  { "reference": "Device/pvt-app" },
   "extension": [{ "url": "…/gateway",
     "valueReference": { "reference": "Device/phg-tab-03" } }]
-}</pre></div>
-      <p class="sub" style="margin:10px 0 0">Shape follows the HL7 FHIR Personal Health Device IG.</p>
-    </section>
-    <div><span class="btn primary">Send now</span> <span class="btn">Review &amp; edit</span></div>
-  </div>
-</main>
+}</pre>
+<div style="font-size:12.5px;color:#CFCFCF;margin-top:8px">Shape follows the HL7 FHIR Personal Health Device IG.</div>
+</div>
+<div style="position:absolute;left:818px;top:604px;display:flex;gap:10px"><span class="btn" style="padding:12px 18px;font-size:14px">Send now</span><span class="btn2">Review &amp; edit</span></div>
 <div class="foot">Mockup · example values, not medical guidance</div>
 </body></html>

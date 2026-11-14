@@ -1,73 +1,69 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Device Simulator</title>
-<link rel="stylesheet" href="theme.css">
-<style>
-.top { border-bottom-color: var(--khaki); }
-main { display: grid; grid-template-columns: 840px 1fr; gap: 16px; padding: 14px 22px; }
-.dev { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
-.dev .card { padding: 14px; height: 166px; display: flex; flex-direction: column; }
-.dev .t { display: flex; justify-content: space-between; font-weight: 600; }
-.on { font-size: 12px; color: var(--text); font-weight: 500; }
-.idle { font-size: 12px; color: var(--muted); font-weight: 500; }
-.big { font: 400 22px var(--mono); margin: 6px 0 2px; white-space: nowrap; }
-.slider { position: relative; height: 4px; border-radius: 2px; background: rgba(27,27,27,.5); margin: auto 0 4px; }
-.slider i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--text); }
-.slider b { position: absolute; top: -6px; width: 16px; height: 16px; border-radius: 50%; background: var(--pill-bg); border: 2px solid var(--bg); }
-.log { height: 232px; padding: 14px 16px; font: 12.5px/1.7 var(--mono); background: #121212; border: 1px solid #2E2F2C; border-radius: 12px; }
-.log .tp { color: var(--blue-tint); }
-.log .ts { color: var(--muted-bg); }
-.sc { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; margin-bottom: 8px; border-radius: 12px; background: var(--card); border: 1px solid var(--edge); }
-.sc.run { border: 2px solid var(--pill-bg); }
-.sel { display: inline-block; padding: 2px 10px; border-radius: 12px; border: 1px solid rgba(218,218,218,.35); font-size: 13px; }
-.lbl { font-size: 12px; font-weight: 700; letter-spacing: .1em; color: var(--muted); margin: 0 0 10px; }
-</style></head>
-<body>
-<header class="top">
-  <div class="brand"><span style="font-size:14px;letter-spacing:.12em">⚙ DEVICE SIMULATOR</span></div>
-  <span class="chip">Broker <b class="mono">ws://localhost:9001</b> · connected</span>
-  <span class="chip">Mission clock <b class="mono">FD 142 07:31</b> · speed <b class="mono">×60</b></span>
-  <span class="spacer"></span>
-  <span class="chip">All data simulated · replay / proxy / synthetic</span>
-</header>
-<main>
-  <div>
-    <div class="lbl">VIRTUAL DEVICES</div>
-    <div class="dev">
-      <div class="card"><div class="t">Pulse oximeter<span class="on">● on</span></div><div class="sub mono">GATT 0x1822 · char 0x2A5E</div><div class="big">97 % · 61 bpm</div><div class="sub">source: synthetic drift</div><div class="slider"><i style="width:82%"></i><b style="left:78%"></b></div><div class="sub">SpO₂ override</div></div>
-      <div class="card"><div class="t">HR strap<span class="on">● on</span></div><div class="sub mono">GATT 0x180D · char 0x2A37</div><div class="big">61 bpm</div><div class="sub">source: PhysioNet proxy</div><div class="slider"><i style="width:36%"></i><b style="left:33%"></b></div><div class="sub">HR override</div></div>
-      <div class="card"><div class="t">BP cuff<span class="idle">○ idle</span></div><div class="sub mono">GATT 0x1810 · char 0x2A35</div><div class="big">108/70</div><div class="sub">source: synthetic (−9 mmHg in-flight shift)</div><div class="slider"><i style="width:47%"></i><b style="left:44%"></b></div><div class="sub">Systolic override</div></div>
-      <div class="card"><div class="t">Thermometer<span class="idle">○ idle</span></div><div class="sub mono">GATT 0x1809 · char 0x2A1C</div><div class="big">37.4 °C</div><div class="sub">source: synthetic (+1 °C in flight)</div></div>
-      <div class="card"><div class="t">Environment node<span class="on">● on</span></div><div class="sub">Wi-Fi · MQTT JSON</div><div class="big" style="color:var(--caution)">▲ CO₂ 4,210 ppm</div><div class="sub">source: OSDR EDA replay (RR-9)</div><div class="slider"><i style="width:72%"></i><b style="left:69%"></b></div><div class="sub">CO₂ override</div></div>
-      <div class="card"><div class="t">Dosimeter<span class="on">● on</span></div><div class="sub">Wi-Fi · MQTT JSON</div><div class="big">0.41 mGy/day</div><div class="sub">source: RadLab / TEPC replay</div><div style="margin-top:auto;display:flex;gap:8px"><span class="btn sm">Drop out</span><span class="btn sm">Low battery</span></div></div>
-    </div>
-    <div class="lbl">MQTT TRAFFIC</div>
-    <div class="log">
-<span class="ts">07:31:02</span> <span class="tp">module/hab/env</span> {"co2_ppm":4210,"temp_c":23.1,"rh":41,"src":"EDA-replay:RR-9"}<br>
-<span class="ts">07:31:00</span> <span class="tp">crew/a1/ble/0x2A5E</span> AgBhAP8D… (base64, PLX spot-check)<br>
-<span class="ts">07:30:58</span> <span class="tp">crew/a1/ble/0x2A37</span> FD0EBAAC… (base64, HR + RR)<br>
-<span class="ts">07:30:45</span> <span class="tp">sim/control</span> {"scenario":"co2-buildup","step":3,"of":6}<br>
-<span class="ts">07:30:02</span> <span class="tp">module/hab/env</span> {"co2_ppm":3980,"temp_c":23.0,"rh":41,"src":"EDA-replay:RR-9"}<br>
-<span class="ts">07:30:00</span> <span class="tp">module/hab/dose</span> {"dose_mGy_day":0.41,"src":"TEPC-replay:2017-08-03"}<br>
-<span class="ts">07:29:02</span> <span class="tp">module/hab/env</span> {"co2_ppm":3760,"temp_c":23.0,"rh":40,"src":"EDA-replay:RR-9"}
-    </div>
-  </div>
-  <div>
-    <div class="lbl">SCENARIOS</div>
-    <div class="sc"><span>Nominal day</span><span class="btn sm">▶ Run</span></div>
-    <div class="sc run"><div><div style="font-weight:600">CO₂ build-up</div><div class="sub">step 3 / 6 · headache + slow PVT next</div></div><span class="btn sm primary">❚❚ Pause</span></div>
-    <div class="sc"><span>Orthostatic risk before landing</span><span class="btn sm">▶ Run</span></div>
-    <div class="sc"><span>Solar particle event</span><span class="btn sm">▶ Run</span></div>
-    <div class="sc"><span>Sensor dropout (oximeter)</span><span class="btn sm">▶ Run</span></div>
-    <section class="card" style="margin-top:14px">
-      <h2 class="h">Inject one reading</h2>
-      <div style="display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:center">
-        <span>Device</span><span><span class="sel">Pulse oximeter ▾</span></span>
-        <span>Value</span><span><span class="sel mono">SpO₂ 91 %</span></span>
-        <span>Source label</span><span><span class="sel">synthetic ▾</span></span>
-      </div>
-      <span class="btn primary" style="margin-top:14px">Publish</span>
-    </section>
-  </div>
-</main>
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+body{background:#1B1B1B}
+.top{background:#3D403B}
+.sec{position:absolute;font-size:13px;letter-spacing:1.2px;font-weight:700;color:#CFCFCF}
+.dev{position:absolute;width:272px;height:196px;background:#52574E;border:1px solid #868375;border-radius:10px;padding:12px 13px}
+.dev h4{font-size:14px;display:flex;justify-content:space-between}
+.on{color:#CFCFCF;font-size:12px}.idle{color:#CFCFCF;font-size:12px}
+.g{font-size:12px;color:#CFCFCF;margin-top:4px}
+.v{font-size:21px;font-weight:700;margin-top:8px}
+.s{font-size:12px;color:#CFCFCF;margin-top:4px}
+.sl{height:5px;background:#868375;border-radius:3px;margin-top:12px;position:relative}
+.sl i{position:absolute;left:0;top:0;height:5px;border-radius:3px;background:#868375}
+.sl b{position:absolute;top:-6px;width:16px;height:16px;border-radius:50%;background:#868375}
+.btns{display:flex;gap:6px;margin-top:8px}
+.bb{border:1px solid #868375;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:700}
+.bb.p{background:#868375;color:#1B1B1B;border-color:#868375}
+.sc{position:absolute;left:878px;width:380px;height:46px;background:#52574E;border:1px solid #868375;border-radius:8px;display:flex;justify-content:space-between;align-items:center;padding:0 10px 0 12px;font-size:14px}
+.run{border:1px solid #868375;border-radius:6px;padding:4px 9px;font-size:12px;font-weight:700}
+.log{position:absolute;left:22px;top:546px;width:840px;height:200px;background:#1B1B1B;border-radius:8px;padding:12px 12px;font-family:Menlo,monospace;font-size:12px;line-height:1.75;color:#DADADA}
+.log .t{color:#DADADA}.log .k{color:#868375}
+.sel{border:1px solid #868375;border-radius:12px;padding:3px 9px;font-size:12px;color:#DADADA;background:#3D403B}
+</style></head><body>
+<div class="top"><span class="brand">⚙ Device Simulator</span>
+<span class="pill">Broker <b>ws://localhost:9001</b> · connected</span><span class="pill">Mission clock <b>FD 142 07:31</b> · speed <b>×60</b></span><span class="sp"></span>
+<span class="pill">All data simulated · replay / proxy / synthetic</span></div>
+
+<div class="sec" style="left:22px;top:74px">VIRTUAL DEVICES</div>
+<div class="dev" style="left:22px;top:100px"><h4>Pulse oximeter<span class="on">● on</span></h4><div class="g">GATT 0x1822 · char 0x2A5E</div><div class="v">97 % · 61 bpm</div><div class="s">source: synthetic drift</div><div class="sl"><i style="width:78%"></i><b style="left:76%"></b></div><div class="s">SpO₂ override</div></div>
+
+<div class="dev" style="left:306px;top:100px;border-color:#868375"><h4>Wrist bracelet<span class="on">● on</span></h4><div class="g">Live HR broadcast · GATT 0x180D · 0x2A37</div><div class="v">63 bpm <span style="font-size:12px;color:#CFCFCF;font-weight:400">· RR intervals</span></div><div class="s">source: PhysioNet proxy</div>
+<div class="btns"><span class="bb p">Dock &amp; export</span><span class="bb">Resting HR +9</span></div><div class="s" style="margin-top:6px">Dock file (last FD 141): sleep, resting HR, HRV, wrist SpO₂ (hint only)</div></div>
+
+<div class="dev" style="left:590px;top:100px"><h4>BP cuff<span class="idle">○ idle</span></h4><div class="g">GATT 0x1810 · char 0x2A35</div><div class="v">108/70</div><div class="s">source: synthetic (–9 mmHg in-flight shift)</div><div class="sl"><i style="width:47%"></i><b style="left:45%"></b></div><div class="s">Systolic override</div></div>
+
+<div class="dev" style="left:22px;top:310px"><h4>Thermometer<span class="idle">○ idle</span></h4><div class="g">GATT 0x1809 · char 0x2A1C</div><div class="v">37.4 °C</div><div class="s">source: synthetic (+1 °C in flight)</div></div>
+
+<div class="dev" style="left:306px;top:310px"><h4>Environment node<span class="on">● on</span></h4><div class="g">Wi-Fi · MQTT JSON</div><div class="v" style="color:#FFC72C">CO₂ 4,210 ppm</div><div class="s">source: OSDR EDA replay (RR-9)</div><div class="sl"><i style="width:72%"></i><b style="left:70%"></b></div><div class="s">CO₂ override</div></div>
+
+<div class="dev" style="left:590px;top:310px"><h4>Dosimeter<span class="on">● on</span></h4><div class="g">Wi-Fi · MQTT JSON</div><div class="v">0.41 mGy/day</div><div class="s">source: RadLab / TEPC replay</div><div class="btns" style="margin-top:12px"><span class="bb">Drop out</span><span class="bb">Low battery</span></div></div>
+
+<div class="sec" style="left:22px;top:520px">MQTT TRAFFIC</div>
+<div class="log">
+<div>07:31:05 <span class="k">crew/a1/wrist/ble/0x2A37</span> 103F0C04… (base64, HR + RR)</div>
+<div>07:31:02 <span class="k">module/hab/env</span> {"co2_ppm":4210,"temp_c":23.1,"rh":41,"src":"EDA-replay:RR-9"}</div>
+<div>07:31:00 <span class="k">crew/a1/ble/0x2A5E</span> AgBhAP8D… (base64, PLX spot-check)</div>
+<div>07:30:50 <span class="k">crew/a1/wrist/dock</span> {"export":"FD141","sleep_h":5.6,"rest_hr":66,"src":"synthetic"}</div>
+<div>07:30:45 <span class="k">sim/control</span> {"scenario":"co2-buildup","step":4,"of":6}</div>
+<div>07:30:02 <span class="k">module/hab/env</span> {"co2_ppm":3980,"temp_c":23.0,"rh":41,"src":"EDA-replay:RR-9"}</div>
+<div>07:30:00 <span class="k">module/hab/dose</span> {"dose_mGy_day":0.41,"src":"TEPC-replay:2017-08-03"}</div>
+</div>
+
+<div class="sec" style="left:878px;top:74px">SCENARIOS</div>
+<div class="sc" style="top:100px">Nominal day<span class="run">▶ Run</span></div>
+<div class="sc" style="top:154px;height:60px;border:2px solid #868375"><div><div style="font-weight:700">CO₂ build-up</div><div style="font-size:12px;color:#CFCFCF">step 4 / 6 · CO₂ peak replay</div></div><span class="run" style="background:#868375;color:#1B1B1B;border-color:#868375">⏸ Pause</span></div>
+<div class="sc" style="top:222px">Resting HR drift (bracelet, 3 days)<span class="run">▶ Run</span></div>
+<div class="sc" style="top:276px">Orthostatic risk before landing<span class="run">▶ Run</span></div>
+<div class="sc" style="top:330px">Solar particle event<span class="run">▶ Run</span></div>
+<div class="sc" style="top:384px">Sensor dropout (oximeter)<span class="run">▶ Run</span></div>
+
+<div class="panel" style="left:878px;top:446px;width:380px;height:300px;padding:16px">
+<div class="ph" style="margin-bottom:14px">Inject one reading</div>
+<div style="display:grid;grid-template-columns:90px 1fr;gap:12px 8px;align-items:center;font-size:14px">
+<span>Device</span><span><span class="sel">Pulse oximeter ▾</span></span>
+<span>Value</span><span><span class="sel">SpO₂ 91 %</span></span>
+<span>Source label</span><span><span class="sel">synthetic ▾</span></span></div>
+<div style="margin-top:20px"><span class="bb p" style="padding:11px 16px;font-size:14px">Publish</span></div>
+</div>
 <div class="foot">Mockup · demo operator console</div>
 </body></html>

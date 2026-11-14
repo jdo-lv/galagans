@@ -2,7 +2,7 @@
 
 Team workspace for the challenge **"Create Health Monitoring Software for Astronauts on Space Missions"**. Hackathon **Nov 14–15, 2026**. Challenge resources and the judging guide publish **Nov 13**.
 
-> Event rule: teams may not begin working on the challenge before the hackathon. Until Nov 14 this folder holds research and idea evaluation only — no project code. Submissions must also describe how AI tools were used; this research was compiled with Claude (Anthropic).
+> Submissions must describe how AI tools were used; this research was compiled with Claude (Anthropic). The app skeleton for the lead idea lives in `src/` (see `CLAUDE.md`).
 
 ## Files
 
@@ -20,6 +20,7 @@ Team workspace for the challenge **"Create Health Monitoring Software for Astron
 | [research/Health Palette Prototype.html](research/Health%20Palette%20Prototype.html) | Palette design: Splash and Today mockups (light/dark) plus a WCAG contrast check of every colour pairing. Summary in [ux-human-factors.md](research/ux-human-factors.md#team-palette-health-palette-prototype) |
 | [ideas/viability-checklist.md](ideas/viability-checklist.md) | Gates and scores to test each idea, common fixes, idea template |
 | [ideas/crew-health-companion.md](ideas/crew-health-companion.md) | Lead idea under evaluation: daily check-in, body map, rules engine, Device Simulator, surgeon packet, with mockups in `ideas/mockups/` |
+| [ideas/features.md](ideas/features.md) | Every feature of the lead idea in plain words for non-experts, a glossary, and the build order |
 | [ai-log.md](ai-log.md) | Log of AI tool use for the submission's AI-use statement |
 
 ## What the research says (shapes every idea)

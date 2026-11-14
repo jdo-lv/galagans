@@ -5,10 +5,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Repository state
 
 - NASA Space Apps 2026 team workspace, challenge "Create Health Monitoring Software for Astronauts on Space Missions". Hackathon Nov 14–15, 2026.
-- Markdown research and idea evaluation only. No code, build, lint or test commands exist yet. Git repo on `main`.
-- Event rule: no project code before Nov 14. Until then, don't scaffold apps, write prototype code or pick a stack; keep work to research and idea evaluation.
+- Research and idea evaluation in markdown, plus the app skeleton for the lead idea (Spring Boot + React PWA). Git repo on `main`.
+- Idea to implement: `ideas/crew-health-companion.md`. Every question and task in this repo relates to it unless stated otherwise.
 - Nov 13: challenge Resources tab and Judging & Awards guide publish. Update `challenge.md` and `ideas/viability-checklist.md` (judging criteria are currently assumed from past years).
 - The submission must describe AI tool use. Append a row to `ai-log.md` for every session that changes files.
+
+## Build and run
+
+- Backend tests: `mvn test -DskipFrontend=true`. Full build with frontend: `mvn clean verify` (installs Node 22.13.0 under `target/`, runs `npm ci`, `npm run build` into `src/main/resources/static`, then `npm run test`).
+- Run: `mvn spring-boot:run` serves the built PWA and `/api` on :8080. Frontend dev: `cd src/main/frontend && npm run dev` (:5173, proxies `/api` to :8080).
+- Frontend only: `cd src/main/frontend && npm run test` / `npm run build`.
+
+## Code architecture
+
+- Backend: Kotlin + Spring Boot WebFlux, package `com.galagans.crewhealth`, one folder per domain with `api` (controller, DTOs), `application` (use cases behind interfaces), `domain` (models, repository ports), `infrastructure` (adapters). Public Spring libraries only, no LeoVegas/hyraco parent or libs.
+- Frontend (`src/main/frontend/src`): `domain` (types, ports), `application` (use cases depending on ports), `infrastructure` (IndexedDB, HTTP, browser adapters), `ui` (React, services via `ServicesContext`), `container.ts` is the only place that picks concrete classes.
+- Offline-first flow: the check-in is written to IndexedDB as pending, `SyncService` posts pending items to `POST /api/checkins/sync` when online (on start, after each save, on the `online` event) and marks the accepted ids synced. The server upsert is idempotent by client-generated id.
+- Placeholder PWA icons in `public/pwa-*.png` are flat color squares.
+- Follow SOLID as defined in `ideas/crew-health-companion.md` ("Engineering principles: SOLID"): interfaces only at boundaries or with a second implementation; new rules, devices and questionnaires are added as rows, adapters or files, not by editing existing branches.
+- The crew loop (gateway, rules engine, statuses, explanations) runs in the frontend. The backend is the ground station: it receives, stores and shows; never put crew-facing rules there.
+
+## Issue workflow
+
+- Skills in `.claude/skills/`: `feature-evaluate` (read-only verdict on a suggested feature: adopt, modify, merge, pitch only or reject), `issue-create` (spec an issue, checked by the `spec-skeptic` agent), `issue-implement` (test first, one AC at a time, open a PR), `issue-orchestrate` (several issues in parallel: one `issue-implementer` agent per issue in its own git worktree, in conflict-free waves), `issue-merge` (gates: build green, mergeable, no changes requested), `solid-principles` (project coding rules). Tracker and labels: `.claude/skills/issue-create/TRACKER.md`.
+- No code-review agents yet; the PR review is human.
 
 ## Layout
 
@@ -17,7 +37,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `research/*.md`: evidence by topic. Each file opens with "Key takeaways for the team" and ends with "Sources". Some have a "Second-pass findings" section and "Open leads".
 - `research/Health Palette Prototype.html`: palette design (colour tokens, light/dark mockups, WCAG contrast board). It's a self-unpacking bundle, so read the summary in `research/ux-human-factors.md` "Team palette" instead of parsing it.
 - `ideas/viability-checklist.md`: gates G1–G5, scoring criteria, common fixes and the idea template. Every team idea goes through it.
-- `ideas/crew-health-companion.md`: lead idea (daily check-in, body map, rules engine, Device Simulator, surgeon packet), with mockups in `ideas/mockups/*.png`.
+- `ideas/crew-health-companion.md`: lead idea (daily check-in, body map, rules engine, Device Simulator, surgeon packet), with mockups in `ideas/mockups/*.png`. Mockup sources: `ideas/mockups/src/*.html` with palette tokens in `base.css`; re-render with `ideas/mockups/src/render.sh`.
+- `ideas/features.md`: every feature of the lead idea in plain words, glossary, build order.
+- `ai-log.md`: AI tool use log for the submission.
 - `spaceChallenges.md`: unsourced overview table with mangled journal citations. Don't cite it; trace claims to `research/` instead.
 
 ## Writing research and ideas

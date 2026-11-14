@@ -1,0 +1,80 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+.row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #2E2F2C;min-height:55px}
+.row .n{font-size:14px}.row .s{font-size:12px;color:#CFCFCF;margin-top:3px}
+.row.dim{opacity:.32}
+.row.hit{border-left:3px solid #7FA6F0;padding-left:10px;margin-left:-13px}
+.lens{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{border:1px solid #868375;border-radius:14px;padding:5px 10px;font-size:12px;color:#CFCFCF;background:#3D403B}
+.chip.on{border-color:#7FA6F0;background:#2A3550;color:#DADADA;font-weight:700}
+.cap{margin-top:10px;background:#3D403B;border:1px solid #868375;border-radius:8px;padding:9px 12px;font-size:12px;line-height:1.5;color:#DADADA}
+.cap b{color:#DADADA}
+.lbl{position:absolute;font-size:12px;font-weight:700;border-radius:5px;padding:4px 8px}
+.lbl.g{background:#3D403B;color:#CFCFCF}.lbl.y{background:#FFC72C;color:#1B1B1B}
+.lbl.dim{opacity:.3}
+.r2{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #2E2F2C;font-size:14px}
+.r2 .t{color:#DADADA}
+.card{background:#3D403B;border-radius:8px;padding:9px 10px}
+.card .k{font-size:11px;color:#CFCFCF}.card .v{font-size:19px;font-weight:700;margin:3px 0}.card .m{font-size:11px;color:#CFCFCF}
+.seg{position:absolute;right:16px;top:10px;display:flex;border:1px solid #868375;border-radius:8px;overflow:hidden;font-size:12px}
+.seg span{padding:5px 12px;color:#CFCFCF;background:#3D403B}.seg span.on{background:#7FA6F0;color:#1B1B1B;font-weight:700}
+</style></head><body>
+<div class="top"><span class="brand"><span class="dot"></span>Crew Health Companion</span>
+<span class="pill">Crew <b>A1</b> · private view</span><span class="pill">Mode <b>Mars transit</b></span><span class="pill">Flight day <b>142</b> · 07:21</span><span class="pill due">● 1 due</span><span class="sp"></span>
+<span class="pill">Ground link: one-way delay <b>14 min 05 s</b></span><span class="pill">🔒 Offline-ready</span></div>
+
+<div class="panel" style="left:22px;top:72px;width:300px;height:712px;padding:16px 16px">
+<div class="ph" style="margin-bottom:6px">Body systems</div>
+<div class="row hit"><div><div class="n">Cognition</div><div class="s">PVT slower than your baseline</div></div><span class="cau">▲ CAUTION</span></div>
+<div class="row hit"><div><div class="n">Cabin air</div><div class="s">CO₂ above 1-h limit</div></div><span class="cau">▲ CAUTION</span></div>
+<div class="row hit"><div><div class="n">Sleep</div><div class="s">5.6 h · 3 nights &lt; 6 h</div></div><span class="cau">▲ CAUTION</span></div>
+<div class="row hit"><div><div class="n">Immune</div><div class="s">no new symptoms</div></div><span class="nom">● Nominal</span></div>
+<div class="row dim"><div><div class="n">Cardiovascular</div></div><span class="nom">● Nominal</span></div>
+<div class="row dim"><div><div class="n">Bone &amp; muscle</div><div class="s">Exercise 540/600 min/wk</div></div><span class="nom">● Nominal</span></div>
+<div class="row dim"><div><div class="n">Vision (SANS)</div><div class="s">self-test missed · data 8 d old</div></div><span class="nom">● Nominal</span></div>
+<div class="row dim"><div><div class="n">Radiation</div><div class="s">38% of 30-day limit</div></div><span class="nom">● Nominal</span></div>
+<div class="row dim" style="border:0"><div><div class="n">Kidney &amp; hydration</div></div><span class="nom">● Nominal</span></div>
+<div style="font-size:11px;color:#CFCFCF;margin-top:6px">Lens on: affected systems marked ▍, others dimmed. Status is unchanged by the lens.</div>
+</div>
+
+<div class="panel" style="left:338px;top:72px;width:564px;height:712px;padding:14px 16px">
+<div class="seg"><span>Body</span><span class="on">Systems</span></div>
+<div class="ph">Hazard lens <span style="font-weight:400;letter-spacing:0;text-transform:none;color:#868375">· NASA HRP five hazards</span></div>
+<div class="lens"><span class="chip">☢ Radiation</span><span class="chip">◐ Isolation &amp; confinement</span><span class="chip">↔ Distance from Earth</span><span class="chip">⇣ Gravity fields</span><span class="chip on">◎ Hostile/closed environment ✓</span></div>
+<svg width="532" height="340" viewBox="0 0 532 340" style="display:block;margin-top:8px">
+<defs><marker id="ay" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8z" fill="#FFC72C"/></marker>
+<marker id="ag" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8z" fill="#868375"/></marker></defs>
+<text x="10" y="24" fill="#CFCFCF" font-size="11" font-weight="700" letter-spacing="1">HABITAT · MODULE NODE</text>
+<text x="352" y="24" fill="#CFCFCF" font-size="11" font-weight="700" letter-spacing="1">CREW A1</text>
+<path d="M170 62 C 260 62, 270 62, 352 62" fill="none" stroke="#FFC72C" stroke-width="2.5"  opacity="1" marker-end="url(#ay)"/><path d="M170 62 C 260 62, 270 182, 352 182" fill="none" stroke="#FFC72C" stroke-width="2" opacity="1" marker-end="url(#ay)"/><path d="M170 122 C 260 122, 270 122, 352 122" fill="none" stroke="#868375" stroke-width="1.2" stroke-dasharray="4 4" opacity="1" marker-end="url(#ag)"/><path d="M170 242 C 260 242, 270 122, 352 122" fill="none" stroke="#868375" stroke-width="1.2" stroke-dasharray="4 4" opacity="1" marker-end="url(#ag)"/><path d="M170 182 C 260 182, 270 242, 352 242" fill="none" stroke="#868375" stroke-width="1.2" stroke-dasharray="4 4" opacity="1" marker-end="url(#ag)"/><path d="M170 302 C 260 302, 270 302, 352 302" fill="none" stroke="#868375" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.3" marker-end="url(#ag)"/><path d="M512 122 C 540 110, 540 75, 512 64" fill="none" stroke="#FFC72C" stroke-width="2.5" marker-end="url(#ay)"/><g opacity="1"><rect x="10" y="40" width="160" height="44" rx="7" fill="#3a3216" stroke="#FFC72C" stroke-width="2"/><text x="20" y="58" fill="#DADADA" font-size="13" font-weight="700">Cabin CO₂</text><text x="20" y="75" fill="#FFC72C" font-size="11">▲ 3.2 mmHg · 1-h avg</text></g><g opacity="1"><rect x="10" y="100" width="160" height="44" rx="7" fill="#3D403B" stroke="#868375" stroke-width="1"/><text x="20" y="118" fill="#DADADA" font-size="13" font-weight="700">Temperature</text><text x="20" y="135" fill="#CFCFCF" font-size="11">● 23.1 °C</text></g><g opacity="1"><rect x="10" y="160" width="160" height="44" rx="7" fill="#3D403B" stroke="#868375" stroke-width="1"/><text x="20" y="178" fill="#DADADA" font-size="13" font-weight="700">Humidity</text><text x="20" y="195" fill="#CFCFCF" font-size="11">● 44 %</text></g><g opacity="1"><rect x="10" y="220" width="160" height="44" rx="7" fill="#3D403B" stroke="#868375" stroke-width="1"/><text x="20" y="238" fill="#DADADA" font-size="13" font-weight="700">Noise</text><text x="20" y="255" fill="#CFCFCF" font-size="11">● within sleep limit</text></g><g opacity="0.3"><rect x="10" y="280" width="160" height="44" rx="7" fill="#3D403B" stroke="#868375" stroke-width="1"/><text x="20" y="298" fill="#DADADA" font-size="13" font-weight="700">Dosimeter</text><text x="20" y="315" fill="#CFCFCF" font-size="11">● 38% of 30-day limit</text></g><g opacity="1"><rect x="352" y="40" width="160" height="44" rx="7" fill="#3a3216" stroke="#FFC72C" stroke-width="2"/><text x="362" y="58" fill="#DADADA" font-size="13" font-weight="700">Cognition</text><text x="362" y="75" fill="#FFC72C" font-size="11">▲ PVT 312 ms</text></g><g opacity="1"><rect x="352" y="100" width="160" height="44" rx="7" fill="#3a3216" stroke="#FFC72C" stroke-width="2"/><text x="362" y="118" fill="#DADADA" font-size="13" font-weight="700">Sleep</text><text x="362" y="135" fill="#FFC72C" font-size="11">▲ 5.6 h · 3 nights &lt; 6 h</text></g><g opacity="1"><rect x="352" y="160" width="160" height="44" rx="7" fill="#3D403B" stroke="#FFC72C" stroke-width="1.5"/><text x="362" y="178" fill="#DADADA" font-size="13" font-weight="700">Headache</text><text x="362" y="195" fill="#CFCFCF" font-size="11">● mild · logged since FD 141</text></g><g opacity="1"><rect x="352" y="220" width="160" height="44" rx="7" fill="#3D403B" stroke="#868375" stroke-width="1"/><text x="362" y="238" fill="#DADADA" font-size="13" font-weight="700">Immune</text><text x="362" y="255" fill="#CFCFCF" font-size="11">● no new symptoms</text></g><g opacity="0.3"><rect x="352" y="280" width="160" height="44" rx="7" fill="#3D403B" stroke="#868375" stroke-width="1"/><text x="362" y="298" fill="#DADADA" font-size="13" font-weight="700">Blood & eyes</text><text x="362" y="315" fill="#CFCFCF" font-size="11">● nominal</text></g>
+<rect x="196" y="72" width="132" height="22" rx="4" fill="#1B1B1B" stroke="#FFC72C"/>
+<text x="204" y="87" fill="#FFC72C" font-size="11" font-weight="700">▲ rule COG-02 · related</text>
+<text x="522" y="96" fill="#FFC72C" font-size="11" font-weight="700" text-anchor="end" transform="rotate(0)"></text>
+</svg>
+<div style="display:flex;gap:14px;font-size:11px;white-space:nowrap;color:#CFCFCF;margin:2px 0 0 10px"><span><b style="color:#FFC72C">━▶</b> link behind an active flag</span><span><b style="color:#868375">┅▶</b> known link, nominal</span><span style="opacity:.6">dimmed: outside the selected hazard</span></div>
+<div style="margin-top:14px;background:#3D403B;border:1px solid #FFC72C;border-radius:8px;padding:11px 14px;font-size:13px;line-height:1.5">
+<b style="color:#FFC72C">▲ Cause path</b> &nbsp;Cabin CO₂ above the 1-h limit <b>+</b> 3 short nights <b>→</b> Cognition caution. CO₂ is also linked to the headache logged since FD 141.<br>
+<span style="color:#CFCFCF">How decided: rule COG-02 lists cabin CO₂ and sleep as related signals. The app links readings; it doesn't diagnose.</span><br>
+<span style="color:#CFCFCF">What next: check CO₂ in your module and ask the crew to verify the scrubber · repeat the PVT tomorrow.</span></div>
+<div style="position:absolute;left:16px;right:16px;bottom:12px;font-size:12px;color:#CFCFCF;line-height:1.45">Same status data and rules as the body map. Tap a box for its detail screen, or a link for the rule behind it.</div>
+</div>
+<div class="panel" style="left:918px;top:72px;width:340px;height:382px;padding:16px">
+<div class="ph" style="margin-bottom:6px">Today's routine</div>
+<div class="r2"><span>✓ Morning check-in</span><span class="t">done 07:15</span></div>
+<div class="r2"><span>✓ PVT (3 min)</span><span class="t">done 07:19</span></div>
+<div style="border:1px solid #7FA6F0;background:#2A3550;border-radius:8px;padding:9px 10px;margin:8px 0;display:flex;justify-content:space-between;align-items:center"><div><div>KSS + sleep re-check</div><div style="margin-top:4px"><span style="background:#3a3216;color:#FFC72C;font-size:11px;border-radius:4px;padding:2px 6px">rule · PVT slower than baseline</span></div></div><span class="btn">Start · ~40 s</span></div>
+<div class="r2"><span>☐ Exercise · resistance 45 min</span><span class="t">14:00</span></div>
+<div class="r2"><span>☐ Fluids 2.5 L</span><span class="t">1.1 L so far</span></div>
+<div class="r2"><span class="t">Workload (Bedford)</span><span class="t">20:00–22:00</span></div>
+<div class="r2" style="border:0;color:#868375"><span>Vision self-test (Wed)</span><span>not answered</span></div>
+</div>
+
+<div class="panel" style="left:918px;top:466px;width:340px;height:246px;padding:16px">
+<div class="ph" style="margin-bottom:12px">Latest readings</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div class="card"><div class="k">SpO₂</div><div class="v">97 %</div><div class="m">4 min ago · <span class="tag">BLE · simulated</span></div></div>
+<div class="card"><div class="k">Heart rate</div><div class="v">63 bpm</div><div class="m">live · <span class="tag">bracelet · simulated</span></div></div>
+<div class="card"><div class="k">Blood pressure</div><div class="v">108/70</div><div class="m">07:10 · <span class="tag">manual</span></div></div>
+<div class="card" style="outline:1px solid #7FA6F0"><div class="k">Cabin CO₂ (1-h avg)</div><div class="v" style="color:#FFC72C">▲ 3.2 mmHg</div><div class="m">1 min ago · <span class="tag">EDA replay</span></div></div>
+</div></div>
+<div class="foot">Mockup · example values, not medical guidance</div>
+</body></html>

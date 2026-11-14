@@ -329,6 +329,13 @@ Crew time: 6.8 h preflight, 15.25 h in flight, 5.25 h postflight. The full analy
 - Vestibular Health
 - Data Integration
 
+**Ongoing HRP Research hub** (challenge Resources tab, verified 2026-11-13) [S32] lists 3 Artemis II studies, 11 LEO studies and 8 past ones. The ones that bear on a crew health app:
+- Artemis II: ARCHeR (actigraphy, behavior), Immune Biomarkers (dry saliva), Artemis II Standard Measures. Details in [existing-systems.md §2](existing-systems.md#artemis-ii-crew-health-studies).
+- Tempus Pro: a commercial telemedicine device tested as an aid for the CMO. Details in [existing-systems.md §3](existing-systems.md#3-earth-independent-medicine).
+- Countermeasure trials for brain and eye changes (SANS): B-Complex (a daily B-vitamin supplement), Thigh Cuff (keeping fluid in the legs), Brain Fluid Pressure, Spinal Fluid Biomarkers.
+- Zero T2: exercise without a treadmill ahead of deep-space missions (compare the Artemis II flywheel in [countermeasures.md](countermeasures.md)).
+- Venous Haemostasis: blood-flow and clotting changes.
+
 **NASA Twins Study** (Scott vs. Mark Kelly, 340-day mission; *Science* 2019, aau8650) [S17]:
 - 91.3% of gene-expression changes returned to baseline after landing.
 - Telomeres lengthened in flight; some changes persisted.
@@ -436,3 +443,4 @@ Crew time: 6.8 h preflight, 15.25 h in flight, 5.25 h postflight. The full analy
 - [S29] TRISH at NASA — https://www.nasa.gov/hrp/the-translational-research-institute-for-space-health-trish/ ; Catalyst remote-monitoring call — https://www.nasa.gov/hrp/researchers-apply-now-with-your-ideas-to-advance-remote-health-monitoring-in-space/
 - [S30] TRISH EXPAND / Hermes / SENTINEL — https://www.bcm.edu/academic-centers/space-medicine/translational-research-institute/research/commercial-spaceflight ; …/research/hermes ; …/research/sentinel
 - [S31] NASA images and media usage guidelines — https://www.nasa.gov/nasa-brand-center/images-and-media/
+- [S32] NASA HRP, Ongoing HRP Research in Space (challenge Resources tab; verified 2026-11-13) — https://www.nasa.gov/hrp/ongoing-hrp-research/

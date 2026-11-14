@@ -23,7 +23,7 @@ Research leg: approaches, devices, crew-facing software, analog studies and publ
   - Concordia adds chronic hypoxia and months of darkness [19].
   - Routine prompts (light, movement, sleep timing, mood check-ins) are supported by evidence.
 - **Mood and cognition are tracked with standard tests and questionnaires, not inferred.** Examples: Polish AstroMentalHealth (questionnaires, photos, video diaries) [44][45], CSA PRET [9], Shenzhou-21 laptop tests [37], and the ISRO/IISc "Electronic Displays" study of cognition with in-flight user interfaces [41]. EEG and fNIRS are research tools (PhysioTool, MAGYAR, PhotonGrav) [16][43][45].
-- **Which 2026 partners will supply health resources is unknown until Nov 13.** There are 17 partners [11]. CSA is the most likely, given its Space Apps history, Bio-Monitor and Health Beyond. ESA and JAXA are plausible. The others' Space Apps descriptions stress Earth observation.
+- **Of the partners, only CSA supplied resources (Resources tab, 2026-11-13).** It gave 2 pages: one on the CANS neutron spectrometer [63], one general [64]. No partner datasets, so CSA PRET [9] remains the only open partner dataset we know of.
 
 ---
 
@@ -40,6 +40,12 @@ Research leg: approaches, devices, crew-facing software, analog studies and publ
   - **Vascular Aging**.
 - Vascular Calcium requires 48 h of Bio-Monitor wear in flight [6].
 - A CSA grant (2025–26, about C$75k) analyses existing Bio-Monitor data from **9 astronauts** for sleep, fitness and BP from long recordings [47] (open.canada.ca record via search; page not fetched).
+
+**Radiation: CANS and earlier neutron instruments** [63]
+- Neutrons make up **about 30% of total radiation on the ISS**, and CSA calls them "especially harmful" because of the biological damage they can cause.
+- In 2026 CSA gave Bubble Technology Industries a C$5.5M contract to keep developing the **Canadian Active Neutron Spectrometer (CANS)**, a compact instrument that measures neutron radiation continuously and autonomously. It hasn't flown yet.
+- Earlier CSA instruments: bubble detectors (Saint-Jacques used them on the ISS), Radi-N/Radi-N2 (neutrons), MOSFET dosimeters and EVARM (dose during EVA).
+- For us: a dose reading may leave out the neutron share if the instrument can't detect neutrons. Label dose by source instrument, don't treat it as total exposure. See [health-indicators.md §19](health-indicators.md#19-radiation-dose-personal-and-environmental).
 
 **Bio-Analyzer** [7]
 - Console-sized and needs only a finger prick. Tests blood, saliva or urine in orbit with results in **2–3 h**, so samples need not be frozen and returned.
@@ -103,6 +109,7 @@ Research leg: approaches, devices, crew-facing software, analog studies and publ
   - Prototype from 2010, usability-tested in Mars-500, then refined at Carleton.
   - Data from PRET v1–5 plus PVT, TOVA, PASAT, WAIS-IV, WMS, D-KEFS, DANA and WinSCAT. Open Government Licence.
 - Other CSA publications:
+  - "Why do we conduct science experiments in space?" (challenge Resources tab) [64]: general background. Lists deep-space risks (more time in weightlessness, more radiation, longer isolation, longer comms delay, less reliance on Earth for emergency medical help) and says about 200 experiments are on the ISS at any time. Nothing new for the idea.
   - "Canadian Healthcare in Deep Space" expert-group report [42]
   - 2023 Topical Teams report with an astronaut-health chapter [42]
   - "Health in space" hub [26]
@@ -297,7 +304,7 @@ Research leg: approaches, devices, crew-facing software, analog studies and publ
 
 ## 11. Space Apps 2026 partners likely to supply human-health resources
 
-There are 17 partners [11]: Angola GGPEN, CONAE, Bahrain BSA, AEB, **CSA**, **ESA**, **ISRO**, **ASI**, **JAXA**, **KASA**, Nigeria NASRDA, Paraguay AEP, Senegal ASES, **AEE**, **TUA**, **MBRSC**, **UKSA**. These are estimates; check the Resources tab on Nov 13.
+There are 17 partners [11]: Angola GGPEN, CONAE, Bahrain BSA, AEB, **CSA**, **ESA**, **ISRO**, **ASI**, **JAXA**, **KASA**, Nigeria NASRDA, Paraguay AEP, Senegal ASES, **AEE**, **TUA**, **MBRSC**, **UKSA**. These were estimates. The Resources tab published on 2026-11-13 lists only NASA and CSA resources [63][64].
 
 | Partner | Likelihood of health resources | Most likely material |
 |---|---|---|
@@ -413,3 +420,5 @@ There are 17 partners [11]: Angola GGPEN, CONAE, Bahrain BSA, AEB, **CSA**, **ES
 60. MBRSC – Analog Study 2 completion: https://www.mbrsc.ae/analog-study-2-completion/
 61. Anadolu – Oxygen Saturation experiment: https://aa.com.tr/en/turkiye/turkish-astronaut-conducts-oxygen-saturation-experiment-at-international-space-station/3119398 ; Ax-3 summary: https://aa.com.tr/en/science-technology/astronaut-gezeravci-achieves-historic-milestone-with-turkiyes-first-manned-space-adventure/3133837 ; Daily Sabah (secondary): https://www.dailysabah.com/turkiye/turkiyes-1st-astronaut-set-to-conduct-13-space-experiments/news
 62. Asiae – Hwasun hospital space medicine platform (2026, secondary): https://www.asiae.co.kr/en/article/2026030410485619003 ; NGMSAT-3: https://www.asiae.co.kr/en/article/2025112509225016365
+63. CSA – Monitoring radiation for astronaut health (2026-02-26; challenge Resources tab; verified 2026-11-13): https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp
+64. CSA – Why do we conduct science experiments in space? (modified 2025-10-28; challenge Resources tab; verified 2026-11-13): https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp

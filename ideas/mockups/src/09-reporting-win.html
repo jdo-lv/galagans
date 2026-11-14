@@ -1,0 +1,74 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+.prog{height:6px;background:#2E2F2C;border-radius:3px;margin:10px 0 4px}.prog i{display:block;height:6px;width:80%;background:#7FA6F0;border-radius:3px}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.chp{border:1px solid #868375;background:#3D403B;border-radius:10px;padding:14px 14px;font-size:15px;min-height:52px;display:flex;align-items:center;gap:10px}
+.chp.on{border:2px solid #7FA6F0;background:#2A3550;font-weight:700}
+.box{width:20px;height:20px;border:2px solid #868375;border-radius:4px;flex:none}
+.chp.on .box{background:#7FA6F0;border-color:#7FA6F0;position:relative}
+.chp.on .box:after{content:"✓";position:absolute;left:3px;top:-3px;color:#1B1B1B;font-weight:900;font-size:14px}
+.sm{font-size:12.5px;color:#DADADA;line-height:1.5}.mut{color:#CFCFCF}
+.days{display:grid;grid-template-columns:repeat(14,1fr);gap:5px;margin-top:10px}
+.dc{height:46px;border-radius:6px;background:#3D403B;border:1px solid #868375;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px}
+.dc small{font-size:9.5px;color:#CFCFCF;margin-top:2px}
+.dc small b{color:#7FA6F0}
+.dc.ok{border-color:#868375}.dc.rep{border-color:#7FA6F0}.dc.pause{border-style:dashed;color:#CFCFCF}.dc.today{outline:2px solid #DADADA}
+.leg{display:flex;gap:14px;font-size:11px;color:#CFCFCF;margin-top:8px;white-space:nowrap}
+.kpi{background:#3D403B;border-radius:8px;padding:10px 12px;flex:1}
+.kpi .v{font-size:18px;font-weight:700;margin-top:3px}.kpi .k{font-size:11.5px;color:#CFCFCF}
+</style></head><body>
+<div class="top"><span class="brand"><span class="dot"></span>Crew Health Companion</span>
+<span class="pill">Crew <b>A1</b> · private view</span><span class="pill">Mode <b>Mars transit</b></span><span class="pill">Flight day <b>146</b> · 07:16</span><span class="sp"></span>
+<span class="pill">Ground link: one-way delay <b>14 min 40 s</b></span><span class="pill">🔒 Offline-ready</span></div>
+
+<div class="panel" style="left:22px;top:72px;width:560px;height:704px;padding:18px 20px">
+<div style="display:flex;justify-content:space-between" class="sm"><span class="ph">Morning check-in</span><span class="mut">step 4 of 4 · ~20 s left</span></div>
+<div class="prog"><i></i></div>
+<div style="font-size:22px;font-weight:700;margin-top:18px">Any symptoms since yesterday?</div>
+<div class="sm mut" style="margin-top:4px">Tap all that apply. Logging a symptom always counts as a completed check-in.</div>
+<div class="chips">
+<div class="chp"><span class="box"></span>Headache</div>
+<div class="chp on"><span class="box"></span>Sore throat</div>
+<div class="chp"><span class="box"></span>Congestion</div>
+<div class="chp"><span class="box"></span>Nausea / motion sickness</div>
+<div class="chp"><span class="box"></span>Back pain</div>
+<div class="chp"><span class="box"></span>Eye or vision change</div>
+<div class="chp"><span class="box"></span>Skin rash or lesion</div>
+<div class="chp"><span class="box"></span>Other… (type)</div>
+</div>
+<div class="chp" style="margin-top:12px;justify-content:center;color:#CFCFCF">No symptoms today</div>
+<div style="margin-top:16px;background:#3D403B;border:1px solid #868375;border-radius:8px;padding:10px 12px" class="sm">
+<b>Why you're seeing this:</b> scheduled · daily check-in<br>
+<span class="mut">🔒 Your answers stay private. Crewmates and the CMO see "check-in done" only; the flight surgeon sees what you choose to share.</span></div>
+<div style="position:absolute;left:20px;right:20px;bottom:18px;display:flex;justify-content:space-between;align-items:center">
+<span class="btn2" style="color:#CFCFCF">Skip</span><span class="btn" style="padding:12px 26px;font-size:15px">Next</span></div>
+</div>
+
+<div class="panel" style="left:598px;top:72px;width:660px;height:300px;padding:20px 22px">
+<div style="display:flex;gap:16px;align-items:center">
+<div style="width:56px;height:56px;border-radius:50%;background:#3D403B;border:2px solid #CFCFCF;color:#CFCFCF;font-size:30px;font-weight:900;display:flex;align-items:center;justify-content:center">✓</div>
+<div><div style="font-size:22px;font-weight:700">Check-in complete · 07:16</div><div class="sm mut">Shown after the last step · 4 of 4 steps · 1 min 22 s</div></div></div>
+<div style="margin-top:16px;font-size:16px;line-height:1.5"><b>Logged: sore throat (day 3). Thanks for reporting.</b></div>
+<div class="sm" style="margin-top:6px">Reporting a symptom counts as a completed check-in, and your streak continues.</div>
+<div style="margin-top:14px;background:#3D403B;border:1px solid #868375;border-radius:8px;padding:10px 12px" class="sm">
+<b>What happens next</b><br>
+• Suggested for your next medical conference (FD 147 · 09:30). You decide whether to include it. <span style="color:#7FA6F0">Open agenda →</span><br>
+• Log it again tomorrow. If a fever starts, tell your CMO the same day.</div>
+</div>
+
+<div class="panel" style="left:598px;top:388px;width:660px;height:388px;padding:18px 22px">
+<div class="ph">Your routine streak</div>
+<div class="sm mut" style="margin-top:4px">Counts what you do, never your values. No comparison with your crewmates.</div>
+<div style="display:flex;align-items:baseline;gap:10px;margin-top:12px"><span style="font-size:30px;font-weight:800">23</span><span class="sm">check-ins in a row · last 14 days below</span></div>
+<div class="days">
+<div class="dc ok">✓<small>133</small></div><div class="dc ok">✓<small>134</small></div><div class="dc ok">✓<small>135</small></div><div class="dc ok">✓<small>136</small></div><div class="dc ok">✓<small>137</small></div><div class="dc ok">✓<small>138</small></div><div class="dc pause">⏸<small>139</small></div><div class="dc pause">⏸<small>140</small></div><div class="dc rep">✓<small>141 <b>●</b></small></div><div class="dc rep">✓<small>142 <b>●</b></small></div><div class="dc ok">✓<small>143</small></div><div class="dc rep">✓<small>144 <b>●</b></small></div><div class="dc rep">✓<small>145 <b>●</b></small></div><div class="dc rep today">✓<small>146 <b>●</b></small></div>
+</div>
+<div class="leg"><span>✓ check-in done</span><span><b style="color:#7FA6F0">●</b> symptom reported (counts as done)</span><span>⏸ sick or rest day: paused, never reset</span></div>
+<div style="display:flex;gap:10px;margin-top:16px">
+<div class="kpi"><div class="k">Exercise this week</div><div class="v">540 / 600 min</div><div class="k">countermeasure minutes done</div></div>
+<div class="kpi"><div class="k">Fluid log</div><div class="v">4 of 7 days</div><div class="k">days you logged to target</div></div>
+<div class="kpi"><div class="k">PVT sessions</div><div class="v">7 of 7</div><div class="k">every 4th day, last 28 days</div></div>
+</div>
+<div class="sm mut" style="margin-top:12px">Never shown here: heart rate, SpO₂, sleep hours, mood or any health value. Nothing is scored as good or bad.</div>
+</div>
+<div class="foot">Mockup · example values, not medical guidance</div>
+</body></html>

@@ -1,95 +1,97 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Body map</title>
-<link rel="stylesheet" href="theme.css">
-<style>
-main { display: grid; grid-template-columns: 300px 1fr 340px; gap: 16px; padding: 16px 22px; height: 726px; }
-.sys .name { font-weight: 500; }
-.fig { position: relative; display: flex; flex-direction: column; align-items: center; }
-.lbl { position: absolute; }
-.lbl.n { height: 26px; display: inline-flex; align-items: center; gap: 5px; padding: 0 10px; border-radius: 13px; background: var(--inset); color: var(--muted); font-size: 12px; font-weight: 500; }
-.banner { position: absolute; left: 24px; right: 24px; bottom: 66px; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 12px; background: var(--bg); border: 1px solid var(--caution); }
-.task.on { background: var(--inset); border: 1px solid var(--muted); border-radius: 10px; padding: 10px 12px; margin: 4px 0; }
-.read { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.read > div { padding: 12px; }
-.val { white-space: nowrap; font-family: var(--mono); font-size: 21px; font-weight: 400; margin: 2px 0; }
-.dim { color: var(--muted-bg); }
-</style></head>
-<body>
-<header class="top">
-  <div class="brand">
-    <svg width="26" height="26" viewBox="0 0 28 28" aria-hidden="true"><path d="M24.83 12.09 A11 11 0 1 1 10.24 3.66" fill="none" stroke="#868375" stroke-width="3.5" stroke-linecap="round"/><path d="M14 3 A11 11 0 0 1 23.53 8.5" fill="none" stroke="#7FA6F0" stroke-width="3.5" stroke-linecap="round"/></svg>
-    <span>CREW HEALTH COMPANION</span>
-  </div>
-  <span class="chip">Crew <b>A1</b> · private view</span>
-  <span class="chip">Mode <b>Mars transit</b></span>
-  <span class="chip">Flight day <b class="mono">142</b> · <span class="mono">07:21</span></span>
-  <span class="chip due">▲ <b>1 due</b></span>
-  <span class="spacer"></span>
-  <span class="chip">Ground link: one-way delay <b class="mono">14 min 05 s</b></span>
-  <span class="chip">Offline-ready</span>
-</header>
-<main>
-  <section class="card">
-    <h2 class="h">Body systems</h2>
-    <div class="row sys"><div><div class="name">Cognition</div><div class="sub">PVT slower than your baseline</div></div><span class="st caution">▲ CAUTION</span></div>
-    <div class="row sys"><div><div class="name">Cabin air</div><div class="sub">CO₂ above 1-h limit</div></div><span class="st caution">▲ CAUTION</span></div>
-    <div class="row sys"><div><div class="name">Sleep</div><div class="sub">5.6 h · 3 nights &lt; 6 h</div></div><span class="st nominal">✓ Nominal</span></div>
-    <div class="row sys"><div class="name">Cardiovascular</div><span class="st nominal">✓ Nominal</span></div>
-    <div class="row sys"><div><div class="name">Bone &amp; muscle</div><div class="sub">Exercise 540/600 min this week</div></div><span class="st nominal">✓ Nominal</span></div>
-    <div class="row sys"><div><div class="name">Vision (SANS)</div><div class="sub">self-test missed · data 8 d old</div></div><span class="st nominal">✓ Nominal</span></div>
-    <div class="row sys"><div><div class="name">Radiation</div><div class="sub">38% of 30-day limit</div></div><span class="st nominal">✓ Nominal</span></div>
-    <div class="row sys"><div class="name">Kidney &amp; hydration</div><span class="st nominal">✓ Nominal</span></div>
-  </section>
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+.row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #2E2F2C;min-height:55px}
+.row .n{font-size:14px}.row .s{font-size:12px;color:#CFCFCF;margin-top:3px}
+.row.dim{opacity:.32}
+.row.hit{border-left:3px solid #7FA6F0;padding-left:10px;margin-left:-13px}
+.lens{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{border:1px solid #868375;border-radius:14px;padding:5px 10px;font-size:12px;color:#CFCFCF;background:#3D403B}
+.chip.on{border-color:#7FA6F0;background:#2A3550;color:#DADADA;font-weight:700}
+.cap{margin-top:10px;background:#3D403B;border:1px solid #868375;border-radius:8px;padding:9px 12px;font-size:12px;line-height:1.5;color:#DADADA}
+.cap b{color:#DADADA}
+.lbl{position:absolute;font-size:12px;font-weight:700;border-radius:5px;padding:4px 8px}
+.lbl.g{background:#3D403B;color:#CFCFCF}.lbl.y{background:#FFC72C;color:#1B1B1B}
+.lbl.dim{opacity:.3}
+.r2{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #2E2F2C;font-size:14px}
+.r2 .t{color:#DADADA}
+.card{background:#3D403B;border-radius:8px;padding:9px 10px}
+.card .k{font-size:11px;color:#CFCFCF}.card .v{font-size:19px;font-weight:700;margin:3px 0}.card .m{font-size:11px;color:#CFCFCF}
+.seg{position:absolute;right:16px;top:10px;display:flex;border:1px solid #868375;border-radius:8px;overflow:hidden;font-size:12px}
+.seg span{padding:5px 12px;color:#CFCFCF;background:#3D403B}.seg span.on{background:#7FA6F0;color:#1B1B1B;font-weight:700}
+</style></head><body>
+<div class="top"><span class="brand"><span class="dot"></span>Crew Health Companion</span>
+<span class="pill">Crew <b>A1</b> · private view</span><span class="pill">Mode <b>Mars transit</b></span><span class="pill">Flight day <b>142</b> · 07:21</span><span class="pill due">● 1 due</span><span class="sp"></span>
+<span class="pill">Ground link: one-way delay <b>14 min 05 s</b></span><span class="pill">🔒 Offline-ready</span></div>
 
-  <section class="card fig">
-    <svg width="260" height="520" viewBox="0 0 260 560" aria-label="Body map" style="margin-top:20px">
-      <g fill="#464A42" stroke="#868375" stroke-width="1.5">
-        <circle cx="130" cy="58" r="46" fill="rgba(255,199,44,.18)" stroke="#FFC72C" stroke-width="3"/>
-        <rect x="112" y="104" width="36" height="22" rx="6"/>
-        <rect x="70" y="124" width="120" height="196" rx="30"/>
-        <rect x="28" y="136" width="36" height="190" rx="16"/>
-        <rect x="196" y="136" width="36" height="190" rx="16"/>
-        <rect x="78" y="316" width="48" height="240" rx="20"/>
-        <rect x="134" y="316" width="48" height="240" rx="20"/>
-      </g>
-      <g fill="none" stroke="#CFCFCF" stroke-width="2">
-        <circle cx="113" cy="56" r="7"/><circle cx="147" cy="56" r="7"/>
-        <circle cx="132" cy="190" r="16"/>
-      </g>
-    </svg>
-    <span class="lbl n" style="left:150px;top:72px">✓ Eyes</span>
-    <span class="lbl st caution" style="left:330px;top:72px">▲ Cognition</span>
-    <span class="lbl n" style="left:330px;top:210px">✓ Heart</span>
-    <span class="lbl n" style="left:340px;top:420px">✓ Bone</span>
-    <div class="banner">
-      <span>🔔</span>
-      <div style="flex:1"><b>KSS + sleep re-check is due.</b> <span class="sub">Added because your PVT was slower than baseline. ~40 s.</span></div>
-      <span class="btn primary sm">Start</span><span class="btn sm" style="border:0">Snooze 30 min</span>
-    </div>
-    <p class="sub" style="position:absolute;left:24px;right:24px;bottom:14px;margin:0">Adaptation timeline · FD 142: ventricle expansion mostly happens in the first 6 months of flight. Tap a body part for details.</p>
-  </section>
+<div class="panel" style="left:22px;top:72px;width:300px;height:712px;padding:16px 16px">
+<div class="ph" style="margin-bottom:6px">Body systems</div>
+<div class="row hit"><div><div class="n">Cognition</div><div class="s">PVT slower than your baseline</div></div><span class="cau">▲ CAUTION</span></div>
+<div class="row hit"><div><div class="n">Cabin air</div><div class="s">CO₂ above 1-h limit</div></div><span class="cau">▲ CAUTION</span></div>
+<div class="row hit"><div><div class="n">Sleep</div><div class="s">5.6 h · 3 nights &lt; 6 h</div></div><span class="cau">▲ CAUTION</span></div>
+<div class="row hit"><div><div class="n">Immune</div><div class="s">no new symptoms</div></div><span class="nom">● Nominal</span></div>
+<div class="row dim"><div><div class="n">Cardiovascular</div></div><span class="nom">● Nominal</span></div>
+<div class="row dim"><div><div class="n">Bone &amp; muscle</div><div class="s">Exercise 540/600 min/wk</div></div><span class="nom">● Nominal</span></div>
+<div class="row dim"><div><div class="n">Vision (SANS)</div><div class="s">self-test missed · data 8 d old</div></div><span class="nom">● Nominal</span></div>
+<div class="row dim"><div><div class="n">Radiation</div><div class="s">38% of 30-day limit</div></div><span class="nom">● Nominal</span></div>
+<div class="row dim" style="border:0"><div><div class="n">Kidney &amp; hydration</div></div><span class="nom">● Nominal</span></div>
+<div style="font-size:11px;color:#CFCFCF;margin-top:6px">Lens on: affected systems marked ▍, others dimmed. Status is unchanged by the lens.</div>
+</div>
 
-  <div style="display:flex;flex-direction:column;gap:16px">
-    <section class="card">
-      <h2 class="h">Today's routine</h2>
-      <div class="row"><span>✓ Morning check-in</span><span class="sub mono">done 07:15</span></div>
-      <div class="row"><span>✓ PVT (3 min)</span><span class="sub mono">done 07:19</span></div>
-      <div class="task on row"><div><div style="font-weight:600">KSS + sleep re-check</div><span class="tag rule">rule · PVT slower than baseline</span></div><span class="btn primary sm">Start · ~40 s</span></div>
-      <div class="row"><span>☐ Exercise · resistance 45 min</span><span class="sub mono">14:00</span></div>
-      <div class="row"><span>☐ Fluids 2.5 L</span><span class="sub"><span class="mono">1.1 L</span> so far</span></div>
-      <div class="row"><span>Workload (Bedford)</span><span class="sub mono">20:00–22:00</span></div>
-      <div class="row"><span class="sub">Vision self-test (Wed)</span><span class="sub">not answered</span></div>
-    </section>
-    <section class="card">
-      <h2 class="h">Latest readings</h2>
-      <div class="read">
-        <div class="inset"><div class="sub">SpO₂</div><div class="val">97 %</div><div class="sub">4 min ago</div><span class="tag">BLE · simulated</span></div>
-        <div class="inset"><div class="sub">Heart rate</div><div class="val">61 bpm</div><div class="sub">4 min ago</div><span class="tag">BLE · simulated</span></div>
-        <div class="inset"><div class="sub">Blood pressure</div><div class="val">108/70</div><div class="sub">07:10</div><span class="tag">manual</span></div>
-        <div class="inset" style="box-shadow: inset 0 0 0 2px var(--caution)"><div class="sub">Cabin CO₂ (1-h avg)</div><div class="val">▲ 3.2 mmHg</div><div class="sub">1 min ago</div><span class="tag">EDA replay</span></div>
-      </div>
-    </section>
-  </div>
-</main>
+<div class="panel" style="left:338px;top:72px;width:564px;height:712px;padding:14px 16px">
+<div class="seg"><span class="on">Body</span><span>Systems</span></div>
+<div class="ph">Hazard lens <span style="font-weight:400;letter-spacing:0;text-transform:none;color:#868375">· NASA HRP five hazards</span></div>
+<div class="lens"><span class="chip">☢ Radiation</span><span class="chip">◐ Isolation &amp; confinement</span><span class="chip">↔ Distance from Earth</span><span class="chip">⇣ Gravity fields</span><span class="chip on">◎ Hostile/closed environment ✓</span></div>
+<div class="cap"><b>Hostile/closed environment:</b> CO₂, noise, toxic contaminants, altered microbes, raised stress hormones.<br>
+Affects <b>cognition, headache, sleep, immune</b>. Watched by: cabin CO₂ · temperature · humidity · noise · PVT · symptom checklist.<br>
+<span style="color:#CFCFCF">Source: NASA HRP hazards (research/nasa-hrp.md §1)</span></div>
+
+<svg width="532" height="362" viewBox="0 0 532 362" style="display:block;margin-top:6px">
+<defs><linearGradient id="sk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3D403B"/><stop offset=".5" stop-color="#3D403B"/><stop offset="1" stop-color="#3D403B"/></linearGradient></defs>
+<path d="M255,72 L255,88 C240,90 214,92 204,104 C196,112 194,128 192,146 L182,232 C180,246 184,256 192,256 C199,256 202,248 201,236 L208,150 C209,140 212,132 216,128 C218,160 220,182 220,200 C220,214 216,226 216,240 L226,336 C226,346 234,350 246,348 C252,347 252,340 250,334 L256,252 C258,246 262,244 266,244 C270,244 274,246 276,252 L282,334 C280,340 280,347 286,348 C298,350 306,346 306,336 L316,240 C316,226 312,214 312,200 C312,182 314,160 316,128 C320,132 323,140 324,150 L331,236 C330,248 333,256 340,256 C348,256 352,246 350,232 L340,146 C338,128 336,112 328,104 C318,92 292,90 277,88 L277,72 Z" fill="url(#sk)" stroke="#868375" stroke-width="1.6" stroke-linejoin="round"/>
+<ellipse cx="266" cy="40" rx="26" ry="32" fill="url(#sk)" stroke="#868375" stroke-width="1.6"/>
+<g opacity=".35" fill="none" stroke="#868375" stroke-width="1.2">
+ <path d="M266 92 L266 238" stroke-dasharray="2 4"/>
+ <path d="M236 116 C246 112 258 114 264 118 M296 116 C286 112 274 114 268 118"/>
+ <path d="M240 290 L246 330 M292 290 L286 330"/>
+ <path d="M236 250 L244 290 M296 250 L288 290"/>
+</g>
+<g opacity=".3"><path d="M244 132 C236 150 236 176 246 186 C254 184 258 170 258 150 C258 138 252 130 244 132Z" fill="#868375"/>
+<path d="M288 132 C296 150 296 176 286 186 C278 184 274 170 274 150 C274 138 280 130 288 132Z" fill="#868375"/></g>
+<path d="M245 34 C245 18 256 10 266 10 C278 10 288 18 288 32 C288 42 282 48 274 48 L258 48 C250 48 245 42 245 34Z" fill="#4a3f22" stroke="#FFC72C" stroke-width="2"/>
+<path d="M252 30 C256 24 262 28 266 22 C270 28 276 24 280 30 M256 38 C260 34 266 38 270 34 C274 38 278 36 282 38" fill="none" stroke="#FFC72C" stroke-width="1.2" opacity=".8"/>
+<g opacity=".4"><ellipse cx="257" cy="56" rx="4" ry="3" fill="none" stroke="#CFCFCF" stroke-width="1.6"/><ellipse cx="275" cy="56" rx="4" ry="3" fill="none" stroke="#CFCFCF" stroke-width="1.6"/></g>
+<path d="M276 146 C272 140 264 142 266 150 C268 158 276 162 278 166 C280 162 288 158 290 150 C292 142 284 140 280 146Z" fill="#3D403B" stroke="#CFCFCF" stroke-width="1.4" opacity=".4"/>
+<g opacity=".35" fill="none" stroke="#CFCFCF" stroke-width="1.4"><path d="M248 194 C242 196 242 208 248 210 C252 210 252 204 250 202 C252 198 252 194 248 194Z"/><path d="M284 194 C290 196 290 208 284 210 C280 210 280 204 282 202 C280 198 280 194 284 194Z"/></g>
+<g opacity="1"><line x1="413.2" y1="31" x2="288" y2="32" stroke="#FFC72C" stroke-width="1" stroke-dasharray="3 3"/><rect x="318" y="20" width="95" height="22" rx="5" fill="#FFC72C"/><text x="326" y="35" fill="#1B1B1B" font-size="12" font-weight="700">▲ Cognition</text></g>
+<g opacity=".35"><line x1="150" y1="57" x2="252" y2="56" stroke="#CFCFCF" stroke-width="1" stroke-dasharray="3 3"/><rect x="150" y="46" width="59" height="22" rx="5" fill="#3D403B"/><text x="158" y="61" fill="#CFCFCF" font-size="12" font-weight="700">● Eyes</text></g>
+<g opacity=".35"><line x1="418.4" y1="151" x2="290" y2="152" stroke="#CFCFCF" stroke-width="1" stroke-dasharray="3 3"/><rect x="352" y="140" width="66" height="22" rx="5" fill="#3D403B"/><text x="360" y="155" fill="#CFCFCF" font-size="12" font-weight="700">● Heart</text></g>
+<g opacity=".35"><line x1="432.8" y1="203" x2="288" y2="202" stroke="#CFCFCF" stroke-width="1" stroke-dasharray="3 3"/><rect x="352" y="192" width="81" height="22" rx="5" fill="#3D403B"/><text x="360" y="207" fill="#CFCFCF" font-size="12" font-weight="700">● Kidneys</text></g>
+<g opacity=".35"><line x1="476.0" y1="297" x2="294" y2="300" stroke="#CFCFCF" stroke-width="1" stroke-dasharray="3 3"/><rect x="352" y="286" width="124" height="22" rx="5" fill="#3D403B"/><text x="360" y="301" fill="#CFCFCF" font-size="12" font-weight="700">● Bone & muscle</text></g>
+</svg>
+<div style="position:absolute;left:24px;top:470px;width:132px;font-size:12px;line-height:1.45;color:#DADADA;background:#2A3550;border:1px solid #7FA6F0;border-radius:6px;padding:7px 8px">Cabin air ▲<br><span style="color:#CFCFCF">module node · CO₂ 3.2 mmHg · EDA replay</span></div>
+
+<div style="position:absolute;left:24px;right:24px;bottom:56px;background:#2A3550;border:1px solid #7FA6F0;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:12px;font-size:13px">
+<span>🔔</span><div style="flex:1"><b>KSS + sleep re-check is due.</b> <span style="color:#DADADA">Added because your PVT was slower than baseline. ~40 s.</span></div><span class="btn">Start</span><span style="color:#CFCFCF">Snooze 30 min</span></div>
+<div style="position:absolute;left:16px;right:16px;bottom:12px;font-size:12px;color:#CFCFCF;line-height:1.45">Adaptation timeline · FD 142: ventricle expansion mostly happens in the first 6 months of flight. Tap a body part or a hazard for details.</div>
+</div>
+
+<div class="panel" style="left:918px;top:72px;width:340px;height:382px;padding:16px">
+<div class="ph" style="margin-bottom:6px">Today's routine</div>
+<div class="r2"><span>✓ Morning check-in</span><span class="t">done 07:15</span></div>
+<div class="r2"><span>✓ PVT (3 min)</span><span class="t">done 07:19</span></div>
+<div style="border:1px solid #7FA6F0;background:#2A3550;border-radius:8px;padding:9px 10px;margin:8px 0;display:flex;justify-content:space-between;align-items:center"><div><div>KSS + sleep re-check</div><div style="margin-top:4px"><span style="background:#3a3216;color:#FFC72C;font-size:11px;border-radius:4px;padding:2px 6px">rule · PVT slower than baseline</span></div></div><span class="btn">Start · ~40 s</span></div>
+<div class="r2"><span>☐ Exercise · resistance 45 min</span><span class="t">14:00</span></div>
+<div class="r2"><span>☐ Fluids 2.5 L</span><span class="t">1.1 L so far</span></div>
+<div class="r2"><span class="t">Workload (Bedford)</span><span class="t">20:00–22:00</span></div>
+<div class="r2" style="border:0;color:#868375"><span>Vision self-test (Wed)</span><span>not answered</span></div>
+</div>
+
+<div class="panel" style="left:918px;top:466px;width:340px;height:246px;padding:16px">
+<div class="ph" style="margin-bottom:12px">Latest readings</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div class="card"><div class="k">SpO₂</div><div class="v">97 %</div><div class="m">4 min ago · <span class="tag">BLE · simulated</span></div></div>
+<div class="card"><div class="k">Heart rate</div><div class="v">63 bpm</div><div class="m">live · <span class="tag">bracelet · simulated</span></div></div>
+<div class="card"><div class="k">Blood pressure</div><div class="v">108/70</div><div class="m">07:10 · <span class="tag">manual</span></div></div>
+<div class="card" style="outline:1px solid #7FA6F0"><div class="k">Cabin CO₂ (1-h avg)</div><div class="v" style="color:#FFC72C">▲ 3.2 mmHg</div><div class="m">1 min ago · <span class="tag">EDA replay</span></div></div>
+</div></div>
 <div class="foot">Mockup · example values, not medical guidance</div>
 </body></html>

@@ -304,6 +304,7 @@ Format per indicator: **Risk** (hazard), **Today** (ISS), **Next** (Artemis/Gate
 ### 19. Radiation dose (personal and environmental)
 - **Risk:** cancer, CNS, cardiovascular, cataract and acute effects (space radiation).
 - **Today:** Pille dosimeter reads [S19]; area monitors and Crew Active Dosimeters (time-resolved, direct-ion-storage) [S23]; [V2 6100] alerting; [V2 6101] personal and area monitoring [S7].
+- **Neutrons:** about 30% of total ISS radiation, "especially harmful" (CSA) [S59]. CSA's CANS will measure them continuously and autonomously; it is under development, not flying [S59].
 - **Next:** every Artemis II astronaut carried a CAD [S23]. Orion has six radiation sensors and each crew member a pocket monitor (secondary, unverified).
 - **Freq:** continuous; alerts during solar particle events.
 - **Earth normal:** about 2 mSv/yr background [S42].
@@ -550,3 +551,4 @@ Scores are judgment calls. Pick among close ranks (6–9) by the hardware on han
 - [S56] KSS validation: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8889981/
 - [S57] NASA-TLX computerized manual (NASA Ames): https://ntrs.nasa.gov/api/citations/20000021487/downloads/20000021487.pdf
 - [S58] Inter-Noise 2021, ISS crew acoustic exposure: https://ntrs.nasa.gov/api/citations/20210016151/downloads/Inter-Noise2021_Paper2219_DRAFT%20Manuscript.pdf
+- [S59] CSA, Monitoring radiation for astronaut health (2026-02-26; verified 2026-11-13): https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp

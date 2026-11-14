@@ -1,100 +1,76 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Architecture</title>
-<link rel="stylesheet" href="theme.css">
-<style>
-body { width: 1600px; height: 1000px; }
-.b { position: absolute; border-radius: 14px; padding: 14px 16px; }
-.grp { border: 2px solid; background: rgba(82, 87, 78, .25); }
-.sim { border-color: var(--khaki); }
-.app { border-color: var(--blue-tint); }
-.tr { border: 2px solid var(--muted); background: var(--card); }
-.gr { border: 4px double var(--text); background: var(--card); }
-.fut { border: 2px dashed var(--muted-bg); background: transparent; color: var(--muted); }
-.box { position: absolute; background: var(--card); border: 1px solid var(--edge); border-radius: 12px; padding: 12px 14px; }
-.box .in { background: var(--inset); border-radius: 8px; padding: 10px 12px; margin-top: 8px; }
-h3 { margin: 0 0 4px; font-size: 16px; font-weight: 700; }
-h4 { margin: 0 0 2px; font-size: 13px; font-weight: 700; }
-p { margin: 0; }
-.s { font-size: 12px; color: var(--muted); }
-.code { font: 12px/1.6 var(--mono); }
-ul { margin: 4px 0 0; padding-left: 16px; font-size: 13px; }
-svg.wires { position: absolute; inset: 0; pointer-events: none; }
-.lgd span { display: inline-block; width: 16px; height: 12px; border-radius: 3px; margin-right: 8px; vertical-align: -1px; }
-</style></head>
-<body>
-<div style="position:absolute;left:30px;top:22px">
-  <div style="display:flex;align-items:center;gap:12px">
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M24.83 12.09 A11 11 0 1 1 10.24 3.66" fill="none" stroke="#868375" stroke-width="3.5" stroke-linecap="round"/><path d="M14 3 A11 11 0 0 1 23.53 8.5" fill="none" stroke="#7FA6F0" stroke-width="3.5" stroke-linecap="round"/></svg>
-    <h1 style="margin:0;font-size:22px;font-weight:600">Crew Health Companion · architecture</h1>
-  </div>
-  <p class="s" style="margin-top:6px">Proposal sketch · all sensors simulated · runs offline on the crew tablet or laptop</p>
-</div>
+<!doctype html><html><head><meta charset="utf-8"><style>@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
-<!-- Device Simulator -->
-<div class="b grp sim" style="left:30px;top:90px;width:320px;height:700px">
-  <h3>Device Simulator</h3><p class="s">separate app · TypeScript (Node.js + web UI)</p>
-</div>
-<div class="box" style="left:50px;top:160px;width:280px;height:150px"><h4>Data sources</h4>
-  <ul><li>Real replay: RadLab radiation, OSDR EDA cabin CO₂ / temp / RH</li><li>Proxy: PhysioNet HR, sleep</li><li>Synthetic drift (labeled): <span class="s">BP −8–10 mmHg, core temp +1 °C …</span></li></ul></div>
-<div class="box" style="left:50px;top:330px;width:280px;height:120px"><h4>Scenario engine</h4><p style="font-size:13px">mission clock (×60) · timeline</p><p class="s">nominal · CO₂ build-up · pre-landing · orthostatic · solar event · dropout</p></div>
-<div class="box" style="left:50px;top:470px;width:280px;height:200px"><h4>Virtual devices</h4>
-  <p style="font-size:13px">BLE (standard GATT bytes)</p><p class="s code">HR strap 0x2A37 · oximeter 0x2A5E<br>BP cuff 0x2A35 · thermometer 0x2A1C<br>glucometer 0x2A18</p>
-  <p style="font-size:13px;margin-top:8px">Wi-Fi (JSON)</p><p class="s">environment node · dosimeter</p><p class="s" style="margin-top:8px">on/off · dropout · low battery</p></div>
-<div class="box" style="left:50px;top:690px;width:280px;height:80px"><h4>Operator console</h4><p class="s">run scenarios · inject a reading<br>(the demo "spacecraft" operator)</p></div>
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1600px;height:1000px;background:#1B1B1B;color:#DADADA;font-family:Inter,system-ui,sans-serif;position:relative;overflow:hidden}
+.b{position:absolute;border-radius:12px;border:2px solid;padding:12px 16px}
+.b h3{font-size:16px}.b .sub{font-size:12px;color:#CFCFCF;margin-top:3px}
+.in{position:absolute;background:#52574E;border:1px solid #868375;border-radius:9px;padding:10px 13px}
+.in h4{font-size:14px;margin-bottom:5px}
+.t{font-size:12.5px;line-height:1.55;color:#DADADA}.m{color:#CFCFCF}
+.sim{border-color:#868375}.tr{border-color:#FFC72C}.app{border-color:#7FA6F0}.gr{border-color:#CFCFCF}
+code{font-family:Menlo,monospace;font-size:11.5px;color:#DADADA}
+.tile{position:absolute;background:#3D403B;border:1px solid #868375;border-radius:8px;padding:9px 10px;width:158px;height:118px}
+.tile h5{font-size:13px;margin-bottom:4px}
+.lg{display:flex;align-items:center;gap:8px;font-size:12px;color:#DADADA;margin-top:6px}
+.sq{width:14px;height:14px;border-radius:3px;border:2px solid}
+</style></head><body>
+<div style="position:absolute;left:30px;top:22px"><div style="font-size:22px;font-weight:700">Crew Health Companion · architecture</div>
+<div style="font-size:12.5px;color:#CFCFCF;margin-top:4px">All sensors simulated · the crew loop runs offline on the tablet · the backend is the ground station · updated 2026-11-13</div></div>
 
-<!-- Broker + future -->
-<div class="b tr" style="left:395px;top:340px;width:150px;height:190px"><h3>MQTT broker</h3><p class="s">Mosquitto, local · MQTT over WebSocket</p>
-  <p class="code" style="margin-top:8px;font-size:11px">crew/a1/ble/0x2A37<br>crew/a1/ble/0x2A5E<br>module/hab/env<br>module/hab/dose<br>sim/control</p></div>
-<div class="b fut" style="left:395px;top:640px;width:150px;height:110px"><h3 style="font-size:14px">Future: real BLE devices</h3><p class="s">via Web Bluetooth · same GATT decoders</p></div>
+<!-- Simulator -->
+<div class="b sim" style="left:30px;top:90px;width:330px;height:760px"><h3>Device Simulator</h3><div class="sub">Vite page <code>simulator.html</code> · TS · in browser</div></div>
+<div class="in" style="left:48px;top:150px;width:294px;height:132px"><h4>Data sources</h4><div class="t">• Real replay: RadLab radiation, OSDR EDA cabin CO₂ / temp / RH<br>• Proxy: PhysioNet HR, sleep<br>• Synthetic drift (labeled): BP −8–10 mmHg, core temp +1 °C…</div></div>
+<div class="in" style="left:48px;top:300px;width:294px;height:118px"><h4>Scenario engine</h4><div class="t">mission clock (×60) · timeline<br><span class="m">nominal · CO₂ build-up · resting HR drift · pre-landing · solar event · dropout</span></div></div>
+<div class="in" style="left:48px;top:436px;width:294px;height:250px"><h4>Virtual devices</h4><div class="t"><b>BLE (standard GATT bytes)</b><br><span class="m">wrist bracelet: live HR 0x2A37<br>oximeter 0x2A5E · BP cuff 0x2A35<br>thermometer 0x2A1C · glucometer 0x2A18</span><br><b>Bracelet dock (JSON batch)</b><br><span class="m">sleep · resting HR · HRV · wrist SpO₂ (hint)</span><br><b>Wi-Fi (JSON)</b><br><span class="m">environment node · dosimeter</span><br><span class="m">on/off · dropout · low battery</span></div></div>
+<div class="in" style="left:48px;top:704px;width:294px;height:128px"><h4>Operator console</h4><div class="t">run scenarios · inject a reading · dock &amp; export<br><span class="m">(the demo "spacecraft" operator)<br>imports the app's domain types and codecs</span></div></div>
 
-<!-- Crew app -->
-<div class="b grp app" style="left:590px;top:90px;width:720px;height:820px">
-  <h3>Crew Health Companion</h3><p class="s">PWA · TypeScript · service worker (offline) · role views: self / CMO / flight surgeon</p>
-</div>
-<div class="box" style="left:610px;top:160px;width:300px;height:400px"><h3>Personal Health Gateway</h3><p class="s">Continua / ITU-T H.810-style</p>
-  <div class="in"><h4>Adapters (one per source)</h4><ul style="margin-top:2px"><li>BLE GATT decoder</li><li>Wi-Fi JSON (env node)</li><li>Dosimeter replay</li><li>Manual entry, PVT, questionnaires</li></ul><p class="s" style="margin-top:6px">MQTT sub (now) · Web Bluetooth (later)</p></div>
-  <div class="in"><h4>Normalizer → HL7 FHIR</h4><p style="font-size:13px">Observation + Patient + Device + gateway Device</p><p class="s">validated timestamp · unit · source label: BLE / manual / replay / proxy / synthetic</p></div></div>
-<div class="box" style="left:950px;top:160px;width:340px;height:110px"><h3>Local store</h3><p style="font-size:13px">IndexedDB · FHIR resources</p><p class="s">private by default · works with no link · personal baseline per indicator</p></div>
-<div class="box" style="left:950px;top:300px;width:340px;height:190px"><h3>Rules engine (on board)</h3><p style="font-size:13px">baseline + clinical guardrails<br>rule table (JSON):</p><p class="s">indicator · condition · status · action · escalation tier · source</p><p class="s" style="margin-top:6px">NASA-STD-3001 · clinical guideline · paper<br>no cloud · no diagnosing LLM</p></div>
-<div class="box" style="left:610px;top:590px;width:680px;height:150px"><h3>Crew UI</h3>
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
-    <div class="in"><h4>Body map</h4><p class="s">status per system · adaptation timeline</p></div>
-    <div class="in"><h4>Detail</h4><p class="s">what · why · how decided · what next</p></div>
-    <div class="in"><h4>Routine</h4><p class="s">check-in · PVT · exercise · fluids</p></div>
-    <div class="in"><h4>Escalation</h4><p class="s">self → CMO → PMC → urgent ground</p></div></div></div>
-<div class="box" style="left:950px;top:770px;width:340px;height:120px"><h3>Store-and-forward queue</h3><p style="font-size:13px">surgeon packet = FHIR Bundle</p><p class="s">sends when a link exists · shows delay<br>crew reviews before send</p></div>
+<!-- Broker -->
+<div class="b tr" style="left:394px;top:330px;width:206px;height:250px;background:#52574E"><h3>MQTT broker</h3><div class="sub">Mosquitto, local · MQTT over WebSocket</div>
+<div style="margin-top:12px;line-height:1.65"><code style="font-size:11px">crew/a1/wrist/ble/0x2A37<br>crew/a1/wrist/dock<br>crew/a1/ble/0x2A5E<br>module/hab/env<br>module/hab/dose<br>sim/control</code></div></div>
+<div class="b" style="left:400px;top:640px;width:190px;height:120px;border:2px dashed #868375;color:#CFCFCF"><h3 style="color:#CFCFCF">Future: real devices</h3><div class="t m" style="margin-top:6px">Web Bluetooth · bracelet broadcast mode · same GATT decoders</div></div>
+
+<!-- App -->
+<div class="b app" style="left:630px;top:90px;width:700px;height:760px"><h3>Crew app (on board)</h3><div class="sub">React + TS PWA · offline · rules run here · ports in <code>domain/</code>, wiring in <code>container.ts</code></div></div>
+<div class="in" style="left:648px;top:152px;width:318px;height:330px;border-color:#7FA6F0"><h4>Personal Health Gateway</h4><div class="t m">Continua / ITU-T H.810-style</div>
+<div class="t" style="margin-top:8px"><b>Adapters</b> (one per source, same <code>ReadingSource</code> port)<br>• BLE GATT decoder (bracelet, oximeter, …)<br>• Wi-Fi JSON (env node) · dosimeter replay<br>• Dock import (topic or file picker)<br>• Manual entry, PVT, questionnaires<br><span class="m">MQTT now · Web Bluetooth later</span></div>
+<div class="t" style="margin-top:10px"><b>Normalizer → HL7 FHIR</b><br>Observation + Patient + Device + gateway Device<br><span class="m">validated timestamp · unit · source label: bracelet / manual / replay / proxy / synthetic</span></div></div>
+<div class="in" style="left:986px;top:152px;width:326px;height:120px"><h4>Local store</h4><div class="t">IndexedDB · FHIR resources · pending / synced<br><span class="m">private by default · works with no link · personal baseline per indicator</span></div></div>
+<div class="in" style="left:986px;top:290px;width:326px;height:192px"><h4>Rules engine</h4><div class="t">rule table (JSON) via <code>RuleSource</code> · time via <code>Clock</code><br>personal baseline + <b>adaptation corridor</b><br>clinical guardrails · related signals<br><span class="m">indicator · condition · status · action · tier · source<br>NASA-STD-3001 · clinical guideline · paper<br>no cloud · no diagnosing LLM</span></div></div>
+<div class="in" style="left:648px;top:502px;width:664px;height:180px"><h4>Crew UI</h4></div>
+<div class="tile" style="left:662px;top:534px"><h5>Body map</h5><div class="t m">status per system · hazard lens · Body | Systems schematic</div></div>
+<div class="tile" style="left:826px;top:534px"><h5>Detail</h5><div class="t m">corridor chart · what / why / how decided / next · check-and-act</div></div>
+<div class="tile" style="left:990px;top:534px"><h5>Routine</h5><div class="t m">check-in · PVT · questionnaires · fluids · landing readiness · reporting is a win</div></div>
+<div class="tile" style="left:1154px;top:534px;width:144px"><h5>Escalation</h5><div class="t m">self → CMO → private med. conference → ground · agenda</div></div>
+<div class="in" style="left:648px;top:702px;width:664px;height:132px;border-color:#7FA6F0"><h4>Store-and-forward</h4><div class="t">SyncService: pending check-ins → <code>POST /api/checkins/sync</code> (idempotent) · on start, after save, when online<br>Surgeon packet = FHIR Bundle + approved agenda items · shows the one-way delay<br><span class="m">crew reviews before send · warnings take their own path</span></div></div>
 
 <!-- Ground -->
-<div class="b gr" style="left:1360px;top:740px;width:210px;height:150px"><h3>Ground</h3><p style="font-size:13px">Flight surgeon</p><p class="s">any FHIR-capable medical system</p><p class="s" style="margin-top:8px">private: flight medicine only</p></div>
-<p class="s" style="position:absolute;left:1360px;top:905px">one-way delay<br>Moon ~1.3 s · Mars 3–22 min</p>
+<div class="b gr" style="left:1370px;top:560px;width:200px;height:290px;background:#52574E"><h3>Ground station</h3><div class="sub">Kotlin + Spring Boot WebFlux · Java 21</div>
+<div class="t" style="margin-top:10px">• <code>/api/checkins/sync</code> <span class="m">(built)</span><br>• surgeon packet intake <span class="m">(planned)</span><br>• read-only view for the flight surgeon<br><span class="m">never needed for the crew loop · private: flight medicine only</span></div></div>
+<div style="position:absolute;left:1370px;top:864px;font-size:12px;color:#CFCFCF;line-height:1.5">one-way delay<br>Moon ~1.3 s · Mars 3–22 min</div>
 
 <!-- Legend -->
-<div class="box lgd" style="left:1360px;top:160px;width:210px;height:200px;font-size:13px">
-  <h4 style="margin-bottom:8px">Legend</h4>
-  <div><span style="border:2px solid #868375"></span>simulator (demo only)</div>
-  <div style="margin-top:6px"><span style="border:2px solid #CFCFCF"></span>transport</div>
-  <div style="margin-top:6px"><span style="border:2px solid #7FA6F0"></span>crew app (on board)</div>
-  <div style="margin-top:6px"><span style="border:4px double #DADADA"></span>ground</div>
-  <div style="margin-top:6px"><span style="border:2px dashed #868375"></span>future / user input</div>
-  <p class="s" style="margin-top:8px">contract: MQTT topics + payloads</p>
-</div>
+<div class="b" style="left:1370px;top:90px;width:200px;height:200px;border-color:#868375;background:#52574E"><h3 style="font-size:14px">Legend</h3>
+<div class="lg"><span class="sq" style="border-color:#868375"></span>simulator (demo only)</div>
+<div class="lg"><span class="sq" style="border-color:#FFC72C"></span>transport</div>
+<div class="lg"><span class="sq" style="border-color:#7FA6F0"></span>crew app (on board)</div>
+<div class="lg"><span class="sq" style="border-color:#CFCFCF"></span>ground</div>
+<div class="lg"><span class="sq" style="border-color:#868375;border-style:dashed"></span>future</div>
+<div class="t m" style="margin-top:8px">contract: MQTT topics + payloads</div></div>
 
-<svg class="wires" width="1600" height="1000" fill="none" stroke="#CFCFCF" stroke-width="2">
-  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#CFCFCF"/></marker></defs>
-  <path d="M190 310 V330" marker-end="url(#a)"/>
-  <path d="M190 450 V470" marker-end="url(#a)"/>
-  <path d="M190 690 V670" marker-end="url(#a)"/>
-  <path d="M330 570 C365 570 360 435 395 435" marker-end="url(#a)"/>
-  <path d="M545 435 C575 435 575 300 610 300" marker-end="url(#a)"/>
-  <path d="M545 695 C580 695 580 340 610 340" stroke-dasharray="6 5" marker-end="url(#a)"/>
-  <path d="M910 450 C930 450 930 215 950 215" marker-end="url(#a)"/>
-  <path d="M1120 270 V300" marker-end="url(#a)"/>
-  <path d="M1120 490 V590" marker-end="url(#a)"/>
-  <path d="M760 590 V560" stroke-dasharray="6 5" marker-end="url(#a)"/>
-  <path d="M1120 740 V770" marker-end="url(#a)"/>
-  <path d="M1290 830 H1360" marker-end="url(#a)"/>
+<svg width="1600" height="1000" style="position:absolute;left:0;top:0;pointer-events:none">
+<defs><marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10z" fill="#CFCFCF"/></marker></defs>
+<g stroke="#CFCFCF" stroke-width="2" fill="none" marker-end="url(#a)">
+<path d="M342 560 C 370 560, 366 455, 392 455"/>
+<path d="M600 455 C 620 455, 620 320, 646 320"/>
+<path d="M966 210 L 984 210"/>
+<path d="M1149 272 L 1149 288"/>
+<path d="M1149 482 L 1149 500"/>
+<path d="M980 682 L 980 700"/>
+<path d="M1312 770 C 1340 770, 1340 705, 1368 705"/>
+</g>
+<path d="M590 700 C 618 700, 618 420, 646 420" stroke="#868375" stroke-width="1.6" stroke-dasharray="5 5" fill="none" marker-end="url(#a)"/>
+<text x="350" y="610" fill="#CFCFCF" font-size="12">publish</text>
+<text x="604" y="300" fill="#CFCFCF" font-size="12">subscribe</text>
+<text x="1334" y="800" fill="#CFCFCF" font-size="12">sync</text>
 </svg>
-<p class="s" style="position:absolute;left:340px;top:592px">publish</p>
-<p class="s" style="position:absolute;left:548px;top:520px">subscribe</p>
-<p class="s" style="position:absolute;left:770px;top:566px">manual entry · PVT</p>
 </body></html>
