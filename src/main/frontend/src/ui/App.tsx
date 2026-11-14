@@ -40,7 +40,7 @@ export function App() {
           />
         </main>
       ) : (
-        <main className="layout">
+        <main className="layout layout--home">
           <SystemStatusList
             state={statuses.state}
             focusHeading={returnedHome}

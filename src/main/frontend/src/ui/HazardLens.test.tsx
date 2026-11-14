@@ -308,4 +308,15 @@ describe('Hazard lens', () => {
 
     expect(figure().querySelector('button, a')).toBeNull()
   })
+
+  it('AC22: home is Body systems, then Hazard lens, then the right column', () => {
+    const { container } = home().renderApp()
+
+    const children = [...(container.querySelector('main.layout')?.children ?? [])]
+    expect(children).toHaveLength(3)
+    expect(children[0]).toBe(list())
+    expect(children[1]).toBe(lens())
+    expect(children[2]).toHaveClass('stack')
+    expect(children[2].tagName).toBe('DIV')
+  })
 })
