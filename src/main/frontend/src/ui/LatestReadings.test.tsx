@@ -14,7 +14,7 @@ import { observationFakes, packetFakes, pvt, saveCheckIn, setup as setupApp } fr
 import { App } from './App'
 import { ServicesProvider } from './ServicesContext'
 
-const LABELS = ['SpO₂', 'Heart rate', 'Sleep', 'Mood', 'Blood pressure', 'Temperature', 'Cabin CO₂', 'Cabin temp', 'Cabin humidity', 'Dose rate', 'Reaction time']
+const LABELS = ['SpO₂', 'Heart rate', 'Sleep', 'Mood', 'Blood pressure', 'Temperature', 'Cabin CO₂', 'Cabin temp', 'Cabin humidity', 'Dose rate', '30-day dose', 'Reaction time']
 
 const stored = (id: string, recordedAt: string, fields: Partial<CheckIn>): CheckIn => ({ id, recordedAt, symptoms: [], ...fields })
 
@@ -71,7 +71,7 @@ const tile = (label: string) => {
 describe('LatestReadings', () => {
   afterEach(() => vi.useRealTimers())
 
-  it('AC1: lists the tiles in READINGS order (eleven since #25), Cabin CO₂ as a 1-h average', async () => {
+  it('AC1: lists the tiles in READINGS order (twelve with the 30-day dose), Cabin CO₂ as a 1-h average', async () => {
     setup().renderApp()
 
     const items = await tiles()

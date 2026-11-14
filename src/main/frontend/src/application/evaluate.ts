@@ -83,7 +83,7 @@ export function chartPoints(rows: Rule[], observations: Observation[], now: Date
 }
 
 /** Data age comes from the indicator's reading spec, so a PVT ages in 4 days and an SpO₂ in 24 h; the source label is the shown Observation's. */
-function evaluateSystem(system: string, rows: Rule[], observations: Observation[], now: Date): SystemStatus {
+function evaluateIndicator(system: string, rows: Rule[], observations: Observation[], now: Date): SystemStatus {
   const { indicator, validMin, validMax, label, unit } = rows[0]
   const latest = latestReading(observations, indicator, validMin, validMax, rows)
   if (!latest) return { system, state: 'no-data' }
@@ -93,7 +93,22 @@ function evaluateSystem(system: string, rows: Rule[], observations: Observation[
   return latest.rule ? { ...shown, state: latest.status, rule: latest.rule } : { ...shown, state: latest.status }
 }
 
-/** One status per distinct `system`, in table order. All rows of a system share its first row's indicator. */
+const RANK: Record<SystemStatus['state'], number> = { 'no-data': 0, stale: 1, nominal: 2, caution: 3, warning: 4 }
+
+/** A system's rows grouped by indicator, in table order. */
+export function byIndicator(rows: Rule[]): Rule[][] {
+  const groups = new Map<string, Rule[]>()
+  for (const rule of rows) groups.set(rule.indicator, [...(groups.get(rule.indicator) ?? []), rule])
+  return [...groups.values()]
+}
+
+/** The worst indicator of the system (Cabin air: CO₂, temperature, humidity); equal states keep table order. */
+function evaluateSystem(system: string, rows: Rule[], observations: Observation[], now: Date): SystemStatus {
+  const statuses = byIndicator(rows).map((group) => evaluateIndicator(system, group, observations, now))
+  return statuses.reduce((worst, status) => (RANK[status.state] > RANK[worst.state] ? status : worst))
+}
+
+/** One status per distinct `system`, in table order. */
 export function evaluate(rules: Rule[], observations: Observation[], now: Date): SystemStatus[] {
   const bySystem = new Map<string, Rule[]>()
   for (const rule of rules) bySystem.set(rule.system, [...(bySystem.get(rule.system) ?? []), rule])

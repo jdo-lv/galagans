@@ -68,7 +68,11 @@ export const DEVICES = [
     id: 'dosimeter',
     label: 'dosimeter',
     topic: 'module/hab/dose',
-    fields: [{ key: 'dose_rate_msv_day', indicator: 'doseRateMsvDay', unit: 'mSv/day', validMin: 0, validMax: 100, required: true }],
+    fields: [
+      { key: 'dose_rate_msv_day', indicator: 'doseRateMsvDay', unit: 'mSv/day', validMin: 0, validMax: 100, required: true },
+      // Accumulated blood-forming-organ dose, as a Crew Active Dosimeter reports it; the 30-day limit is in mGy-Eq.
+      { key: 'dose_30d_mgy_eq', indicator: 'bfoDose30dMgyEq', unit: 'mGy-Eq', validMin: 0, validMax: 2000, required: true },
+    ],
   },
 ] as const satisfies readonly DeviceSpec[]
 

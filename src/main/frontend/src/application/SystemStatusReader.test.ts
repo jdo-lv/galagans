@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { JsonRuleSource } from '../infrastructure/JsonRuleSource'
-import { combinedHistory, FakeRepository, FakeRuleSource } from '../test/fakes'
+import type { Observation } from '../domain/observation'
+import { combinedHistory, FakeObservationRepository, FakeRepository, FakeRuleSource } from '../test/fakes'
 import type { Placeholder, Rule } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
 import { SystemStatusReader } from './SystemStatusReader'
@@ -73,6 +74,22 @@ describe('SystemStatusReader', () => {
         { recordedAt: '2026-11-13T08:15:00Z', value: 93, source: 'manual', status: 'caution' },
         { recordedAt: '2026-11-14T09:20:00Z', value: 92, source: 'manual', status: 'caution' },
       ])
+    })
+
+    it('Cabin air charts the indicator its status shows: a 28 °C cabin → the temperature rows and points', async () => {
+      const observations = new FakeObservationRepository()
+      const env = (indicator: 'cabinCo2MmHg' | 'cabinTempC', value: number): Observation => ({
+        resourceType: 'Observation', id: `env-node:m1:${indicator}`, status: 'final', code: { text: indicator },
+        valueQuantity: { value, unit: '' }, effectiveDateTime: '2026-11-14T09:29:00Z', device: { display: 'environment node · synthetic' },
+      })
+      ;[env('cabinCo2MmHg', 2.3), env('cabinTempC', 28)].forEach((o) => observations.items.set(o.id, o))
+      const r = new SystemStatusReader(new FakeRuleSource(await new JsonRuleSource().load()), combinedHistory(store(), observations), () => NOW)
+
+      const detail = await r.readDetail('Cabin air')
+
+      expect([detail?.status.state, detail?.status.rule?.id]).toEqual(['caution', 'CAB-03'])
+      expect(detail?.rules.map((rule) => rule.id)).toEqual(['CAB-02', 'CAB-03'])
+      expect(detail?.points.map((p) => p.value)).toEqual([28])
     })
 
     it('AC32: a placeholder or unknown system has no detail', async () => {

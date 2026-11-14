@@ -8,6 +8,5 @@ export const mockStatuses: Placeholder[] = [
   { system: 'Cardiovascular', state: 'nominal', detail: 'BP 108/70', source: 'synthetic' },
   { system: 'Bone & muscle', state: 'nominal', detail: 'Exercise 540/600 min/wk', source: 'synthetic' },
   { system: 'Vision (SANS)', state: 'nominal', detail: 'self-test done Wed · no changes', source: 'synthetic' },
-  { system: 'Radiation', state: 'nominal', detail: '38% of 30-day limit', source: 'synthetic' },
   { system: 'Kidney & hydration', state: 'nominal', detail: 'Fluids 1.1/2.5 L today', source: 'synthetic' },
 ]

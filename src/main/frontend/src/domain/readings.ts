@@ -60,6 +60,16 @@ export const READINGS: ReadingSpec[] = [
   { key: 'cabinTemp', label: 'Cabin temp', unit: '°C', indicator: 'cabinTempC', validMin: 0, validMax: 50, staleAfterMs: STALE_AFTER_MS },
   { key: 'cabinHumidity', label: 'Cabin humidity', unit: '% RH', indicator: 'cabinHumidityPct', validMin: 0, validMax: 100, staleAfterMs: STALE_AFTER_MS },
   { key: 'doseRate', label: 'Dose rate', unit: 'mSv/day', indicator: 'doseRateMsvDay', validMin: 0, validMax: 100, staleAfterMs: STALE_AFTER_MS },
+  {
+    key: 'dose30d',
+    label: '30-day dose',
+    labelSuffix: '(BFO)',
+    unit: 'mGy-Eq',
+    indicator: 'bfoDose30dMgyEq',
+    validMin: 0,
+    validMax: 2000,
+    staleAfterMs: STALE_AFTER_MS,
+  },
   // Stale after 4 d: team heuristic from the every-4th-day PVT schedule (health-indicators §13 [S28]).
   {
     key: 'pvt',

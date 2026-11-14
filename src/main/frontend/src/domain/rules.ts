@@ -14,6 +14,7 @@ export type Indicator =
   | 'cabinTempC'
   | 'cabinHumidityPct'
   | 'doseRateMsvDay'
+  | 'bfoDose30dMgyEq'
 
 export type Status = 'nominal' | 'caution' | 'warning'
 

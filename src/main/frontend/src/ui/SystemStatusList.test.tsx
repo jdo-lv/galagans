@@ -36,8 +36,8 @@ describe('SystemStatusList', () => {
     setup().renderApp()
 
     await vi.waitFor(() => expect(row()).toHaveTextContent('No data'))
-    // Respiratory, Cognition (rule COG-01, #17) and Cabin air (rule CAB-01), all with no data.
-    expect(within(list()).getAllByRole('listitem')).toHaveLength(3)
+    // Respiratory, Cognition (rule COG-01, #17), Cabin air (CAB rules) and Radiation (RAD rules), all with no data.
+    expect(within(list()).getAllByRole('listitem')).toHaveLength(4)
     expect(row()).toHaveTextContent('Respiratory')
     expectNoStatusIcon(row())
   })
@@ -195,7 +195,7 @@ describe('SystemStatusList', () => {
 describe('Body systems with placeholders (#4)', () => {
   const systemNames = (rows: HTMLElement[]) => rows.map((r) => r.querySelector('.status-system')?.textContent)
 
-  it('AC1: lists Respiratory (No data) then the nine placeholders in mockup order', async () => {
+  it('AC1: lists the rule-driven systems (No data) then the placeholders in mockup order', async () => {
     setup({ placeholders: mockStatuses }).renderApp()
 
     const rows = await within(list()).findAllByRole('listitem')
@@ -203,18 +203,18 @@ describe('Body systems with placeholders (#4)', () => {
       'Respiratory',
       'Cognition',
       'Cabin air',
+      'Radiation',
       'Sleep',
       'Immune',
       'Cardiovascular',
       'Bone & muscle',
       'Vision (SANS)',
-      'Radiation',
       'Kidney & hydration',
     ])
     expect(within(rows[0]).getByText('No data')).toBeInTheDocument()
   })
 
-  it('AC2: SpO₂ 88 warns on Respiratory while the placeholders stay nominal (Cognition and Cabin air have no data)', async () => {
+  it('AC2: SpO₂ 88 warns on Respiratory while the placeholders stay nominal (Cognition, Cabin air and Radiation have no data)', async () => {
     setup({ placeholders: mockStatuses }).renderApp()
     await submitSpo2(88)
 
@@ -222,9 +222,8 @@ describe('Body systems with placeholders (#4)', () => {
     const [respiratory, ...others] = within(list()).getAllByRole('listitem')
     expectNoExplanation(respiratory)
     expect(others).toHaveLength(9)
-    const [cognition, cabinAir, ...placeholders] = others
-    expect(within(cognition).getByText('No data')).toBeInTheDocument()
-    expect(within(cabinAir).getByText('No data')).toBeInTheDocument()
+    const [cognition, cabinAir, radiation, ...placeholders] = others
+    for (const row of [cognition, cabinAir, radiation]) expect(within(row).getByText('No data')).toBeInTheDocument()
     placeholders.forEach((r) => expect(within(r).getByText('✓ Nominal')).toBeInTheDocument())
   })
 
@@ -234,7 +233,6 @@ describe('Body systems with placeholders (#4)', () => {
     ['Cardiovascular', 'BP 108/70'],
     ['Bone & muscle', 'Exercise 540/600 min/wk'],
     ['Vision (SANS)', 'self-test done Wed · no changes'],
-    ['Radiation', '38% of 30-day limit'],
     ['Kidney & hydration', 'Fluids 1.1/2.5 L today'],
   ])('AC3: %s shows ✓ Nominal and "%s · synthetic"', async (system, detail) => {
     setup({ placeholders: mockStatuses }).renderApp()
@@ -348,13 +346,13 @@ describe('Cognition from the PVT (#17)', () => {
     await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CAUTION'))
   })
 
-  it('AC7: no PVT is no data; the seven placeholders stay', async () => {
+  it('AC7: no PVT is no data; the six placeholders stay', async () => {
     await show([])
 
     await vi.waitFor(() => expect(cognition()).toHaveTextContent('No data'))
     expect(list()).not.toHaveTextContent('PVT 268 ms · within your baseline')
-    const placeholders = within(list()).getAllByRole('listitem').slice(3)
-    expect(placeholders).toHaveLength(7)
+    const placeholders = within(list()).getAllByRole('listitem').slice(4)
+    expect(placeholders).toHaveLength(6)
     placeholders.forEach((r) => expect(r).toHaveTextContent('synthetic'))
   })
 
