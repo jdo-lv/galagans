@@ -163,8 +163,13 @@
 }
 
 @media (max-width: 599px) {
+  .check-in__top {
+    flex-wrap: wrap;
+  }
+
+  /* Two columns keep "4 · Sleepiness" whole at 390 px. */
   .step-tabs {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   /* Top to bottom: the Skip line, Next or Save full width, then Back and Skip side by side. */
