@@ -33,7 +33,7 @@ Nine big buttons with the S56 words under 1, 3, 5, 7 and 9; the pick is the inve
 ![Step 5](img/29-step-5.png)
 
 ### Step 6, Headache picked
-Symptoms toggle; "None of these" and any symptom cancel each other. "Save check-in" stores one check-in and returns home with focus on Body systems.
+Symptoms toggle; "None of these" and any symptom cancel each other. "Save check-in" stores one check-in and shows its completion ([#40](40-reporting-win.md)); "Done" returns home with focus on Body systems.
 ![Step 6](img/29-step-6.png)
 
 ### Phone (390 px)
