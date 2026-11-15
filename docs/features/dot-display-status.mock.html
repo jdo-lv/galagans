@@ -15,7 +15,7 @@ body { margin: 0; }
 table { width: 100%; border-collapse: collapse; font-size: var(--text-body); }
 th, td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-divider); }
 th { color: var(--color-text-muted); font-weight: 500; }
-td.num { font-family: var(--font-data); }
+td.num { font-family: var(--font-data); white-space: nowrap; }
 .pct { font-family: var(--font-data); font-size: var(--text-value); }
 </style></head>
 <body><div class="sim">
@@ -29,20 +29,20 @@ td.num { font-family: var(--font-data); }
     <div class="panel" style="margin-top:var(--space-3)"><svg viewBox="0 0 320 172" role="img" aria-label="3 of 6 dots, Check">
       <circle class="dot dot--yellow" cx="30" cy="86" r="23"/><circle class="dot dot--yellow" cx="82" cy="86" r="23"/><circle class="dot dot--yellow" cx="134" cy="86" r="23"/>
       <circle class="dot dot--empty" cx="186" cy="86" r="21.5"/><circle class="dot dot--empty" cx="238" cy="86" r="21.5"/><circle class="dot dot--empty" cx="290" cy="86" r="21.5"/>
-      <text class="word" x="160" y="136">Check</text><text class="age" x="160" y="160">updated 1 s ago</text></svg></div>
+      <text class="word" x="160" y="136">Check</text></svg></div>
     <p style="margin-top:var(--space-3)">Health status <span class="pct">46</span> % · worst level Check · 8 of 10 metrics nominal</p>
   </div>
-  <table><thead><tr><th>Metric</th><th>Value</th><th>Level</th><th>Rule</th><th>Reading</th></tr></thead><tbody>
-    <tr><td>SpO₂</td><td class="num">92 %</td><td>Check</td><td class="num">SPO-01</td><td class="num">09:31:06</td></tr>
-    <tr><td>Heart rate</td><td class="num">104 bpm</td><td>Check</td><td class="num">CV-01</td><td class="num">09:31:07</td></tr>
-    <tr><td>Systolic</td><td class="num">110 mmHg</td><td>Nominal</td><td></td><td class="num">09:31:07</td></tr>
-    <tr><td>Diastolic</td><td class="num">69 mmHg</td><td>Nominal</td><td></td><td class="num">09:31:07</td></tr>
-    <tr><td>Temperature</td><td class="num">36.9 °C</td><td>Nominal</td><td></td><td class="num">09:31:06</td></tr>
-    <tr><td>CO₂ (1-h avg)</td><td class="num">2.3 mmHg</td><td>Nominal</td><td></td><td class="num">09:31:07</td></tr>
-    <tr><td>Cabin temp</td><td class="num">22.3 °C</td><td>Nominal</td><td></td><td class="num">09:31:07</td></tr>
-    <tr><td>Cabin humidity</td><td class="num">46 % RH</td><td>Nominal</td><td></td><td class="num">09:31:07</td></tr>
-    <tr><td>Dose rate</td><td class="num">0.51 mSv/day</td><td>Nominal</td><td></td><td class="num">09:31:06</td></tr>
-    <tr><td>30-day BFO dose</td><td class="num">96.2 mGy-Eq</td><td>Nominal</td><td></td><td class="num">09:31:06</td></tr>
+  <table><thead><tr><th>Metric</th><th>Value</th><th>Level</th><th>Rule</th><th>Reading</th><th>Source</th></tr></thead><tbody>
+    <tr><td>SpO₂</td><td class="num">92 %</td><td>Check</td><td class="num">SPO-01</td><td class="num">09:31:06</td><td>oximeter · synthetic</td></tr>
+    <tr><td>Heart rate</td><td class="num">104 bpm</td><td>Check</td><td class="num">CV-01</td><td class="num">09:31:07</td><td>bracelet · synthetic</td></tr>
+    <tr><td>Systolic</td><td class="num">110 mmHg</td><td>Nominal</td><td></td><td class="num">09:31:07</td><td>BP cuff · synthetic</td></tr>
+    <tr><td>Diastolic</td><td class="num">69 mmHg</td><td>Nominal</td><td></td><td class="num">09:31:07</td><td>BP cuff · synthetic</td></tr>
+    <tr><td>Temperature</td><td class="num">36.9 °C</td><td>Nominal</td><td></td><td class="num">09:31:06</td><td>thermometer · synthetic</td></tr>
+    <tr><td>CO₂ (1-h avg)</td><td class="num">2.3 mmHg</td><td>Nominal</td><td></td><td class="num">09:31:07</td><td>environment node · synthetic</td></tr>
+    <tr><td>Cabin temp</td><td class="num">22.3 °C</td><td>Nominal</td><td></td><td class="num">09:31:07</td><td>environment node · synthetic</td></tr>
+    <tr><td>Cabin humidity</td><td class="num">46 % RH</td><td>Nominal</td><td></td><td class="num">09:31:07</td><td>environment node · synthetic</td></tr>
+    <tr><td>Dose rate</td><td class="num">0.51 mSv/day</td><td>Nominal</td><td></td><td class="num">09:31:06</td><td>dosimeter · synthetic</td></tr>
+    <tr><td>30-day BFO dose</td><td class="num">96.2 mGy-Eq</td><td>Nominal</td><td></td><td class="num">09:31:06</td><td>dosimeter · synthetic</td></tr>
   </tbody></table>
 </section>
 <div class="sim-devices"><section class="card sim-device"><div class="sim-device__top"><h2>Pulse oximeter</h2><span class="tag">sending every 1 s · Check</span></div><p class="muted">… device sections from #43 follow …</p></section></div>
