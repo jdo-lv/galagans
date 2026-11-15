@@ -115,7 +115,7 @@ page = await open({ hash: '#/add', theme: 'dark', width: 375, height: 812 })
 await shotBar(page, img('bar-375'))
 console.log('375 dark', JSON.stringify(await measure(page)))
 // The current + has its own ring; under keyboard focus the focus ring (--color-focus, the text colour) replaces it.
-await page.evaluate(`document.querySelector('.nav-bar a[href="#/statistics"]').focus()`)
+await page.evaluate(`document.querySelector('.nav-bar a[href="#/stats"]').focus()`)
 for (const type of ['keyDown', 'keyUp']) await page.send('Input.dispatchKeyEvent', { type, key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9 })
 await page.sleep(300)
 const ring = await page.evaluate(`(() => {

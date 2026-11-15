@@ -6,6 +6,13 @@
   min-height: var(--target-min);
 }
 
+/* The back link and head sit in the shell's 200 px side panel (#52), so the badge and name may wrap */
+.detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
 .detail-head {
   display: flex;
   flex-direction: column;
@@ -14,6 +21,7 @@
 
 .detail-title {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
 }

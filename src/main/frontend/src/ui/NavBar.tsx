@@ -1,5 +1,5 @@
 import { AddEntryIcon, GroundLinkIcon, HomeIcon, RewardsIcon, StatisticsIcon, type AppIcon } from './icons'
-import { ADD_HASH, GROUND_HASH, STATISTICS_HASH, type Route } from './useHashRoute'
+import { ADD_HASH, GROUND_HASH, STATS_HASH, type Route } from './useHashRoute'
 
 /** `page`: the screen the link opens. `section`: screens reached from it, which mark it `aria-current="true"`. */
 type Destination = { href: string; page: Route['kind']; section?: Route['kind'][] }
@@ -9,7 +9,7 @@ type Item = { label: string; Icon: AppIcon; to?: Destination; centre?: boolean }
 // One row per item in the bar (ideas/ui-guidelines.md §5 "Navigation bar"): icon over word, the word names the link.
 const ITEMS: Item[] = [
   { label: 'Home', Icon: HomeIcon, to: { href: '#/', page: 'home' } },
-  { label: 'Stats', Icon: StatisticsIcon, to: { href: STATISTICS_HASH, page: 'statistics' } },
+  { label: 'Stats', Icon: StatisticsIcon, to: { href: STATS_HASH, page: 'stats' } },
   { label: 'Add entry', Icon: AddEntryIcon, to: { href: ADD_HASH, page: 'add', section: ['check-in', 'symptoms'] }, centre: true },
   { label: 'Rewards', Icon: RewardsIcon },
   { label: 'Ground', Icon: GroundLinkIcon, to: { href: GROUND_HASH, page: 'ground', section: ['packet'] } },

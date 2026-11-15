@@ -1,7 +1,10 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { reading, setup } from '../test/renderApp'
+import { pvt, reading, setup } from '../test/renderApp'
+
+/** A check-in and a PVT this morning: nothing owed, so Home shows the Reaction test card (#52). */
+const NOMINAL = [{ id: 'c', recordedAt: '2026-11-14T07:30:00Z', symptoms: [] }, pvt('p', '2026-11-14T07:40:00Z', 268)]
 
 describe('Voice control (F25)', () => {
   beforeEach(() => {
@@ -75,27 +78,28 @@ describe('Voice control (F25)', () => {
   })
 
   it('tapping "Start reaction test" while voice is on turns voice off', async () => {
-    const { renderApp } = setup()
+    const { renderApp } = setup({ seed: NOMINAL })
     renderApp()
     const mic = screen.getByRole('button', { name: 'Voice control' })
     await userEvent.click(mic)
     await screen.findByText('Voice: listening')
 
-    await userEvent.click(screen.getByRole('button', { name: 'Start reaction test' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Start reaction test' }))
 
     await waitFor(() => expect(mic).toHaveAttribute('aria-pressed', 'false'))
     expect(screen.queryByText(/^Voice:/)).not.toBeInTheDocument()
   })
 
   it('a check-in confirmed by voice is stored and Today\'s routine shows the morning check-in done', async () => {
-    const { voice, repository, renderApp } = setup()
+    // A PVT this morning, so once the check-in is stored nothing is owed and Home shows Today's routine (#52).
+    const { voice, repository, renderApp } = setup({ seed: [pvt('p', '2026-11-14T07:40:00Z', 268)] })
     voice.input.said = ['I slept six hours', 'yes']
     voice.interpreter.commands['I slept six hours'] = { kind: 'checkin', values: { sleepHours: 6 } }
     renderApp()
 
     await userEvent.click(screen.getByRole('button', { name: 'Voice control' }))
 
-    await waitFor(() => expect([...repository.items.values()].map((i) => i.checkIn.sleepHours)).toEqual([6]))
+    await waitFor(() => expect([...repository.items.values()].map((i) => i.checkIn.sleepHours)).toEqual([undefined, 6]))
     await waitFor(() => expect(screen.getByText('Morning check-in').closest('li')).toHaveClass('routine-item--done'))
   })
 

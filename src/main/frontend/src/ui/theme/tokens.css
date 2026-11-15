@@ -79,7 +79,11 @@
   --radius-item: 12px;
   --radius-tag: 6px;
   --radius-pill: 999px;
+  --radius-panel: 24px; /* the app shell's side and main panels (#52) */
   --content-max: 1200px;
+  --shell-gap: var(--space-2); /* between the shell's panels and the cards inside them */
+  --shell-side: 200px; /* side panel width from 600 px */
+  --shell-nav-min: calc(var(--target-min) + 2 * var(--space-2) + 2px + 2 * var(--space-3)); /* the fixed navigation bar's strip */
   --focus-ring: 2px solid var(--color-focus);
   --transition-theme: background-color 0.25s, color 0.25s, border-color 0.25s;
 }

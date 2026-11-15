@@ -25,7 +25,7 @@ describe('Navigation bar (#57)', () => {
     expect(items[0]).toBe(barLink('Home'))
     expect(items[0]).toHaveAttribute('href', '#/')
     expect(items[1]).toBe(barLink('Stats'))
-    expect(items[1]).toHaveAttribute('href', '#/statistics')
+    expect(items[1]).toHaveAttribute('href', '#/stats')
     expect(items[2]).toBe(barLink('Add entry'))
     expect(items[2]).toHaveAttribute('href', '#/add')
     expect(items[3].tagName).toBe('SPAN')
@@ -96,7 +96,7 @@ describe('Navigation bar (#57)', () => {
 
   it.each([
     ['#/', 'Home', 'page'],
-    ['#/statistics', 'Stats', 'page'],
+    ['#/stats', 'Stats', 'page'],
     ['#/add', 'Add entry', 'page'],
     ['#/check-in', 'Add entry', 'true'],
     ['#/symptoms', 'Add entry', 'true'],
