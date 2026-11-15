@@ -2,7 +2,8 @@ import { PersonalHealthGateway } from '../application/PersonalHealthGateway'
 import { DeviceLink } from '../infrastructure/DeviceLink'
 import { WebSocketReadingSource } from '../infrastructure/WebSocketReadingSource'
 import { FakeObservationRepository, FakeWebSocket, fakeWebSocketCtor } from '../test/fakes'
-import { deviceMessage, nominalValues, SIM_DEVICES } from './simDevices'
+import { deviceMessage } from '../domain/levelValues'
+import { SIM_DEVICES } from './simDevices'
 import { WebSocketPublisher } from './WebSocketPublisher'
 
 beforeEach(() => FakeWebSocket.reset())
@@ -27,7 +28,7 @@ describe('simulator → gateway contract', () => {
     const oximeter = SIM_DEVICES[0]
     const { publisher, repository, deliver } = wire(oximeter)
 
-    publisher.publish(oximeter.device.topic, deviceMessage(oximeter, { spo2_pct: 91, pulse_bpm: 61 }, now, () => 'r-1'))
+    publisher.publish(oximeter.device.topic, deviceMessage(oximeter.device, { spo2_pct: 91, pulse_bpm: 61 }, now, () => 'r-1'))
     deliver()
 
     await vi.waitFor(() => expect(repository.items.size).toBe(2))
@@ -40,13 +41,14 @@ describe('simulator → gateway contract', () => {
   it.each(SIM_DEVICES.map((s) => [s.name, s] as const))('%s: the nominal reading is stored field by field', async (_, sim) => {
     const { publisher, repository, deliver } = wire(sim)
 
-    publisher.publish(sim.device.topic, deviceMessage(sim, nominalValues(sim), now, () => 'r-1'))
+    const nominal = Object.fromEntries(sim.fields.map(({ field }) => [field.key, field.nominal]))
+    publisher.publish(sim.device.topic, deviceMessage(sim.device, nominal, now, () => 'r-1'))
     deliver()
 
     await vi.waitFor(() => expect(repository.items.size).toBe(sim.fields.length))
-    for (const { field, nominal } of sim.fields) {
+    for (const { field } of sim.fields) {
       const stored = repository.items.get(`${sim.device.id}:r-1:${field.indicator}`)
-      expect([stored?.valueQuantity.value, stored?.device.display]).toEqual([nominal, `${sim.device.label} · synthetic`])
+      expect([stored?.valueQuantity.value, stored?.device.display]).toEqual([field.nominal, `${sim.device.label} · synthetic`])
     }
   })
 })

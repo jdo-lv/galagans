@@ -1,4 +1,4 @@
-/* Device Simulator (mock ideas/mockups/src/12-simulator-device-sections.html). Operator page: no health levels, so neutral greys only. */
+/* Device Simulator (mock docs/features/img/43-mock.png on ideas/mockups/src/12-simulator-device-sections.html). Operator page: level buttons pick a range, so neutral greys only, never a level colour. */
 .sim {
   max-width: var(--content-max);
   margin: 0 auto;
@@ -66,6 +66,52 @@
 .sim-metrics .field-tile {
   min-height: 0;
   padding: var(--space-3) var(--space-4);
+  cursor: default;
+}
+
+/* Level picker: one pill per level; the pressed one inverts, an unavailable one fades. */
+.sim-levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.sim-levels legend {
+  width: 100%;
+  margin-bottom: var(--space-2);
+  padding: 0;
+  color: var(--color-text-muted);
+}
+
+.sim-levels button {
+  min-height: var(--target-min);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-edge);
+  border-radius: var(--radius-pill);
+  background: var(--color-inset);
+  color: inherit;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.sim-levels button[aria-pressed='true'] {
+  border-color: transparent;
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+}
+
+.sim-levels button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sim-levels button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .sim-send {
