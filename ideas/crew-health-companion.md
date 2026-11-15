@@ -109,7 +109,7 @@ A reading inside the corridor stays quiet and the explanation says "expected for
 
 ### Hazard lens (body-map filter)
 
-**What it shows.** A row of five toggles above the body map, one per HRP hazard: Radiation, Isolation & confinement, Distance from Earth, Gravity fields, Hostile/closed environment. Choosing a hazard highlights the body systems it affects and dims the rest. One caption per hazard says what it does, which systems it affects and which checks in the app watch it, with its source. Built in issue #14; marking the Latest readings tiles ("indicators") is a follow-up.
+**What it shows.** A row of five toggles above the body map, one per HRP hazard: Radiation, Isolation & confinement, Distance from Earth, Gravity fields, Hostile/closed environment. Choosing a hazard highlights the body systems it affects and dims the rest. One caption per hazard says what it does, which systems it affects and which checks in the app watch it, with its source. Built in issue #14; since #52 it sits on Stats and marks the Body systems rows only (the body figure stays on Home). Marking the readings tiles ("indicators") is a follow-up.
 
 **Why.** The five hazards are NASA's own framing and the first link in the challenge's Resources tab ([challenge.md](../challenge.md)). The lens shows the judges their framing working in the product.
 
