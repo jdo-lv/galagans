@@ -49,7 +49,7 @@ function renderSimulator(publisher = new FakePublisher(), random: () => number =
 const section = (name: string) => screen.getByRole('region', { name })
 const every = (device: string) => within(section(device)).getByLabelText(/Every/)
 const button = (device: string, name: string) => within(section(device)).getByRole('button', { name })
-const levelButtons = (device: string) => within(within(section(device)).getByRole('group', { name: 'Level' })).getAllByRole('button')
+const levelButtons = (device: string) => within(within(section(device)).getByRole('group', { name: /^Level/ })).getAllByRole('button')
 const statusLine = (device: string) => within(section(device)).getByRole('status')
 const tag = (device: string) => section(device).querySelector('.tag')
 const tiles = (device: string) =>
@@ -78,7 +78,7 @@ describe('SimulatorApp', () => {
     expect(linkPill()).toHaveTextContent(`Device link ${URL} · connected`)
     expect(screen.getByText('All data simulated')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Switch to (dark|light) mode/ })).toBeInTheDocument()
-    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(DEVICES)
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Scenarios', ...DEVICES])
 
     publisher.setState('disconnected')
     expect(linkPill()).toHaveTextContent(`Device link ${URL} · disconnected`)
@@ -443,5 +443,234 @@ describe('SimulatorApp Dot display card (#45)', () => {
 
     expect(statusText()).toBe('Health status 72 % · no metrics in payload')
     expect(panelLabel()).toBe('5 of 6 dots, To do')
+  })
+})
+
+describe('SimulatorApp Scenarios card (#53)', () => {
+  const CAPTION = 'CO₂ rises, then after 20 s SpO₂ drops and heart rate rises · synthetic demo timeline, not a physiological model'
+  const DRIVEN = ['Pulse oximeter', 'Wrist bracelet', 'BP cuff', 'Environment node']
+  const AVAILABLE: Record<string, string[]> = {
+    'Pulse oximeter': ['Nominal', 'Check', 'Emergency'],
+    'Wrist bracelet': ['Nominal', 'Check'],
+    'BP cuff': ['Nominal', 'Watch', 'Check', 'Treat', 'Emergency'],
+    'Environment node': ['Nominal', 'Watch', 'Check'],
+  }
+
+  const card = () => screen.getByRole('region', { name: 'Scenarios' })
+  const fault = () => within(card()).getByRole('checkbox', { name: 'Cabin atmosphere fault' })
+  const toggle = () => fireEvent.click(fault())
+  const stepLine = () => within(card()).queryByText(/^Step/)
+  const legend = (device: string) => section(device).querySelector('legend')?.textContent
+  const nominal = (value: unknown, n: number) => between(value, n * 0.97, n * 1.03)
+  const int = (value: unknown, min: number, max: number) => Number.isInteger(value) && between(value, min, max)
+  const oneDecimal = (value: unknown, min: number, max: number) =>
+    between(value, min, max) && Math.round((value as number) * 10) / 10 === value
+
+  /** Heart-rate fields of the three devices that carry one. */
+  const heartRates = (publisher: FakePublisher) => [
+    ...publisher.payloads('crew/a1/oximeter').map((p) => p.pulse_bpm),
+    ...publisher.payloads('crew/a1/wrist/hr').map((p) => p.hr_bpm),
+    ...publisher.payloads('crew/a1/bp').map((p) => p.pulse_bpm),
+  ]
+  const spo2 = (publisher: FakePublisher) => publisher.payloads('crew/a1/oximeter').map((p) => p.spo2_pct)
+  const co2 = (publisher: FakePublisher) => publisher.payloads('module/hab/env').map((p) => p.co2_mmhg_1h)
+
+  function expectStep1(publisher: FakePublisher, count: number) {
+    expect(co2(publisher)).toHaveLength(count)
+    expect(co2(publisher).every((v) => oneDecimal(v, 3.2, 3.8))).toBe(true)
+    expect(publisher.payloads('module/hab/env').every((p) => nominal(p.temp_c, 22) && nominal(p.rh_pct, 45))).toBe(true)
+    expect(spo2(publisher).every((v) => nominal(v, 97))).toBe(true)
+    expect(heartRates(publisher)).toHaveLength(3 * count)
+    expect(heartRates(publisher).every((v) => nominal(v, 63))).toBe(true)
+  }
+
+  function expectStep2(publisher: FakePublisher, count: number) {
+    expect(spo2(publisher)).toHaveLength(count)
+    expect(spo2(publisher).every((v) => int(v, 91, 93))).toBe(true)
+    expect(heartRates(publisher)).toHaveLength(3 * count)
+    expect(heartRates(publisher).every((v) => int(v, 105, 115))).toBe(true)
+    expect(co2(publisher).every((v) => oneDecimal(v, 3.2, 3.8))).toBe(true)
+    expect(publisher.payloads('crew/a1/bp').every((p) => nominal(p.systolic_mmhg, 108) && nominal(p.diastolic_mmhg, 70))).toBe(true)
+  }
+
+  function expectNominal(publisher: FakePublisher) {
+    expect(spo2(publisher).length).toBeGreaterThan(0)
+    expect(spo2(publisher).every((v) => nominal(v, 97))).toBe(true)
+    expect(heartRates(publisher).every((v) => nominal(v, 63))).toBe(true)
+    expect(co2(publisher).every((v) => nominal(v, 2.3))).toBe(true)
+  }
+
+  it('AC1: a Scenarios card above the device sections with one unchecked scenario and its caption', () => {
+    renderSimulator()
+
+    expect(card()).toHaveClass('card')
+    expect(card().compareDocumentPosition(section('Pulse oximeter')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(within(card()).getAllByRole('checkbox')).toEqual([fault()])
+    expect(fault()).not.toBeChecked()
+    expect(within(card()).getByText(CAPTION)).toBeInTheDocument()
+    expect(fault()).toHaveAccessibleDescription(CAPTION)
+  })
+
+  it('AC2, AC3: before 20 s CO₂ is 3.2–3.8 and everything else Nominal', () => {
+    const { publisher } = renderSimulator()
+    toggle()
+    publisher.clear()
+
+    advance(19_000)
+
+    expectStep1(publisher, 19)
+  })
+
+  it('AC4, AC5: from exactly 20 s SpO₂ 91–93 and heart rate 105–115, held at 120 s', () => {
+    const { publisher } = renderSimulator()
+    toggle()
+    advance(19_000)
+    publisher.clear()
+
+    advance(1_000)
+    expectStep2(publisher, 1)
+
+    publisher.clear()
+    advance(100_000)
+    expectStep2(publisher, 100)
+  })
+
+  it('AC6: the status line follows the steps and goes when unchecked', () => {
+    renderSimulator()
+    expect(stepLine()).toBeNull()
+
+    toggle()
+    expect(stepLine()).toHaveTextContent('Step 1 / 2 · CO₂ rising')
+    advance(19_999)
+    expect(stepLine()).toHaveTextContent('Step 1 / 2 · CO₂ rising')
+    advance(1)
+    expect(stepLine()).toHaveTextContent('Step 2 / 2 · SpO₂ and heart rate')
+
+    toggle()
+    expect(fault()).not.toBeChecked()
+    expect(stepLine()).toBeNull()
+  })
+
+  it('AC7: the driven pickers are set by the scenario; Thermometer and Dosimeter are unchanged', () => {
+    renderSimulator()
+    toggle()
+
+    for (const device of DRIVEN) {
+      const buttons = levelButtons(device)
+      expect(buttons.every((b) => (b as HTMLButtonElement).disabled && b.getAttribute('title') === 'Set by scenario')).toBe(true)
+      expect(buttons.map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false', 'false', 'false'])
+      expect(legend(device)).toBe('Level · Set by scenario')
+      expect(tag(device)).toHaveTextContent('sending every 1 s · Scenario')
+    }
+    for (const device of ['Thermometer', 'Dosimeter']) {
+      expect(legend(device)).toBe('Level')
+      expect(button(device, 'Nominal')).toBeEnabled()
+      expect(button(device, 'Check')).toBeEnabled()
+      expect(tag(device)).toHaveTextContent('sending every 1 s · Nominal')
+    }
+    fireEvent.click(button('Thermometer', 'Check'))
+    expect(tag('Thermometer')).toHaveTextContent('sending every 1 s · Check')
+  })
+
+  it('AC8: a BP cuff at Watch goes back to Nominal systolic when the scenario starts', () => {
+    const { publisher } = renderSimulator()
+    fireEvent.click(button('BP cuff', 'Watch'))
+    toggle()
+    publisher.clear()
+
+    advance(30_000)
+
+    const systolic = publisher.payloads('crew/a1/bp').map((p) => p.systolic_mmhg)
+    expect(systolic).toHaveLength(30)
+    expect(systolic.every((v) => int(v, 105, 111))).toBe(true)
+  })
+
+  it.each([5_000, 25_000])('AC9: unchecking at %i ms brings the driven devices back to Nominal and their pickers back', (at) => {
+    const { publisher } = renderSimulator()
+    fireEvent.click(button('Pulse oximeter', 'Check'))
+    toggle()
+    advance(at)
+
+    toggle()
+    publisher.clear()
+    advance(3_000)
+
+    expectNominal(publisher)
+    for (const device of DRIVEN) {
+      const buttons = levelButtons(device)
+      expect(buttons.map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false', 'false', 'false'])
+      for (const b of buttons) {
+        const on = AVAILABLE[device].includes(b.textContent!)
+        expect(b).toHaveProperty('disabled', !on)
+        expect(b.getAttribute('title')).toBe(on ? null : 'No rule row for this level')
+      }
+      expect(legend(device)).toBe('Level')
+      expect(tag(device)).toHaveTextContent('sending every 1 s · Nominal')
+    }
+  })
+
+  it('AC10: unchecked at 10 s, step 2 never fires', () => {
+    const { publisher } = renderSimulator()
+    toggle()
+    advance(10_000)
+    toggle()
+    publisher.clear()
+
+    advance(20_000)
+
+    expectNominal(publisher)
+    expect(stepLine()).toBeNull()
+  })
+
+  it('AC11: a stopped device stays silent; Start and Send now during step 2 use step 2', () => {
+    const { publisher } = renderSimulator()
+    fireEvent.click(button('Pulse oximeter', 'Stop'))
+    toggle()
+    publisher.clear()
+
+    advance(21_000)
+    expect(publisher.payloads('crew/a1/oximeter')).toHaveLength(0)
+
+    publisher.clear()
+    fireEvent.click(button('Pulse oximeter', 'Start'))
+    fireEvent.click(button('Wrist bracelet', 'Send now'))
+    fireEvent.click(button('BP cuff', 'Send now'))
+    fireEvent.click(button('Environment node', 'Send now'))
+    expectStep2(publisher, 1)
+  })
+
+  it('AC12: checking again restarts the timeline', () => {
+    const { publisher } = renderSimulator()
+    toggle()
+    advance(25_000)
+    toggle()
+    toggle()
+    expect(stepLine()).toHaveTextContent('Step 1 / 2 · CO₂ rising')
+    publisher.clear()
+
+    advance(19_000)
+    expectStep1(publisher, 19)
+
+    publisher.clear()
+    advance(1_000)
+    expectStep2(publisher, 1)
+    expect(stepLine()).toHaveTextContent('Step 2 / 2 · SpO₂ and heart rate')
+  })
+
+  it('AC14: with the link disconnected the steps still advance and every device says not sent', () => {
+    renderSimulator(new FakePublisher('disconnected'))
+    toggle()
+
+    advance(20_000)
+
+    expect(stepLine()).toHaveTextContent('Step 2 / 2 · SpO₂ and heart rate')
+    for (const device of DEVICES) expect(statusLine(device)).toHaveTextContent('Not sent · device link disconnected 09:30:20')
+  })
+
+  it('the step timers stop on unmount', () => {
+    const { unmount } = renderSimulator()
+    toggle()
+    unmount()
+    expect(vi.getTimerCount()).toBe(0)
   })
 })

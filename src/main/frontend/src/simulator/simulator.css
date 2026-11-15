@@ -152,6 +152,47 @@
   margin-left: auto;
 }
 
+/* Scenarios card (mock docs/features/img/53-mock.png): a checkbox per scenario, its caption and the step in force. */
+.sim-scenarios {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.sim-scenarios .card-heading {
+  margin: 0;
+}
+
+.sim-scenario {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.sim-scenario p {
+  margin: 0;
+}
+
+.sim-scenario input {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  accent-color: var(--color-inverse-bg);
+  cursor: pointer;
+}
+
+.sim-scenario input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.sim-scenario label {
+  display: block;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* Dot display card (mock docs/features/img/dot-display-status-mock.png): the panel and status line beside the metric table. */
 .sim-display {
   display: grid;
