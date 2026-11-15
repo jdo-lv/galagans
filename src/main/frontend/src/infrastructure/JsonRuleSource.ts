@@ -21,6 +21,7 @@ const INDICATORS: Indicator[] = [
   'doseRateMsvDay',
   'bfoDose30dMgyEq',
 ]
+const LEVELS: Rule['status'][] = ['watch', 'check', 'treat', 'emergency']
 const THRESHOLDS = ['below', 'above', 'aboveBaselinePercent'] as const
 const TEXT_FIELDS = ['what', 'howDecided', 'next'] as const
 const PLACEHOLDER = /\{(baseline|limit|percent)\}/g
@@ -47,7 +48,7 @@ function validate(row: unknown, index: number, baseline: Baseline): Rule {
   const r = row as Record<string, unknown>
   for (const key of STRING_FIELDS) if (typeof r[key] !== 'string') fail(`${key} must be a string`)
   for (const key of NUMBER_FIELDS) if (typeof r[key] !== 'number') fail(`${key} must be a number`)
-  if (r.status !== 'caution' && r.status !== 'warning') fail('status must be caution or warning')
+  if (!LEVELS.includes(r.status as Rule['status'])) fail('status must be watch, check, treat or emergency')
   if (!INDICATORS.includes(r.indicator as Indicator)) fail(`unknown indicator ${String(r.indicator)}`)
   const thresholds = THRESHOLDS.filter((key) => Object.hasOwn(r, key))
   if (thresholds.length !== 1) fail('needs exactly one of below, above or aboveBaselinePercent')

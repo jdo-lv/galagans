@@ -1,33 +1,55 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { newId as generateId } from '../application/newId'
+import type { DeviceId } from '../domain/devices'
+import { deviceMessage, indicatorLevels, levelsFor, randomValues } from '../domain/levelValues'
+import type { Rule, Status } from '../domain/rules'
 import type { LinkState } from '../infrastructure/DeviceLink'
 import { ThemeToggle } from '../ui/theme/ThemeToggle'
 import type { Publisher } from './Publisher'
 import { startRepeating } from './repeat'
-import { deviceMessage, isValidInput, SIM_DEVICES, type SimDevice, type SimField } from './simDevices'
+import { SIM_CONFIG, SIM_DEVICES, type SimDevice } from './simDevices'
 
-const DEFAULT_EVERY_S = '60'
 const EVERY_MIN_S = 1
 const EVERY_MAX_S = 3600
 
+const LEVELS: [Status, string][] = [
+  ['nominal', 'Nominal'],
+  ['watch', 'Watch'],
+  ['check', 'Check'],
+  ['treat', 'Treat'],
+  ['emergency', 'Emergency'],
+]
+const LEVEL_WORD = Object.fromEntries(LEVELS) as Record<Status, string>
+
 interface Props {
   publisher: Publisher
+  rules: Rule[]
   now?: () => Date
   newId?: () => string
+  /** In [0, 1); draws the values inside each level's range. */
+  random?: () => number
 }
 
-const inputOk = (input: string, simField: SimField) =>
-  simField.field.required ? isValidInput(input, simField) : input === '' || isValidInput(input, simField)
+/** What one send did: the status line, and the values when the link took the message. */
+interface Sent {
+  status: string
+  values?: Record<string, number>
+}
 
 const everyOk = (input: string) => /^\d+$/.test(input) && Number(input) >= EVERY_MIN_S && Number(input) <= EVERY_MAX_S
 
 const clock = (at: Date) => at.toISOString().slice(11, 19)
 
-export function SimulatorApp({ publisher, now = () => new Date(), newId = generateId }: Props) {
+const initialLevels = () => Object.fromEntries(SIM_DEVICES.map((s) => [s.device.id, SIM_CONFIG[s.device.id].level])) as Record<DeviceId, Status>
+
+export function SimulatorApp({ publisher, rules, now = () => new Date(), newId = generateId, random = Math.random }: Props) {
   const [linkState, setLinkState] = useState<LinkState>('disconnected')
   const linkStateRef = useRef(linkState)
+  const [levels, setLevels] = useState(initialLevels)
+  const levelsRef = useRef(levels)
 
-  useEffect(
+  // A layout effect, so the link state is known before the device sections auto-start in their effects.
+  useLayoutEffect(
     () =>
       publisher.onState((state) => {
         linkStateRef.current = state
@@ -36,12 +58,18 @@ export function SimulatorApp({ publisher, now = () => new Date(), newId = genera
     [publisher],
   )
 
-  /** Publishes one reading now; returns the device's new status line. */
-  function send(sim: SimDevice, inputs: Record<string, string>): string {
+  /** Publishes one message at the current levels of all devices. */
+  function send(sim: SimDevice): Sent {
     const at = now()
-    const reading = Object.fromEntries(sim.fields.map(({ field }) => [field.key, inputs[field.key] ? Number(inputs[field.key]) : undefined]))
-    const sent = publisher.publish(sim.device.topic, deviceMessage(sim, reading, at, newId))
-    return sent ? `Last sent ${clock(at)}` : `Not sent · device link ${linkStateRef.current} ${clock(at)}`
+    const values = randomValues(sim.device, indicatorLevels(levelsRef.current, rules), rules, random)
+    const sent = publisher.publish(sim.device.topic, deviceMessage(sim.device, values, at, newId))
+    return sent ? { status: `Last sent ${clock(at)}`, values } : { status: `Not sent · device link ${linkStateRef.current} ${clock(at)}` }
+  }
+
+  function changeLevel(id: DeviceId, level: Status) {
+    const next = { ...levelsRef.current, [id]: level }
+    levelsRef.current = next
+    setLevels(next)
   }
 
   return (
@@ -58,9 +86,19 @@ export function SimulatorApp({ publisher, now = () => new Date(), newId = genera
       </header>
 
       <div className="sim-devices">
-        {SIM_DEVICES.map((sim) => (
-          <DeviceSection key={sim.device.id} sim={sim} send={send} now={now} />
-        ))}
+        {SIM_DEVICES.map((sim) => {
+          const id = sim.device.id
+          return (
+            <DeviceSection
+              key={id}
+              sim={sim}
+              level={levels[id]}
+              available={levelsFor(sim.device, rules)}
+              onLevel={(level) => changeLevel(id, level)}
+              send={send}
+            />
+          )
+        })}
       </div>
     </div>
   )
@@ -68,39 +106,32 @@ export function SimulatorApp({ publisher, now = () => new Date(), newId = genera
 
 interface DeviceSectionProps {
   sim: SimDevice
-  send: (sim: SimDevice, inputs: Record<string, string>) => string
-  now: () => Date
+  level: Status
+  /** Levels with a rule row for one of the device's fields. */
+  available: Status[]
+  onLevel: (level: Status) => void
+  send: (sim: SimDevice) => Sent
 }
 
-function DeviceSection({ sim, send, now }: DeviceSectionProps) {
+function DeviceSection({ sim, level, available, onLevel, send }: DeviceSectionProps) {
   const id = useId()
-  const [inputs, setInputs] = useState<Record<string, string>>(() =>
-    Object.fromEntries(sim.fields.map(({ field, nominal }) => [field.key, String(nominal)])),
-  )
-  const [every, setEvery] = useState(DEFAULT_EVERY_S)
+  const [every, setEvery] = useState(() => String(SIM_CONFIG[sim.device.id].everyS))
   const [running, setRunning] = useState<string | null>(null)
   const [status, setStatus] = useState('Not sent yet')
-  const inputsRef = useRef(inputs)
+  const [values, setValues] = useState<Record<string, number>>()
   const stopRef = useRef<(() => void) | null>(null)
-
-  // The timer starts on Start, not in an effect, so StrictMode's double effects can't send twice.
-  useEffect(() => () => stopRef.current?.(), [])
-
-  const valuesOk = (values: Record<string, string>) => sim.fields.every((f) => inputOk(values[f.field.key] ?? '', f))
-  const canSend = valuesOk(inputs)
+  const sendRef = useRef(send)
+  sendRef.current = send
 
   function tick() {
-    // Values edited while running go out on the next tick; a value made invalid skips it.
-    if (!valuesOk(inputsRef.current)) {
-      setStatus(`Not sent · check the values ${clock(now())}`)
-      return
-    }
-    setStatus(send(sim, inputsRef.current))
+    const sent = sendRef.current(sim)
+    setStatus(sent.status)
+    if (sent.values) setValues(sent.values)
   }
 
-  function start() {
-    stopRef.current = startRepeating(tick, Number(every) * 1000)
-    setRunning(every)
+  function start(input: string) {
+    stopRef.current = startRepeating(tick, Number(input) * 1000)
+    setRunning(input)
   }
 
   function stop() {
@@ -109,34 +140,47 @@ function DeviceSection({ sim, send, now }: DeviceSectionProps) {
     setRunning(null)
   }
 
-  function change(key: string, value: string) {
-    const next = { ...inputsRef.current, [key]: value }
-    inputsRef.current = next
-    setInputs(next)
-  }
+  // Sends from page load; in dev StrictMode the remount can send one extra first message.
+  useEffect(() => {
+    start(String(SIM_CONFIG[sim.device.id].everyS))
+    return () => stopRef.current?.()
+  }, [])
 
   return (
     <section className="card sim-device" aria-labelledby={id}>
       <div className="sim-device__top">
         <h2 id={id}>{sim.name}</h2>
-        {running && <span className="tag">{`sending every ${running} s`}</span>}
+        {running && <span className="tag">{`sending every ${running} s · ${LEVEL_WORD[level]}`}</span>}
       </div>
       <p className="muted">
         <span className="num">{sim.device.topic}</span> · source: synthetic
       </p>
+      <fieldset className="sim-levels">
+        <legend>Level</legend>
+        {LEVELS.map(([value, word]) => {
+          const enabled = available.includes(value)
+          return (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={value === level}
+              disabled={!enabled}
+              title={enabled ? undefined : 'No rule row for this level'}
+              onClick={() => onLevel(value)}
+            >
+              {word}
+            </button>
+          )
+        })}
+      </fieldset>
       <div className="sim-metrics">
-        {sim.fields.map(({ field, label, decimals }) => (
-          <label key={field.key} className="field-tile">
+        {sim.fields.map(({ field, label }) => (
+          <div key={field.key} className="field-tile">
             <span className="tile-label">
               {label} <span className="tile-label__suffix">{field.unit}</span>
             </span>
-            <input
-              type="text"
-              inputMode={decimals > 0 ? 'decimal' : 'numeric'}
-              value={inputs[field.key]}
-              onChange={(event) => change(field.key, event.target.value)}
-            />
-          </label>
+            <span className="value">{values?.[field.key] ?? '—'}</span>
+          </div>
         ))}
       </div>
       <div className="sim-send">
@@ -150,11 +194,11 @@ function DeviceSection({ sim, send, now }: DeviceSectionProps) {
             Stop
           </button>
         ) : (
-          <button type="button" className="button-secondary" disabled={!canSend || !everyOk(every)} onClick={start}>
+          <button type="button" className="button-secondary" disabled={!everyOk(every)} onClick={() => start(every)}>
             Start
           </button>
         )}
-        <button type="button" className="button-secondary sim-send__now" disabled={!canSend} onClick={() => setStatus(send(sim, inputs))}>
+        <button type="button" className="button-secondary sim-send__now" onClick={tick}>
           Send now
         </button>
       </div>

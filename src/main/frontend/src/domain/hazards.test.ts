@@ -41,13 +41,15 @@ describe('lensMark', () => {
     expect(lensMark(hazard('gravity'), 'Sleep', 'stale')).toBe('dimmed')
   })
 
-  it('Gravity fields on Respiratory in caution or warning → no mark, a filter never mutes a flag', () => {
-    expect(lensMark(hazard('gravity'), 'Respiratory', 'caution')).toBeNull()
-    expect(lensMark(hazard('gravity'), 'Respiratory', 'warning')).toBeNull()
-  })
+  it.each(['watch', 'check', 'treat', 'emergency'] as const)(
+    '#43 AC10: Gravity fields on Respiratory at %s → no mark, a filter never mutes a flag',
+    (state) => {
+      expect(lensMark(hazard('gravity'), 'Respiratory', state)).toBeNull()
+    },
+  )
 
   it('Distance from Earth on Respiratory in caution → affected', () => {
-    expect(lensMark(hazard('distance'), 'Respiratory', 'caution')).toBe('affected')
+    expect(lensMark(hazard('distance'), 'Respiratory', 'check')).toBe('affected')
   })
 
   it('unknown status (still loading) counts as not flagged', () => {

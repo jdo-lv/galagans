@@ -1,9 +1,10 @@
-import { act, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { Rule } from '../domain/rules'
+import type { Rule, SystemStatus } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
 import { RULES } from '../test/rules'
 import { pvt, reading, setup, submitSpo2 } from '../test/renderApp'
+import { Badge } from './SystemStatusList'
 
 const [SPO01, SPO02] = RULES
 const texts = (rule: Rule) => [rule.what, rule.why, rule.howDecided, rule.next]
@@ -36,8 +37,8 @@ describe('SystemStatusList', () => {
     setup().renderApp()
 
     await vi.waitFor(() => expect(row()).toHaveTextContent('No data'))
-    // Respiratory, Cognition (rule COG-01, #17), Cabin air (CAB rules) and Radiation (RAD rules), all with no data.
-    expect(within(list()).getAllByRole('listitem')).toHaveLength(4)
+    // Respiratory, Cognition (COG-01, #17), Cabin air, Radiation, Cardiovascular and Immune (#43), all with no data.
+    expect(within(list()).getAllByRole('listitem')).toHaveLength(6)
     expect(row()).toHaveTextContent('Respiratory')
     expectNoStatusIcon(row())
   })
@@ -64,8 +65,8 @@ describe('SystemStatusList', () => {
     setup().renderApp()
     await submitSpo2(92)
 
-    expect(await within(list()).findByText('▲ CAUTION')).toBeInTheDocument()
-    expect(row()).toHaveClass('status-caution')
+    expect(await within(list()).findByText('▲ CHECK')).toBeInTheDocument()
+    expect(row()).toHaveClass('status-check')
     expectNoExplanation(row())
   })
 
@@ -73,16 +74,15 @@ describe('SystemStatusList', () => {
     setup().renderApp()
     await submitSpo2(90)
 
-    expect(await within(list()).findByText('▲ CAUTION')).toBeInTheDocument()
+    expect(await within(list()).findByText('▲ CHECK')).toBeInTheDocument()
   })
 
-  it('AC6: 88 is warning with an octagon icon; the explanation lives on the detail screen (#9)', async () => {
+  it('AC6: 88 is an emergency with its ⬣ glyph; the explanation lives on the detail screen (#9)', async () => {
     setup().renderApp()
     await submitSpo2(88)
 
-    expect(await within(list()).findByText('WARNING')).toBeInTheDocument()
-    expect(row()).toHaveClass('status-warning')
-    expect(row().querySelector('.badge svg')).toHaveAttribute('aria-hidden', 'true')
+    expect(await within(list()).findByText('⬣ EMERGENCY')).toBeInTheDocument()
+    expect(row()).toHaveClass('status-emergency')
     expectNoExplanation(row())
   })
 
@@ -92,7 +92,7 @@ describe('SystemStatusList', () => {
       seed: [reading('a', '2026-11-14T08:00:00Z', 88), reading('b', '2026-11-14T10:00:00Z')],
     }).renderApp()
 
-    expect(await within(list()).findByText('WARNING')).toBeInTheDocument()
+    expect(await within(list()).findByText('⬣ EMERGENCY')).toBeInTheDocument()
     expect(row()).toHaveTextContent('SpO₂ 88 %')
     expect(row()).toHaveTextContent('2 h ago · manual')
   })
@@ -118,13 +118,13 @@ describe('SystemStatusList', () => {
   it('AC9: a reading exactly 24 h old still shows its warning', async () => {
     setup({ now: '2026-11-14T08:00:00Z', seed: [reading('a', '2026-11-13T08:00:00Z', 88)] }).renderApp()
 
-    expect(await within(list()).findByText('WARNING')).toBeInTheDocument()
+    expect(await within(list()).findByText('⬣ EMERGENCY')).toBeInTheDocument()
   })
 
   it('AC10: an out-of-range newer value is ignored', async () => {
     setup({ seed: [reading('a', '2026-11-14T09:00:00Z', 0), reading('b', '2026-11-14T08:00:00Z', 92)] }).renderApp()
 
-    expect(await within(list()).findByText('▲ CAUTION')).toBeInTheDocument()
+    expect(await within(list()).findByText('▲ CHECK')).toBeInTheDocument()
     expect(row()).toHaveTextContent('SpO₂ 92 %')
   })
 
@@ -139,7 +139,7 @@ describe('SystemStatusList', () => {
     renderApp()
     await submitSpo2(88)
 
-    expect(await within(list()).findByText('WARNING')).toBeInTheDocument()
+    expect(await within(list()).findByText('⬣ EMERGENCY')).toBeInTheDocument()
     expect(gateway.sent).toHaveLength(0)
   })
 
@@ -204,9 +204,9 @@ describe('Body systems with placeholders (#4)', () => {
       'Cognition',
       'Cabin air',
       'Radiation',
-      'Sleep',
-      'Immune',
       'Cardiovascular',
+      'Immune',
+      'Sleep',
       'Bone & muscle',
       'Vision (SANS)',
       'Kidney & hydration',
@@ -214,23 +214,22 @@ describe('Body systems with placeholders (#4)', () => {
     expect(within(rows[0]).getByText('No data')).toBeInTheDocument()
   })
 
-  it('AC2: SpO₂ 88 warns on Respiratory while the placeholders stay nominal (Cognition, Cabin air and Radiation have no data)', async () => {
+  it('AC2: SpO₂ 88 warns on Respiratory while the placeholders stay nominal (the other rule systems have no data)', async () => {
     setup({ placeholders: mockStatuses }).renderApp()
     await submitSpo2(88)
 
-    expect(await within(list()).findByText('WARNING')).toBeInTheDocument()
+    expect(await within(list()).findByText('⬣ EMERGENCY')).toBeInTheDocument()
     const [respiratory, ...others] = within(list()).getAllByRole('listitem')
     expectNoExplanation(respiratory)
     expect(others).toHaveLength(9)
-    const [cognition, cabinAir, radiation, ...placeholders] = others
-    for (const row of [cognition, cabinAir, radiation]) expect(within(row).getByText('No data')).toBeInTheDocument()
+    const ruleSystems = others.slice(0, 5)
+    const placeholders = others.slice(5)
+    for (const row of ruleSystems) expect(within(row).getByText('No data')).toBeInTheDocument()
     placeholders.forEach((r) => expect(within(r).getByText('✓ Nominal')).toBeInTheDocument())
   })
 
   it.each([
     ['Sleep', '7.1 h last night'],
-    ['Immune', 'no new symptoms'],
-    ['Cardiovascular', 'BP 108/70'],
     ['Bone & muscle', 'Exercise 540/600 min/wk'],
     ['Vision (SANS)', 'self-test done Wed · no changes'],
     ['Kidney & hydration', 'Fluids 1.1/2.5 L today'],
@@ -270,8 +269,8 @@ describe('Body systems rows link to the detail (#9)', () => {
   const link = () => within(row()).getByRole('link')
 
   it.each([
-    [92, '▲ CAUTION', SPO01],
-    [88, 'WARNING', SPO02],
+    [92, '▲ CHECK', SPO01],
+    [88, '⬣ EMERGENCY', SPO02],
   ])('AC1/AC2: SpO₂ %s makes the row a link to the detail, without the explanation', async (value, word, rule) => {
     setup().renderApp()
     await submitSpo2(value)
@@ -320,7 +319,7 @@ describe('Cognition from the PVT (#17)', () => {
   it('AC4: a PVT of 312 is a caution, second row, linked, and the placeholder is gone', async () => {
     await show([pvt('p', ago(10 * 60_000), 312)])
 
-    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CAUTION'))
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CHECK'))
     expect(cognition()).toHaveTextContent('PVT median 312 ms · 10 min ago · in-app test')
     expect(within(cognition()).getByRole('link')).toHaveAttribute('href', '#/systems/Cognition')
     expect(list()).not.toHaveTextContent('PVT 268 ms · within your baseline')
@@ -329,7 +328,7 @@ describe('Cognition from the PVT (#17)', () => {
   it('AC2 (#28): 305 is a caution against the 265 ms baseline + 15 % (304.75 ms)', async () => {
     await show([pvt('p', NOW, 305)])
 
-    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CAUTION'))
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CHECK'))
     expect(within(cognition()).getByRole('link')).toHaveAttribute('href', '#/systems/Cognition')
   })
 
@@ -343,16 +342,16 @@ describe('Cognition from the PVT (#17)', () => {
   it('AC6: 306 is a caution', async () => {
     await show([pvt('p', NOW, 306)])
 
-    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CAUTION'))
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CHECK'))
   })
 
-  it('AC7: no PVT is no data; the six placeholders stay', async () => {
+  it('AC7: no PVT is no data; the four placeholders stay (#43 moved Cardiovascular and Immune to rules)', async () => {
     await show([])
 
     await vi.waitFor(() => expect(cognition()).toHaveTextContent('No data'))
     expect(list()).not.toHaveTextContent('PVT 268 ms · within your baseline')
-    const placeholders = within(list()).getAllByRole('listitem').slice(4)
-    expect(placeholders).toHaveLength(6)
+    const placeholders = within(list()).getAllByRole('listitem').slice(6)
+    expect(placeholders).toHaveLength(4)
     placeholders.forEach((r) => expect(r).toHaveTextContent('synthetic'))
   })
 
@@ -367,7 +366,7 @@ describe('Cognition from the PVT (#17)', () => {
   it('AC9: exactly 4 days old still shows its caution', async () => {
     await show([pvt('p', ago(4 * DAY), 312)])
 
-    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CAUTION'))
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CHECK'))
     expect(cognition()).toHaveTextContent('4 d ago')
   })
 
@@ -382,5 +381,33 @@ describe('Cognition from the PVT (#17)', () => {
     await show([pvt('p', NOW, ms)])
 
     await vi.waitFor(() => expect(cognition()).toHaveTextContent('No data'))
+  })
+})
+
+describe('Badge levels (#43)', () => {
+  const rule = (id: string) => RULES.find((r) => r.id === id)!
+  const badge = (state: SystemStatus['state'], r?: Rule) => render(<Badge state={state} rule={r} />).container.firstElementChild!
+
+  it.each([
+    ['watch', rule('BP-01'), 'badge badge--watch', '↗ WATCH'],
+    ['watch', { ...rule('BP-01'), above: undefined, below: 40 }, 'badge badge--watch', '↘ WATCH'],
+    ['watch', undefined, 'badge badge--watch', 'WATCH'],
+    ['check', rule('SPO-01'), 'badge badge--check', '▲ CHECK'],
+    ['treat', rule('BP-04'), 'badge badge--treat', '✚ TREAT'],
+    ['emergency', rule('SPO-02'), 'badge badge--emergency', '⬣ EMERGENCY'],
+  ] as const)('AC7: %s → class "%s" text "%s"', (state, r, className, text) => {
+    const element = badge(state, r)
+
+    expect([element.className, element.textContent]).toEqual([className, text])
+  })
+
+  it.each([
+    ['nominal', 'badge badge--nominal', '✓ Nominal'],
+    ['stale', 'badge badge--quiet', 'No recent data'],
+    ['no-data', 'badge badge--quiet', 'No data'],
+  ] as const)('AC7: %s is unchanged', (state, className, text) => {
+    const element = badge(state)
+
+    expect([element.className, element.textContent]).toEqual([className, text])
   })
 })

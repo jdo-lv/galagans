@@ -18,7 +18,7 @@ export interface PacketItem {
   text?: string
   recordedAt?: string
   source?: LatestReading['source']
-  /** Only on caution and warning: the rule that decided it and who acts. */
+  /** Only on levels 2–5: the rule that decided it and who acts. */
   ruleId?: string
   tier?: string
 }

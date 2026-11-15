@@ -7,7 +7,7 @@ const stored: StoredPacket = {
   builtAt: '2026-11-14T07:31:00.000Z',
   oneWayDelayMs: 845_000,
   note: 'Slept badly.',
-  items: [{ key: 'spo2', label: 'SpO₂', unit: '%', state: 'caution', value: 92, recordedAt: '2026-11-14T07:21:00.000Z', source: 'manual', ruleId: 'SPO-01', tier: 'CMO' }],
+  items: [{ key: 'spo2', label: 'SpO₂', unit: '%', state: 'check', value: 92, recordedAt: '2026-11-14T07:21:00.000Z', source: 'manual', ruleId: 'SPO-01', tier: 'CMO' }],
   state: 'sent',
   sentAt: '2026-11-14T07:40:00.000Z',
 }

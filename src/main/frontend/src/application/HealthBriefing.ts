@@ -1,5 +1,5 @@
 import type { RoutineItem } from '../domain/routine'
-import type { SystemStatus } from '../domain/rules'
+import type { Rule, SystemStatus } from '../domain/rules'
 
 const CLOSING = 'This is decision support; your flight surgeon has the final word.'
 const NEXT = 'What would you like to do next?'
@@ -48,7 +48,7 @@ export class HealthBriefing {
 /** Everything without an alert, as the rules engine decided it. */
 function theRest(statuses: SystemStatus[], alerts: boolean): string {
   if (statuses.some((s) => s.state === 'nominal')) return alerts ? 'All your other readings are nominal.' : 'All your readings are nominal.'
-  return alerts ? '' : 'No cautions or warnings.'
+  return alerts ? '' : 'Nothing to act on now.'
 }
 
 function briefOn(statuses: SystemStatus[], system: string): string {
@@ -59,11 +59,19 @@ function briefOn(statuses: SystemStatus[], system: string): string {
   return speakAlerts(statuses)
 }
 
-/** Warnings first, each as the rule words it: what, the reading, why, next step, who to involve. */
+/** Spoken level words, most severe first (ideas/alert-levels.md). */
+const LEVEL_WORDS: [Rule['status'], string][] = [
+  ['emergency', 'Emergency'],
+  ['treat', 'Treat'],
+  ['check', 'Check'],
+  ['watch', 'Watch'],
+]
+
+/** Most severe first, each as the rule words it: what, the reading, why, next step, who to involve. */
 function speakAlerts(statuses: SystemStatus[]): string {
-  return [...statuses.filter((s) => s.state === 'warning'), ...statuses.filter((s) => s.state === 'caution')]
-    .map(({ system, state, value, unit, rule }) => {
-      const level = `${state === 'warning' ? 'Warning' : 'Caution'}, ${system}.`
+  return LEVEL_WORDS.flatMap(([state, word]) => statuses.filter((s) => s.state === state).map((s) => ({ ...s, word })))
+    .map(({ system, word, value, unit, rule }) => {
+      const level = `${word}, ${system}.`
       if (!rule) return level
       const reading = value === undefined ? '' : ` Yours is ${value} ${unit}.`
       return `${level} ${rule.what}${reading} ${rule.why} ${rule.next} Who to involve: ${rule.tier}.`

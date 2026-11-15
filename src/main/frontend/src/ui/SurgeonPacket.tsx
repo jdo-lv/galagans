@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { formatAge, formatDelay, formatStaleAge, formatTime } from '../application/formatAge'
 import { packetTimeline, type TimelineStep } from '../application/packetTimeline'
 import { NOTE_MAX, ONE_WAY_DELAY_MS, type PacketItem, type StoredPacket } from '../domain/packet'
+import { isFlagged, type Rule } from '../domain/rules'
 import { PrivateIcon, StepCurrentIcon, StepDoneIcon, StepPendingIcon } from './icons'
 import './packet.css'
 import { useServices } from './ServicesContext'
@@ -30,22 +31,16 @@ function Dash({ meaning }: { meaning: string }) {
 }
 
 // Urgency is the badge; who acts is a separate neutral pill (ui-guidelines §5 "Level badge").
-function ItemStatus({ item }: { item: PacketItem }) {
-  switch (item.state) {
-    case 'unrated':
-      return <Dash meaning="Not rated" />
-    case 'caution':
-    case 'warning':
-      return (
-        <div className="packet-status">
-          <Badge state={item.state} />
-          <span className="tag tag--rule">{`rule · ${item.ruleId}`}</span>
-          <span className="pill packet-tier">{item.tier}</span>
-        </div>
-      )
-    default:
-      return <Badge state={item.state} />
-  }
+function ItemStatus({ item, rules }: { item: PacketItem; rules: Rule[] }) {
+  if (item.state === 'unrated') return <Dash meaning="Not rated" />
+  if (!isFlagged(item.state)) return <Badge state={item.state} />
+  return (
+    <div className="packet-status">
+      <Badge state={item.state} rule={rules.find((r) => r.id === item.ruleId)} />
+      <span className="tag tag--rule">{`rule · ${item.ruleId}`}</span>
+      <span className="pill packet-tier">{item.tier}</span>
+    </div>
+  )
 }
 
 function ItemValue({ item, now }: { item: PacketItem; now: Date }) {
@@ -60,7 +55,7 @@ function ItemValue({ item, now }: { item: PacketItem; now: Date }) {
   )
 }
 
-function PacketContents({ state }: { state: PeriodicState<PacketItem[]> }) {
+function PacketContents({ state }: { state: PeriodicState<{ items: PacketItem[]; rules: Rule[] }> }) {
   return (
     <Card title="Next packet · contents">
       {state.kind === 'unavailable' && <p className="muted">Packet contents unavailable</p>}
@@ -75,11 +70,11 @@ function PacketContents({ state }: { state: PeriodicState<PacketItem[]> }) {
             </tr>
           </thead>
           <tbody>
-            {state.data.map((item) => (
+            {state.data.items.map((item) => (
               <tr key={item.key}>
                 <th scope="row">{item.label}</th>
                 <td>
-                  <ItemStatus item={item} />
+                  <ItemStatus item={item} rules={state.data.rules} />
                 </td>
                 <td>
                   <ItemValue item={item} now={state.now} />

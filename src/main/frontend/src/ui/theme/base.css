@@ -565,13 +565,20 @@ ul.tile-grid {
   color: var(--color-text-muted);
 }
 
-.badge--caution {
+/* Level 2: outline only, no colour (ideas/alert-levels.md). */
+.badge--watch {
+  color: var(--color-text);
+  box-shadow: inset 0 0 0 1.5px var(--color-text);
+}
+
+.badge--check {
   background: var(--color-caution);
   color: var(--color-on-caution);
   box-shadow: inset 0 0 0 1.5px var(--color-on-caution); /* the yellow fill is 1.00:1 on the light background */
 }
 
-.badge--warning {
+.badge--treat,
+.badge--emergency {
   background: var(--color-warning);
   color: var(--color-on-warning);
 }

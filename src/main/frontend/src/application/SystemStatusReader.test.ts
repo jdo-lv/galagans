@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { JsonRuleSource } from '../infrastructure/JsonRuleSource'
 import type { Observation } from '../domain/observation'
 import { combinedHistory, FakeObservationRepository, FakeRepository, FakeRuleSource } from '../test/fakes'
-import type { Placeholder, Rule } from '../domain/rules'
+import { CHART_WINDOW_MS, type Placeholder, type Rule } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
 import { SystemStatusReader } from './SystemStatusReader'
 
@@ -15,7 +15,7 @@ describe('SystemStatusReader', () => {
 
     const [status] = await reader.read()
 
-    expect(status).toMatchObject({ system: 'Respiratory', state: 'warning', value: 88 })
+    expect(status).toMatchObject({ system: 'Respiratory', state: 'emergency', value: 88 })
     expect(status.rule?.id).toBe('SPO-02')
   })
 
@@ -37,10 +37,29 @@ describe('SystemStatusReader', () => {
     ])
   })
 
+  it('#43 AC6: Cardiovascular and Immune follow Radiation in rule order with no data; their placeholders are gone', async () => {
+    const reader = new SystemStatusReader(new JsonRuleSource(), combinedHistory(new FakeRepository()), undefined, mockStatuses)
+
+    const statuses = await reader.read()
+
+    expect(statuses.map((s) => [s.system, s.state])).toEqual([
+      ['Respiratory', 'no-data'],
+      ['Cognition', 'no-data'],
+      ['Cabin air', 'no-data'],
+      ['Radiation', 'no-data'],
+      ['Cardiovascular', 'no-data'],
+      ['Immune', 'no-data'],
+      ['Sleep', 'nominal'],
+      ['Bone & muscle', 'nominal'],
+      ['Vision (SANS)', 'nominal'],
+      ['Kidney & hydration', 'nominal'],
+    ])
+  })
+
   it('AC7: placeholders can only be nominal and carry no rule (checked by tsc -b)', () => {
     const invalid = [
       // @ts-expect-error a placeholder is never a caution
-      { system: 'Sleep', state: 'caution', detail: 's', source: 'synthetic' },
+      { system: 'Sleep', state: 'check', detail: 's', source: 'synthetic' },
       // @ts-expect-error a placeholder has no rule to explain
       { system: 'Sleep', state: 'nominal', detail: 's', source: 'synthetic', rule: undefined },
     ] satisfies Placeholder[]
@@ -69,11 +88,41 @@ describe('SystemStatusReader', () => {
 
       expect(detail?.status).toEqual((await r.read()).find((s) => s.system === 'Respiratory'))
       expect(detail?.rules).toEqual(rules.filter((r) => r.system === 'Respiratory'))
+      const spo01 = rules.find((rule) => rule.id === 'SPO-01')
       expect(detail?.points).toEqual([
         { recordedAt: '2026-11-08T08:00:00Z', value: 97, source: 'manual', status: 'nominal' },
-        { recordedAt: '2026-11-13T08:15:00Z', value: 93, source: 'manual', status: 'caution' },
-        { recordedAt: '2026-11-14T09:20:00Z', value: 92, source: 'manual', status: 'caution' },
+        { recordedAt: '2026-11-13T08:15:00Z', value: 93, source: 'manual', status: 'check', rule: spo01 },
+        { recordedAt: '2026-11-14T09:20:00Z', value: 92, source: 'manual', status: 'check', rule: spo01 },
       ])
+      expect(detail?.windowMs).toBe(CHART_WINDOW_MS)
+    })
+
+    it('#43 AC9: points at levels 2–5 carry their rule; nominal and stale points carry none', async () => {
+      const detail = await (await reader(store(['a', '2026-11-12T09:00:00Z', 97], ['b', '2026-11-12T10:00:00Z', 88], ['c', '2026-11-13T09:29:00Z', 92]))).readDetail(
+        'Respiratory',
+      )
+
+      expect(detail?.points.map((p) => [p.status, p.rule?.id])).toEqual([
+        ['nominal', undefined],
+        ['emergency', 'SPO-02'],
+        ['stale', undefined],
+      ])
+      expect(detail?.points.filter((p) => Object.hasOwn(p, 'rule'))).toHaveLength(1)
+    })
+
+    it('#43 AC22: a 60 s chart window keeps readings in [now − 60 s, now] and is returned as windowMs', async () => {
+      const r = new SystemStatusReader(
+        new FakeRuleSource(await new JsonRuleSource().load()),
+        combinedHistory(store(['a', '2026-11-14T09:28:59Z', 96], ['b', '2026-11-14T09:29:00Z', 95], ['c', '2026-11-14T09:30:00Z', 97])),
+        () => NOW,
+        [],
+        60_000,
+      )
+
+      const detail = await r.readDetail('Respiratory')
+
+      expect(detail?.windowMs).toBe(60_000)
+      expect(detail?.points.map((p) => p.value)).toEqual([95, 97])
     })
 
     it('Cabin air charts the indicator its status shows: a 28 °C cabin → the temperature rows and points', async () => {
@@ -87,7 +136,7 @@ describe('SystemStatusReader', () => {
 
       const detail = await r.readDetail('Cabin air')
 
-      expect([detail?.status.state, detail?.status.rule?.id]).toEqual(['caution', 'CAB-03'])
+      expect([detail?.status.state, detail?.status.rule?.id]).toEqual(['check', 'CAB-03'])
       expect(detail?.rules.map((rule) => rule.id)).toEqual(['CAB-02', 'CAB-03'])
       expect(detail?.points.map((p) => p.value)).toEqual([28])
     })
@@ -120,7 +169,7 @@ describe('SystemStatusReader', () => {
         await reader(store(['a', '2026-11-12T09:00:00Z', 92], ['b', '2026-11-13T09:29:00Z', 88]))
       ).readDetail('Respiratory')
 
-      expect(detail?.points.map((p) => p.status)).toEqual(['caution', 'stale'])
+      expect(detail?.points.map((p) => p.status)).toEqual(['check', 'stale'])
     })
 
     it('keeps readings from exactly 7 days ago, drops older and out-of-range values', async () => {

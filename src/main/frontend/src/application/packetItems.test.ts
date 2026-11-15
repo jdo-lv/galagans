@@ -14,13 +14,13 @@ describe('toPacketItem', () => {
   })
 
   it('AC8: a caution reading keeps its value, age, source, rule id and tier', () => {
-    const reading: LatestReading = { spec: spec('spo2'), state: 'caution', value: 92, recordedAt: AT, source: 'manual', rule: SPO01 }
+    const reading: LatestReading = { spec: spec('spo2'), state: 'check', value: 92, recordedAt: AT, source: 'manual', rule: SPO01 }
 
     expect(toPacketItem(reading)).toStrictEqual({
       key: 'spo2',
       label: 'SpO₂',
       unit: '%',
-      state: 'caution',
+      state: 'check',
       value: 92,
       recordedAt: AT,
       source: 'manual',
@@ -30,9 +30,19 @@ describe('toPacketItem', () => {
   })
 
   it('AC9: a warning reading carries SPO-02 and "Urgent ground"', () => {
-    const item = toPacketItem({ spec: spec('spo2'), state: 'warning', value: 88, recordedAt: AT, source: 'manual', rule: SPO02 })
+    const item = toPacketItem({ spec: spec('spo2'), state: 'emergency', value: 88, recordedAt: AT, source: 'manual', rule: SPO02 })
 
-    expect(item).toMatchObject({ state: 'warning', ruleId: 'SPO-02', tier: 'Urgent ground' })
+    expect(item).toMatchObject({ state: 'emergency', ruleId: 'SPO-02', tier: 'Urgent ground' })
+  })
+
+  it.each([
+    ['watch', 'BP-01', 'Self-care'],
+    ['treat', 'BP-04', 'CMO'],
+  ] as const)('#43 AC10: a %s reading carries %s and "%s"', (state, id, tier) => {
+    const rule = RULES.find((r) => r.id === id)!
+    const item = toPacketItem({ spec: spec('bloodPressure'), state, value: 150, text: '150/70', recordedAt: AT, source: 'BP cuff · synthetic', rule })
+
+    expect(item).toMatchObject({ state, ruleId: id, tier })
   })
 
   it('AC10: a nominal reading has no rule id or tier', () => {

@@ -177,7 +177,7 @@ describe('Next packet contents', () => {
     await openWithContents({ seed: [stored('a', ago(10), { spo2Percent: 92 })] })
 
     const { status, value, source } = cells('SpO₂')
-    expect(within(status).getByText('▲ CAUTION')).toHaveClass('badge', 'badge--caution')
+    expect(within(status).getByText('▲ CHECK')).toHaveClass('badge', 'badge--check')
     expect(within(status).getByText('rule · SPO-01')).toHaveClass('tag', 'tag--rule')
     const tier = within(status).getByText('CMO')
     expect(tier).toHaveClass('pill')
@@ -187,11 +187,11 @@ describe('Next packet contents', () => {
     expect(within(source).getByText('manual')).toHaveClass('tag')
   })
 
-  it('AC9: SpO₂ 88 → warning badge, SPO-02 and "Urgent ground"', async () => {
+  it('AC9: SpO₂ 88 → emergency badge, SPO-02 and "Urgent ground"', async () => {
     await openWithContents({ seed: [stored('a', ago(10), { spo2Percent: 88 })] })
 
     const { status } = cells('SpO₂')
-    expect(within(status).getByText('WARNING').closest('.badge')).toHaveClass('badge--warning')
+    expect(within(status).getByText('⬣ EMERGENCY')).toHaveClass('badge', 'badge--emergency')
     expect(within(status).getByText('rule · SPO-02')).toHaveClass('tag--rule')
     expect(within(status).getByText('Urgent ground')).toHaveClass('pill')
   })
@@ -214,9 +214,8 @@ describe('Next packet contents', () => {
     expect(status.querySelector('.tag, .pill')).toBeNull()
   })
 
-  // Reaction time runs without COG-01 (#17) here: the AC is about an indicator with no rule rows.
+  // Reaction time runs without COG-01 (#17) here: the AC is about an indicator with no rule rows. Heart rate has CV rows since #43.
   it.each([
-    ['Heart rate', { heartRateBpm: 63 }, '63 bpm', 'manual'],
     ['Sleep', { sleepHours: 7 }, '7 h', 'manual'],
     ['Mood', { mood: 3 }, '3 / 5', 'manual'],
     ['Reaction time', { pvtMedianMs: 268, pvtLapses: 0, pvtFalseStarts: 0 }, '268 ms', 'in-app test'],
@@ -234,7 +233,7 @@ describe('Next packet contents', () => {
 
   it.each([
     [268, '✓ Nominal', null],
-    [312, '▲ CAUTION', 'rule · COG-01'],
+    [312, '▲ CHECK', 'rule · COG-01'],
   ])('AC12: with its rule row (COG-01, #17), Reaction time %i ms is rated %s', async (medianMs, badge, ruleTag) => {
     await openWithContents({ seed: [stored('a', ago(10), { pvtMedianMs: medianMs, pvtLapses: 0, pvtFalseStarts: 0 })] })
 
@@ -254,22 +253,35 @@ describe('Next packet contents', () => {
     expect(source.querySelector('.tag')).toBeNull()
   })
 
-  it('a BP cuff reading → "—" Not rated, 108/70 mmHg, its age and the device tag', async () => {
-    const bp = (indicator: 'systolicMmHg' | 'diastolicMmHg', value: number): Observation => ({
-      resourceType: 'Observation',
-      id: `bp-cuff:m1:${indicator}`,
-      status: 'final',
-      code: { text: indicator },
-      valueQuantity: { value, unit: 'mmHg' },
-      effectiveDateTime: ago(5),
-      device: { display: 'BP cuff · synthetic' },
-    })
+  const bp = (indicator: 'systolicMmHg' | 'diastolicMmHg', value: number): Observation => ({
+    resourceType: 'Observation',
+    id: `bp-cuff:m1:${indicator}`,
+    status: 'final',
+    code: { text: indicator },
+    valueQuantity: { value, unit: 'mmHg' },
+    effectiveDateTime: ago(5),
+    device: { display: 'BP cuff · synthetic' },
+  })
+
+  it('a BP cuff reading → ✓ Nominal (rated by BP rows since #43), 108/70 mmHg, its age and the device tag', async () => {
     await openWithContents({ observationSeed: [bp('systolicMmHg', 108), bp('diastolicMmHg', 70)] })
 
     const { status, value, source } = cells('Blood pressure')
-    expect(within(status).getByText('Not rated')).toHaveClass('visually-hidden')
+    expect(within(status).getByText('✓ Nominal')).toHaveClass('badge--nominal')
     expect(value).toHaveTextContent('108/70 mmHg')
     expect(within(source).getByText('BP cuff · synthetic')).toHaveClass('tag')
+  })
+
+  it.each([
+    [125, 'badge badge--watch', '↗ WATCH', 'rule · BP-01', 'Self-care'],
+    [150, 'badge badge--treat', '✚ TREAT', 'rule · BP-04', 'CMO'],
+  ])('#43 AC11: Blood pressure %s/70 → "%s" badge from its rule, rule tag and tier pill', async (systolic, className, text, ruleTag, tier) => {
+    await openWithContents({ observationSeed: [bp('systolicMmHg', systolic), bp('diastolicMmHg', 70)] })
+
+    const { status } = cells('Blood pressure')
+    expect(within(status).getByText(text).className).toBe(className)
+    expect(within(status).getByText(ruleTag)).toHaveClass('tag--rule')
+    expect(within(status).getByText(tier)).toHaveClass('pill')
   })
 
   it.each([
@@ -310,7 +322,7 @@ describe('Next packet contents', () => {
     s.repository.items.set('b', { checkIn: stored('b', at(7, 32).toISOString(), { spo2Percent: 92 }), pending: false })
     act(() => vi.advanceTimersByTime(60_000))
 
-    expect(await within(contents()).findByText('▲ CAUTION')).toBeInTheDocument()
+    expect(await within(contents()).findByText('▲ CHECK')).toBeInTheDocument()
     expect(cells('SpO₂').value).toHaveTextContent('just now')
   })
 })
@@ -389,7 +401,7 @@ describe('Crew note and send', () => {
     expect(packets).toEqual([
       { id: expect.stringMatching(UUID), builtAt: at(7, 31).toISOString(), oneWayDelayMs: 845_000, note: 'Slept badly.', items, state: 'queued' },
     ])
-    expect(items.find((i) => i.key === 'spo2')).toMatchObject({ state: 'caution', ruleId: 'SPO-01', tier: 'CMO' })
+    expect(items.find((i) => i.key === 'spo2')).toMatchObject({ state: 'check', ruleId: 'SPO-01', tier: 'CMO' })
     expect(note()).toHaveValue('')
     expect(within(noteCard()).getByText('0 / 500')).toBeInTheDocument()
   })

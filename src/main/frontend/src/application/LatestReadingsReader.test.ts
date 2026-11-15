@@ -38,12 +38,13 @@ describe('LatestReadingsReader', () => {
     expect(readings.filter((r) => r.state === 'no-data').map((r) => r.spec.key)).toEqual(READINGS.map((r) => r.key))
   })
 
-  it('Blood pressure shows "systolic/diastolic" from the same measurement, unrated', async () => {
+  it('Blood pressure shows "systolic/diastolic" from the same measurement, rated by its systolic rows since #43', async () => {
     const reading = await byKey('bloodPressure', [], {
       devices: [device('m1', 'systolicMmHg', 108), device('m1', 'diastolicMmHg', 70), device('m0', 'diastolicMmHg', 99)],
     })
 
-    expect(reading).toMatchObject({ state: 'nominal', value: 108, text: '108/70', source: 'BP cuff · synthetic', unrated: true })
+    expect(reading).toMatchObject({ state: 'nominal', value: 108, text: '108/70', source: 'BP cuff · synthetic' })
+    expect(reading).not.toHaveProperty('unrated')
   })
 
   it('Blood pressure without its diastolic shows the systolic value only', async () => {
@@ -105,7 +106,7 @@ describe('LatestReadingsReader', () => {
   it('#19 AC8: a caution reading carries the rule row that decided it', async () => {
     const reading = await byKey('spo2', [checkIn({ spo2Percent: 92 }, '2026-11-14T11:50:00Z')])
 
-    expect(reading?.state).toBe('caution')
+    expect(reading?.state).toBe('check')
     expect(reading?.rule?.id).toBe('SPO-01')
     expect(reading?.unrated).toBeUndefined()
   })
@@ -125,8 +126,8 @@ describe('LatestReadingsReader', () => {
     expect(reading).not.toHaveProperty('rule')
   })
 
-  it('#19 AC12: an indicator with no rule rows is unrated', async () => {
-    const reading = await byKey('heartRate', [checkIn({ heartRateBpm: 63 }, '2026-11-14T11:50:00Z')])
+  it('#19 AC12: an indicator with no rule rows is unrated (Sleep; Heart rate has CV rows since #43)', async () => {
+    const reading = await byKey('sleep', [checkIn({ sleepHours: 7 }, '2026-11-14T11:50:00Z')])
 
     expect(reading?.state).toBe('nominal')
     expect(reading?.unrated).toBe(true)
@@ -135,11 +136,11 @@ describe('LatestReadingsReader', () => {
   it('AC25: a heart-rate rule row sets the Heart rate state', async () => {
     const [spo01, spo02] = RULES
     const heartRateRow: Rule = {
-      ...spo01, id: 'TEST-HR', system: 'Test', indicator: 'heartRateBpm', above: 100, below: undefined, status: 'caution', validMin: 20, validMax: 250,
+      ...spo01, id: 'TEST-HR', system: 'Test', indicator: 'heartRateBpm', above: 100, below: undefined, status: 'check', validMin: 20, validMax: 250,
     }
 
     const reading = await byKey('heartRate', [checkIn({ heartRateBpm: 110 }, '2026-11-14T11:00:00Z')], { ruleRows: [spo01, spo02, heartRateRow] })
 
-    expect(reading?.state).toBe('caution')
+    expect(reading?.state).toBe('check')
   })
 })

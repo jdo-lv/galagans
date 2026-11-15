@@ -24,7 +24,7 @@ export interface LatestReading {
   recordedAt?: string
   /** Only when a value is shown. */
   source?: ObservationSource
-  /** Only for caution and warning: the row that decided it. */
+  /** Only for levels 2–5: the row that decided it. */
   rule?: Rule
   /** The indicator has no rule rows, so its state is not a judgement. */
   unrated?: true
@@ -86,7 +86,7 @@ export const READINGS: ReadingSpec[] = [
 ]
 
 export function readingSpec(indicator: Indicator): ReadingSpec {
-  for (const spec of READINGS) if (spec.indicator === indicator) return spec
+  for (const spec of READINGS) if (spec.indicator === indicator || spec.pairIndicator === indicator) return spec
   // Unreachable: domain/readings.test.ts checks every rule's indicator has a spec.
   throw new Error(`No READINGS spec for ${indicator}`)
 }

@@ -505,7 +505,7 @@ describe('Save and leave', () => {
     setupAt().renderApp()
     await saveCheckIn({ spo2: 88 })
     const systems = screen.getByRole('region', { name: 'Body systems' })
-    await waitFor(() => expect(within(systems).getAllByRole('listitem')[0]).toHaveTextContent('WARNING'))
+    await waitFor(() => expect(within(systems).getAllByRole('listitem')[0]).toHaveTextContent('⬣ EMERGENCY'))
     const tiles = screen.getByRole('region', { name: 'Latest readings' })
     await waitFor(() => expect(within(tiles).getAllByRole('listitem')[0]).toHaveTextContent('88 %'))
   })

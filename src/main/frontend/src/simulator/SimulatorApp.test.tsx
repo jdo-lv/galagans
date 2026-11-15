@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { LinkState } from '../infrastructure/DeviceLink'
+import { RULES } from '../test/rules'
 import type { Publisher } from './Publisher'
 import { SimulatorApp } from './SimulatorApp'
 
@@ -29,27 +30,35 @@ class FakePublisher implements Publisher {
     this.state = state
     act(() => this.listeners.forEach((listener) => listener(state)))
   }
-  payloads() {
-    return this.published.map((m) => JSON.stringify(m.payload))
+  payloads(topic?: string) {
+    return this.published.filter((m) => !topic || m.topic === topic).map((m) => m.payload as Record<string, unknown>)
+  }
+  clear() {
+    this.published.length = 0
   }
 }
 
 let ids: number
-function renderSimulator(publisher = new FakePublisher()) {
-  const view = render(<SimulatorApp publisher={publisher} newId={() => `id-${++ids}`} />)
+function renderSimulator(publisher = new FakePublisher(), random: () => number = Math.random) {
+  const view = render(<SimulatorApp publisher={publisher} rules={RULES} newId={() => `id-${++ids}`} random={random} />)
   return { publisher, ...view }
 }
 
 const section = (name: string) => screen.getByRole('region', { name })
-const field = (device: string, label: string) => within(section(device)).getByLabelText(label)
 const every = (device: string) => within(section(device)).getByLabelText(/Every/)
 const button = (device: string, name: string) => within(section(device)).getByRole('button', { name })
+const levelButtons = (device: string) => within(within(section(device)).getByRole('group', { name: 'Level' })).getAllByRole('button')
 const statusLine = (device: string) => within(section(device)).getByRole('status')
+const tag = (device: string) => section(device).querySelector('.tag')
+const tiles = (device: string) =>
+  [...section(device).querySelectorAll('.field-tile')].map((t) => [t.querySelector('.tile-label')?.textContent, t.querySelector('.value')?.textContent])
 const linkPill = () => screen.getByText(/^Device link/).closest('.pill')!
 const type = (input: HTMLElement, value: string) => fireEvent.change(input, { target: { value } })
 const advance = (ms: number) => act(() => vi.advanceTimersByTime(ms))
 
 const DEVICES = ['Pulse oximeter', 'Wrist bracelet', 'BP cuff', 'Thermometer', 'Environment node', 'Dosimeter']
+const TOPICS = ['crew/a1/oximeter', 'crew/a1/wrist/hr', 'crew/a1/bp', 'crew/a1/thermometer', 'module/hab/env', 'module/hab/dose']
+const between = (value: unknown, min: number, max: number) => typeof value === 'number' && value >= min && value <= max
 
 beforeEach(() => {
   ids = 0
@@ -68,79 +77,139 @@ describe('SimulatorApp', () => {
     expect(screen.getByText('All data simulated')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Switch to (dark|light) mode/ })).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(DEVICES)
-    expect(screen.queryByText('Scenarios')).toBeNull()
 
     publisher.setState('disconnected')
     expect(linkPill()).toHaveTextContent(`Device link ${URL} · disconnected`)
   })
 
-  it.each([
-    ['Pulse oximeter', 'crew/a1/oximeter', [['SpO₂ %', '97'], ['Pulse bpm', '63']]],
-    ['Wrist bracelet', 'crew/a1/wrist/hr', [['Heart rate bpm', '63']]],
-    ['BP cuff', 'crew/a1/bp', [['Systolic mmHg', '108'], ['Diastolic mmHg', '70'], ['Pulse bpm', '63']]],
-    ['Thermometer', 'crew/a1/thermometer', [['Temperature °C', '36.8']]],
-    ['Environment node', 'module/hab/env', [['CO₂ (1-h avg) mmHg', '2.3'], ['Cabin temp °C', '22'], ['Humidity % RH', '45']]],
-    ['Dosimeter', 'module/hab/dose', [['Dose rate mSv/day', '0.5'], ['30-day BFO dose mGy-Eq', '95']]],
-  ])('%s shows its topic, every metric at its starting value, Every 60 s, Start, Send now and "Not sent yet"', (device, topic, metrics) => {
-    renderSimulator()
+  it('AC31: on load every device sends at once at its SIM_CONFIG level, then every 1 s', () => {
+    const { publisher } = renderSimulator()
 
-    expect(section(device)).toHaveTextContent(`${topic} · source: synthetic`)
-    for (const [label, value] of metrics) expect(field(device, label)).toHaveValue(value)
-    expect(every(device)).toHaveValue('60')
-    expect(button(device, 'Start')).toBeEnabled()
-    expect(button(device, 'Send now')).toBeEnabled()
-    expect(statusLine(device)).toHaveTextContent('Not sent yet')
-    expect(within(section(device)).queryByText(/sending every/)).toBeNull()
+    expect(publisher.published.map((m) => m.topic)).toEqual(TOPICS)
+    for (const device of DEVICES) {
+      expect(tag(device)).toHaveTextContent('sending every 1 s · Nominal')
+      expect(every(device)).toHaveValue('1')
+      expect(every(device)).toBeDisabled()
+      expect(button(device, 'Stop')).toBeInTheDocument()
+      expect(statusLine(device)).toHaveTextContent('Last sent 09:30:00')
+    }
+
+    advance(1_000)
+    expect(publisher.published).toHaveLength(12)
+    expect(statusLine('Dosimeter')).toHaveTextContent('Last sent 09:30:01')
   })
 
-  it('Send now publishes the current values once on the device topic, keys in contract order', () => {
-    const { publisher } = renderSimulator()
-    type(field('BP cuff', 'Systolic mmHg'), '150')
-    type(field('BP cuff', 'Pulse bpm'), '')
+  it.each(['connecting', 'disconnected'] as const)('AC31: with the link %s the first message is not sent and says so', (state) => {
+    const { publisher } = renderSimulator(new FakePublisher(state))
 
-    fireEvent.click(button('BP cuff', 'Send now'))
-
-    expect(publisher.published.map((m) => m.topic)).toEqual(['crew/a1/bp'])
-    expect(publisher.payloads()).toEqual(['{"id":"id-1","t":"2026-11-14T09:30:00.000Z","systolic_mmhg":150,"diastolic_mmhg":70,"src":"synthetic"}'])
-    expect(statusLine('BP cuff')).toHaveTextContent('Last sent 09:30:00')
-  })
-
-  it('decimals go out as numbers: the dosimeter sends rate and 30-day dose', () => {
-    const { publisher } = renderSimulator()
-    type(field('Dosimeter', '30-day BFO dose mGy-Eq'), '130.5')
-
-    fireEvent.click(button('Dosimeter', 'Send now'))
-
-    expect(publisher.payloads()).toEqual(['{"id":"id-1","t":"2026-11-14T09:30:00.000Z","dose_rate_msv_day":0.5,"dose_30d_mgy_eq":130.5,"src":"synthetic"}'])
+    expect(publisher.published).toHaveLength(0)
+    expect(statusLine('Pulse oximeter')).toHaveTextContent(`Not sent · device link ${state} 09:30:00`)
+    expect(tiles('Pulse oximeter')).toEqual([
+      ['SpO₂ %', '—'],
+      ['Pulse bpm', '—'],
+    ])
   })
 
   it.each([
-    ['Pulse oximeter', 'SpO₂ %', ''],
-    ['Pulse oximeter', 'SpO₂ %', '91.0'],
-    ['Pulse oximeter', 'SpO₂ %', '49'],
-    ['Thermometer', 'Temperature °C', '36.85'],
-    ['Environment node', 'Humidity % RH', '101'],
-    ['Dosimeter', 'Dose rate mSv/day', 'abc'],
-  ])('%s %s %j disables Start and Send now', (device, label, value) => {
+    ['Pulse oximeter', ['Nominal', 'Check', 'Emergency']],
+    ['Wrist bracelet', ['Nominal', 'Check']],
+    ['BP cuff', ['Nominal', 'Watch', 'Check', 'Treat', 'Emergency']],
+    ['Thermometer', ['Nominal', 'Check']],
+    ['Environment node', ['Nominal', 'Watch', 'Check']],
+    ['Dosimeter', ['Nominal', 'Check', 'Emergency']],
+  ])('AC32: %s has a Level fieldset; only %j have rule rows', (device, enabled) => {
     renderSimulator()
 
-    type(field(device, label), value)
-
-    expect(button(device, 'Start')).toBeDisabled()
-    expect(button(device, 'Send now')).toBeDisabled()
+    const buttons = levelButtons(device)
+    expect(buttons.map((b) => b.textContent)).toEqual(['Nominal', 'Watch', 'Check', 'Treat', 'Emergency'])
+    expect(buttons.map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false', 'false', 'false'])
+    for (const b of buttons) {
+      const on = enabled.includes(b.textContent!)
+      expect(b).toHaveProperty('disabled', !on)
+      expect(b.getAttribute('title')).toBe(on ? null : 'No rule row for this level')
+    }
   })
 
-  it('an empty optional field is left out of the payload', () => {
+  it('AC32: a level applies from the next message without restarting the timer', () => {
     const { publisher } = renderSimulator()
-    type(field('Pulse oximeter', 'Pulse bpm'), '')
+    advance(500)
 
-    fireEvent.click(button('Pulse oximeter', 'Send now'))
+    fireEvent.click(button('Thermometer', 'Check'))
+    expect(levelButtons('Thermometer').map((b) => b.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'true', 'false', 'false'])
+    expect(tag('Thermometer')).toHaveTextContent('sending every 1 s · Check')
+    expect(publisher.payloads('crew/a1/thermometer')).toHaveLength(1)
 
-    expect(publisher.payloads()).toEqual(['{"id":"id-1","t":"2026-11-14T09:30:00.000Z","spo2_pct":97,"src":"synthetic"}'])
+    advance(500)
+    const temps = publisher.payloads('crew/a1/thermometer').map((p) => p.temp_c)
+    expect(temps).toHaveLength(2)
+    expect(between(temps[0], 35.7, 37.9)).toBe(true)
+    expect(between(temps[1], 38, 41.6)).toBe(true)
   })
 
-  it.each(['0', '3601', '1.5', '', 'x'])('Every %j disables Start but not Send now', (value) => {
+  it('AC32: the bracelet at Check puts every pulse field in 101–110', () => {
+    const { publisher } = renderSimulator()
+    fireEvent.click(button('Wrist bracelet', 'Check'))
+    publisher.clear()
+
+    advance(5_000)
+
+    const pulses = [
+      ...publisher.payloads('crew/a1/wrist/hr').map((p) => p.hr_bpm),
+      ...publisher.payloads('crew/a1/oximeter').map((p) => p.pulse_bpm),
+      ...publisher.payloads('crew/a1/bp').map((p) => p.pulse_bpm),
+    ]
+    expect(pulses).toHaveLength(15)
+    expect(pulses.every((v) => between(v, 101, 110))).toBe(true)
+  })
+
+  it('AC35: only the oximeter at Check: every oximeter payload has SpO₂ 90–93 and pulse 101–110', () => {
+    const { publisher } = renderSimulator()
+    fireEvent.click(button('Pulse oximeter', 'Check'))
+    publisher.clear()
+
+    advance(20_000)
+
+    const payloads = publisher.payloads('crew/a1/oximeter')
+    expect(payloads).toHaveLength(20)
+    expect(payloads.every((p) => between(p.spo2_pct, 90, 93) && between(p.pulse_bpm, 101, 110))).toBe(true)
+  })
+
+  it('AC33: no value inputs; each tile shows the values of the last message the link took', () => {
+    const { publisher } = renderSimulator(new FakePublisher(), () => 0)
+
+    expect(within(section('BP cuff')).getAllByRole('textbox')).toEqual([every('BP cuff')])
+    expect(tiles('BP cuff')).toEqual([
+      ['Systolic mmHg', '105'],
+      ['Diastolic mmHg', '68'],
+      ['Pulse bpm', '62'],
+    ])
+    expect(publisher.payloads('crew/a1/bp')).toEqual([{ id: 'id-3', t: '2026-11-14T09:30:00.000Z', systolic_mmhg: 105, diastolic_mmhg: 68, pulse_bpm: 62, src: 'synthetic' }])
+
+    fireEvent.click(button('BP cuff', 'Treat'))
+    publisher.setState('disconnected')
+    advance(1_000)
+    expect(tiles('BP cuff')[0]).toEqual(['Systolic mmHg', '105'])
+
+    publisher.setState('connected')
+    advance(1_000)
+    expect(tiles('BP cuff')[0]).toEqual(['Systolic mmHg', '140'])
+  })
+
+  it('AC34: Stop ends the sending, the tag goes and Start comes back with Every enabled', () => {
+    const { publisher } = renderSimulator()
+
+    fireEvent.click(button('Thermometer', 'Stop'))
+    advance(60_000)
+
+    expect(publisher.payloads('crew/a1/thermometer')).toHaveLength(1)
+    expect(button('Thermometer', 'Start')).toBeInTheDocument()
+    expect(tag('Thermometer')).toBeNull()
+    expect(every('Thermometer')).toBeEnabled()
+  })
+
+  it.each(['0', '3601', '1.5', '', 'x'])('AC34: Every %j disables Start but not Send now', (value) => {
     renderSimulator()
+    fireEvent.click(button('Wrist bracelet', 'Stop'))
 
     type(every('Wrist bracelet'), value)
 
@@ -148,81 +217,55 @@ describe('SimulatorApp', () => {
     expect(button('Wrist bracelet', 'Send now')).toBeEnabled()
   })
 
-  it('Start sends at once, then every N s with the values of that moment; the tag shows the period', () => {
+  it('AC34: Start sends at once, then every N s; devices run on their own periods', () => {
     const { publisher } = renderSimulator()
+    fireEvent.click(button('Wrist bracelet', 'Stop'))
     type(every('Wrist bracelet'), '5')
+    publisher.clear()
 
     fireEvent.click(button('Wrist bracelet', 'Start'))
-    expect(within(section('Wrist bracelet')).getByText('sending every 5 s')).toHaveClass('tag')
-    expect(every('Wrist bracelet')).toBeDisabled()
-    type(field('Wrist bracelet', 'Heart rate bpm'), '120')
-    advance(5_000)
+    expect(tag('Wrist bracelet')).toHaveTextContent('sending every 5 s · Nominal')
+    advance(10_000)
 
-    expect(publisher.payloads()).toEqual([
-      '{"id":"id-1","t":"2026-11-14T09:30:00.000Z","hr_bpm":63,"src":"synthetic"}',
-      '{"id":"id-2","t":"2026-11-14T09:30:05.000Z","hr_bpm":120,"src":"synthetic"}',
+    expect(publisher.payloads('crew/a1/wrist/hr')).toHaveLength(3)
+    expect(publisher.payloads('module/hab/env')).toHaveLength(10)
+    expect(statusLine('Wrist bracelet')).toHaveTextContent('Last sent 09:30:10')
+  })
+
+  it('AC34: Send now publishes one message at the current levels, keys in contract order', () => {
+    const { publisher } = renderSimulator(new FakePublisher(), () => 0)
+    fireEvent.click(button('Dosimeter', 'Stop'))
+    fireEvent.click(button('Dosimeter', 'Emergency'))
+    publisher.clear()
+
+    fireEvent.click(button('Dosimeter', 'Send now'))
+
+    expect(publisher.published.map((m) => [m.topic, JSON.stringify(m.payload)])).toEqual([
+      ['module/hab/dose', '{"id":"id-7","t":"2026-11-14T09:30:00.000Z","dose_rate_msv_day":0.49,"dose_30d_mgy_eq":250.1,"src":"synthetic"}'],
     ])
-    expect(statusLine('Wrist bracelet')).toHaveTextContent('Last sent 09:30:05')
+    expect(statusLine('Dosimeter')).toHaveTextContent('Last sent 09:30:00')
   })
 
-  it('devices run on their own periods', () => {
-    const { publisher } = renderSimulator()
-    type(every('Wrist bracelet'), '5')
-    fireEvent.click(button('Wrist bracelet', 'Start'))
-    fireEvent.click(button('Environment node', 'Start'))
-
-    advance(60_000)
-
-    const count = (topic: string) => publisher.published.filter((m) => m.topic === topic).length
-    expect([count('crew/a1/wrist/hr'), count('module/hab/env'), count('crew/a1/oximeter')]).toEqual([13, 2, 0])
-  })
-
-  it('Stop ends the sending, the tag goes and Start comes back', () => {
-    const { publisher } = renderSimulator()
-    fireEvent.click(button('Thermometer', 'Start'))
-
-    fireEvent.click(button('Thermometer', 'Stop'))
-    advance(60_000)
-
-    expect(publisher.published).toHaveLength(1)
-    expect(button('Thermometer', 'Start')).toBeInTheDocument()
-    expect(within(section('Thermometer')).queryByText(/sending every/)).toBeNull()
-    expect(every('Thermometer')).toBeEnabled()
-  })
-
-  it('unmounting while sending sends nothing more', () => {
-    const { publisher, unmount } = renderSimulator()
-    fireEvent.click(button('Thermometer', 'Start'))
-
-    unmount()
-    advance(60_000)
-
-    expect(publisher.published).toHaveLength(1)
-  })
-
-  it('a value made invalid while sending skips the tick and says so', () => {
-    const { publisher } = renderSimulator()
-    fireEvent.click(button('Thermometer', 'Start'))
-    type(field('Thermometer', 'Temperature °C'), '')
-
-    advance(60_000)
-
-    expect(publisher.published).toHaveLength(1)
-    expect(statusLine('Thermometer')).toHaveTextContent('Not sent · check the values 09:31:00')
-  })
-
-  it('with the device link down nothing is sent or queued, and the status says so', () => {
+  it('AC34: with the device link down nothing is sent or queued, and the status says so', () => {
     const { publisher } = renderSimulator(new FakePublisher('disconnected'))
 
     fireEvent.click(button('Dosimeter', 'Send now'))
-    fireEvent.click(button('Pulse oximeter', 'Start'))
     expect(statusLine('Dosimeter')).toHaveTextContent('Not sent · device link disconnected 09:30:00')
 
     publisher.setState('connecting')
     advance(60_000)
     expect(statusLine('Pulse oximeter')).toHaveTextContent('Not sent · device link connecting 09:31:00')
-    expect(within(section('Pulse oximeter')).getByText('sending every 60 s')).toBeInTheDocument()
+    expect(tag('Pulse oximeter')).toHaveTextContent('sending every 1 s · Nominal')
     expect(publisher.published).toHaveLength(0)
+  })
+
+  it('unmounting while sending sends nothing more', () => {
+    const { publisher, unmount } = renderSimulator()
+
+    unmount()
+    advance(60_000)
+
+    expect(publisher.published).toHaveLength(6)
   })
 
   it('the theme toggle stores under simulator.theme and leaves crew-health.theme alone', () => {

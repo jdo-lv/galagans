@@ -1,6 +1,7 @@
 import { useId } from 'react'
 import { formatAge, formatOldAge } from '../application/formatAge'
 import type { LatestReading } from '../domain/readings'
+import { isFlagged } from '../domain/rules'
 import { READING_ICONS } from './readingIcons'
 import { Badge } from './SystemStatusList'
 import type { LatestReadingsState } from './useLatestReadings'
@@ -25,7 +26,7 @@ function Reading({ reading }: { reading: LatestReading }) {
 }
 
 function ReadingTile({ reading, now }: { reading: LatestReading; now: Date }) {
-  const { spec, state, recordedAt, source } = reading
+  const { spec, state, recordedAt, source, rule } = reading
   const Icon = READING_ICONS[spec.key]
   const age = recordedAt && (state === 'stale' ? formatOldAge(recordedAt, now) : formatAge(recordedAt, now))
   const suffix = [spec.labelSuffix, age && `/ ${age}`].filter(Boolean).join(' ')
@@ -33,7 +34,7 @@ function ReadingTile({ reading, now }: { reading: LatestReading; now: Date }) {
     <li className={state === 'stale' ? 'metric-tile metric-tile--stale' : 'metric-tile'}>
       <div className="metric-tile__top">
         <Reading reading={reading} />
-        {state === 'caution' || state === 'warning' ? <Badge state={state} /> : Icon && <Icon className="metric-tile__icon" />}
+        {isFlagged(state) ? <Badge state={state} rule={rule} /> : Icon && <Icon className="metric-tile__icon" />}
       </div>
       <div className="tile-label">
         {spec.label}

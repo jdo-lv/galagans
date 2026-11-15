@@ -1,10 +1,13 @@
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
+import type { Observation } from '../domain/observation'
+import { CHART_WINDOW_MS } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
 import { RULES } from '../test/rules'
 import { pvt, reading, setup as baseSetup, submitSpo2 } from '../test/renderApp'
+import { TrendChart } from './TrendChart'
 
 const [SPO01, SPO02] = RULES
 const NOW = '2026-11-14T09:30:00Z'
@@ -116,16 +119,16 @@ describe('Detail header and panels', () => {
   it('AC11: caution header with value, age and source', async () => {
     await openWith([reading('a', new Date(Date.parse(NOW) - 10 * MIN).toISOString(), 92)])
 
-    expect(detail()).toHaveTextContent('▲ CAUTION')
+    expect(detail()).toHaveTextContent('▲ CHECK')
     expect(detail()).toHaveTextContent('SpO₂ 92 % · 10 min ago · manual')
   })
 
-  it('AC12: warning header with the octagon icon and the word', async () => {
+  it('AC12: emergency header with the ⬣ glyph and the word', async () => {
     await openWith([reading('a', NOW, 88)])
 
     const badge = detail().querySelector('.badge') as HTMLElement
-    expect(badge.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
-    expect(badge).toHaveTextContent('WARNING')
+    expect(badge.className).toBe('badge badge--emergency')
+    expect(badge).toHaveTextContent('⬣ EMERGENCY')
     expect(detail()).toHaveTextContent('SpO₂ 88 % · just now · manual')
   })
 
@@ -182,7 +185,7 @@ describe('Detail when not flagged', () => {
 
     expect(detail()).toHaveTextContent('✓ Nominal')
     expect(detail()).toHaveTextContent('SpO₂ 96 % · just now · manual')
-    expect(detail()).toHaveTextContent('No caution or warning now.')
+    expect(detail()).toHaveTextContent('Nothing to act on now.')
     noPanels()
   })
 
@@ -190,7 +193,7 @@ describe('Detail when not flagged', () => {
     await openWith([])
 
     expect(detail()).toHaveTextContent('No data')
-    expect(detail()).toHaveTextContent('No caution or warning now.')
+    expect(detail()).toHaveTextContent('Nothing to act on now.')
     expect(region('SpO₂ · last 7 days')).toHaveTextContent('No readings in the last 7 days')
     expect(chart()).toBeNull()
     noPanels()
@@ -201,7 +204,7 @@ describe('Detail when not flagged', () => {
 
     expect(detail()).toHaveTextContent('No recent data')
     expect(detail()).toHaveTextContent('SpO₂ 88 % · data 1 d old · manual')
-    expect(detail()).toHaveTextContent('No caution or warning now.')
+    expect(detail()).toHaveTextContent('Nothing to act on now.')
     expect(points().map((p) => p.getAttribute('class'))).toEqual(['chart-point chart-point--stale'])
     expect(titles()).toEqual(['88 % · stale · 13 Nov 09:29 UTC · manual'])
     expect(markers()).toEqual([])
@@ -230,8 +233,8 @@ describe('Detail chart', () => {
     expect(chart()).toHaveAttribute('aria-label', 'SpO₂, last 7 days, 3 readings')
     expect(titles()).toEqual([
       '97 % · nominal · 8 Nov 08:00 UTC · manual',
-      '93 % · caution · 13 Nov 08:15 UTC · manual',
-      '92 % · caution · 14 Nov 09:20 UTC · manual',
+      '93 % · check · 13 Nov 08:15 UTC · manual',
+      '92 % · check · 14 Nov 09:20 UTC · manual',
     ])
   })
 
@@ -240,25 +243,56 @@ describe('Detail chart', () => {
 
     expect(points().map((p) => p.getAttribute('class'))).toEqual([
       'chart-point',
-      'chart-point chart-point--caution',
-      'chart-point chart-point--caution',
+      'chart-point chart-point--check',
+      'chart-point chart-point--check',
     ])
     expect(markers()).toEqual(['▲', '▲'])
     expect(chart().querySelectorAll('polyline')).toHaveLength(1)
   })
 
-  it('AC24: a warning point carries the class and a "!" marker', async () => {
+  it('AC24, #43 AC9: an emergency point carries the class and a ⬣ marker', async () => {
     await openWith([reading('a', NOW, 88)])
 
-    expect(points().map((p) => p.getAttribute('class'))).toEqual(['chart-point chart-point--warning'])
-    expect(markers()).toEqual(['!'])
+    expect(points().map((p) => p.getAttribute('class'))).toEqual(['chart-point chart-point--emergency'])
+    expect(markers()).toEqual(['⬣'])
+  })
+
+  it('#43 AC9: watch and treat points on the Cardiovascular chart, with ↗ and ✚ markers and level-word threshold labels', async () => {
+    const bp = (id: string, minutesAgo: number, systolic: number): Observation => ({
+      resourceType: 'Observation', id: `bp-cuff:${id}:systolicMmHg`, status: 'final', code: { text: 'systolicMmHg' },
+      valueQuantity: { value: systolic, unit: 'mmHg' }, effectiveDateTime: new Date(Date.parse(NOW) - minutesAgo * MIN).toISOString(),
+      device: { display: 'BP cuff · synthetic' },
+    })
+    go('#/systems/Cardiovascular')
+    setup({ observationSeed: [bp('a', 30, 110), bp('b', 20, 120), bp('c', 10, 145)] }).renderApp()
+    await within(await findDetail('Cardiovascular')).findByRole('heading', { level: 2, name: 'Cardiovascular' })
+    const bpChart = detail('Cardiovascular').querySelector('svg[role="img"]') as SVGSVGElement
+
+    expect(detail('Cardiovascular').querySelector('.detail-title .badge')).toHaveTextContent('✚ TREAT')
+    expect([...bpChart.querySelectorAll('circle.chart-point')].map((p) => p.getAttribute('class'))).toEqual([
+      'chart-point',
+      'chart-point chart-point--watch',
+      'chart-point chart-point--treat',
+    ])
+    expect([...bpChart.querySelectorAll('text.chart-marker')].map((m) => m.textContent)).toEqual(['↗', '✚'])
+    expect(bpChart).toHaveTextContent('BP-01 · > 119 mmHg watch')
+    expect(bpChart).toHaveTextContent('BP-04 · > 139 mmHg treat')
+  })
+
+  it('#43 AC9: a watch point of a "below" row gets ↘', () => {
+    const rule = { ...RULES.find((r) => r.id === 'CV-02')!, id: 'T-01', status: 'watch' as const }
+    const { container } = render(
+      <TrendChart rules={[rule]} points={[{ recordedAt: NOW, value: 38, source: 'manual', status: 'watch', rule }]} now={new Date(NOW)} windowMs={CHART_WINDOW_MS} />,
+    )
+
+    expect([...container.querySelectorAll('text.chart-marker')].map((m) => m.textContent)).toEqual(['↘'])
   })
 
   it('AC25: threshold labels and the fixed 80–100 % grid', async () => {
     await openWith(week())
 
-    expect(chart()).toHaveTextContent('SPO-01 · < 94 % caution')
-    expect(chart()).toHaveTextContent('SPO-02 · < 90 % warning')
+    expect(chart()).toHaveTextContent('SPO-01 · < 94 % check')
+    expect(chart()).toHaveTextContent('SPO-02 · < 90 % emergency')
     const grid = [...chart().querySelectorAll('line.chart-grid')]
     expect(grid.map((l) => l.getAttribute('data-value'))).toEqual(['80', '85', '90', '95', '100'])
     ;['80 %', '85 %', '90 %', '95 %', '100 %'].forEach((label) => expect(within(chart() as unknown as HTMLElement).getByText(label)).toBeInTheDocument())
@@ -283,7 +317,7 @@ describe('Detail chart', () => {
   it('AC28: a value below 80 sits on the 80 % line', async () => {
     await openWith([reading('a', NOW, 75)])
 
-    expect(titles()).toEqual(['75 % · warning · 14 Nov 09:30 UTC · manual'])
+    expect(titles()).toEqual(['75 % · emergency · 14 Nov 09:30 UTC · manual'])
     const floor = chart().querySelector('line.chart-grid[data-value="80"]')
     expect(points()[0].getAttribute('cy')).toBe(floor?.getAttribute('y1'))
   })
@@ -307,6 +341,40 @@ describe('Detail chart', () => {
 
     expect(chart().querySelector('.chart-baseline')).toBeNull()
     expect(chart()).not.toHaveTextContent('pre-flight normal')
+  })
+})
+
+describe('Detail chart in DEMO_MODE (#43)', () => {
+  const DEMO_NOW = '2026-11-14T09:31:07Z'
+  const xLabels = () => [...chart().querySelectorAll('text.chart-label[y="228"]')]
+
+  it('AC23: a 1-minute window: 2 points, five time labels, the last one end-anchored, no date, minute title and label', async () => {
+    await openWith([reading('a', '2026-11-14T09:30:06Z', 97), reading('b', '2026-11-14T09:30:08Z', 96), reading('c', DEMO_NOW, 92)], {
+      now: DEMO_NOW,
+      chartWindowMs: 60_000,
+    })
+
+    expect(points()).toHaveLength(2)
+    expect(xLabels().map((t) => t.textContent)).toEqual(['09:30:07', '09:30:22', '09:30:37', '09:30:52', '09:31:07'])
+    expect(xLabels().map((t) => t.getAttribute('text-anchor'))).toEqual(['middle', 'middle', 'middle', 'middle', 'end'])
+    expect([...chart().querySelectorAll('text.chart-label')].filter((t) => /Nov/.test(t.textContent ?? ''))).toEqual([])
+    expect(region('SpO₂ · last minute')).toContainElement(chart() as unknown as HTMLElement)
+    expect(chart()).toHaveAttribute('aria-label', 'SpO₂, last minute, 2 readings')
+  })
+
+  it('AC23: no reading in the last minute shows the empty text', async () => {
+    await openWith([reading('a', '2026-11-14T09:30:06Z', 97)], { now: DEMO_NOW, chartWindowMs: 60_000 })
+
+    expect(region('SpO₂ · last minute')).toHaveTextContent('No readings in the last minute')
+    expect(chart()).toBeNull()
+  })
+
+  it('AC24: the 7-day window keeps midnight labels, its title, aria-label and empty text', async () => {
+    await openWith([reading('a', '2026-11-13T08:15:00Z', 93)])
+
+    expect(xLabels().map((t) => t.textContent)).toEqual(['8 Nov', '9 Nov', '10 Nov', '11 Nov', '12 Nov', '13 Nov', '14 Nov'])
+    expect(region('SpO₂ · last 7 days')).toContainElement(chart() as unknown as HTMLElement)
+    expect(chart()).toHaveAttribute('aria-label', 'SpO₂, last 7 days, 1 reading')
   })
 })
 
@@ -342,7 +410,7 @@ describe('Detail errors and offline', () => {
     setFail(s, false)
     act(() => vi.advanceTimersByTime(60_000))
 
-    expect(await within(detail()).findByText('▲ CAUTION')).toBeInTheDocument()
+    expect(await within(detail()).findByText('▲ CHECK')).toBeInTheDocument()
   })
 
   it('AC37: while loading, the back link shows and no heading', async () => {
@@ -362,7 +430,7 @@ describe('Detail errors and offline', () => {
     await submitSpo2(92)
     fireEvent.click(await screen.findByRole('link', { name: /Respiratory/ }))
 
-    expect(await within(await findDetail()).findByText('▲ CAUTION')).toBeInTheDocument()
+    expect(await within(await findDetail()).findByText('▲ CHECK')).toBeInTheDocument()
     expect(s.gateway.sent).toHaveLength(0)
   })
 })
@@ -384,7 +452,7 @@ describe('Cognition detail (#17)', () => {
   it('AC12: caution header, explanation, what next and the CMO tier', async () => {
     await openCognition(week())
 
-    expect(detail('Cognition')).toHaveTextContent('▲ CAUTION')
+    expect(detail('Cognition')).toHaveTextContent('▲ CHECK')
     expect(detail('Cognition')).toHaveTextContent('PVT median 312 ms · 10 min ago · in-app test')
     const values = [...cog('Explanation').querySelectorAll('dd')]
     expect(values.slice(0, 3).map((d) => d.textContent)).toEqual([COG01.what, COG01.why, COG01.howDecided])
@@ -405,9 +473,9 @@ describe('Cognition detail (#17)', () => {
     expect(cogChart()).toHaveAttribute('aria-label', 'PVT median, last 7 days, 2 readings')
     expect(cogPoints().map((p) => p.querySelector('title')?.textContent)).toEqual([
       '268 ms · nominal · 10 Nov 09:00 UTC · in-app test',
-      '312 ms · caution · 14 Nov 09:20 UTC · in-app test',
+      '312 ms · check · 14 Nov 09:20 UTC · in-app test',
     ])
-    expect(cogChart()).toHaveTextContent('COG-01 · > 304.75 ms caution')
+    expect(cogChart()).toHaveTextContent('COG-01 · > 304.75 ms check')
     expect([...cogChart().querySelectorAll('line.chart-grid')].map((l) => l.getAttribute('data-value'))).toEqual([
       '200', '250', '300', '350', '400',
     ])
@@ -418,7 +486,7 @@ describe('Cognition detail (#17)', () => {
 
     expect(detail('Cognition')).toHaveTextContent('No recent data')
     expect(detail('Cognition')).toHaveTextContent('PVT median 312 ms · data 4 d old · in-app test')
-    expect(detail('Cognition')).toHaveTextContent('No caution or warning now.')
+    expect(detail('Cognition')).toHaveTextContent('Nothing to act on now.')
     expect(cogPoints().map((p) => p.getAttribute('class'))).toEqual(['chart-point chart-point--stale'])
   })
 
@@ -439,7 +507,7 @@ describe('Cognition detail (#17)', () => {
     expect(baselineLabel()).toHaveAttribute('text-anchor', 'end')
     expect(baselineLabel()).toHaveAttribute('x', baselineLine()?.getAttribute('x2'))
     expect(Number(baselineLabel()?.getAttribute('y'))).toBeCloseTo(y265 + 16)
-    expect(cogChart()).toHaveTextContent('COG-01 · > 304.75 ms caution')
+    expect(cogChart()).toHaveTextContent('COG-01 · > 304.75 ms check')
   })
 
   it('AC11 (#28): no PVT readings shows no chart and no baseline', async () => {

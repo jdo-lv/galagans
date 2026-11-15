@@ -1,8 +1,8 @@
 import type { Observation, ObservationSource } from '../domain/observation'
 import { readingSpec } from '../domain/readings'
-import { CHART_WINDOW_MS, type ChartPoint, type Indicator, type Rule, type Status, type SystemStatus } from '../domain/rules'
+import type { ChartPoint, Indicator, Rule, Status, SystemStatus } from '../domain/rules'
 
-const SEVERITY: Record<Status, number> = { nominal: 0, caution: 1, warning: 2 }
+const SEVERITY: Record<Status, number> = { nominal: 0, watch: 2, check: 3, treat: 4, emergency: 5 }
 
 export interface IndicatorReading {
   id: string
@@ -67,19 +67,18 @@ export function latestReading(
   return validReadings(observations, indicator, validMin, validMax, rows).sort(compare)[0]
 }
 
-/** Valid readings of the last 7 days, oldest first; the newest is 'stale' when the system status is. */
-export function chartPoints(rows: Rule[], observations: Observation[], now: Date, stale: boolean): ChartPoint[] {
-  const from = now.getTime() - CHART_WINDOW_MS
+/** Valid readings in [now − windowMs, now], oldest first; the newest is 'stale' when the system status is. */
+export function chartPoints(rows: Rule[], observations: Observation[], now: Date, stale: boolean, windowMs: number): ChartPoint[] {
+  const from = now.getTime() - windowMs
   const { indicator, validMin, validMax } = rows[0]
   const readings = validReadings(observations, indicator, validMin, validMax, rows)
     .filter((r) => r.time >= from && r.time <= now.getTime())
     .sort((a, b) => compare(b, a))
-  return readings.map((r, i) => ({
-    recordedAt: r.recordedAt,
-    value: r.value,
-    source: r.source,
-    status: stale && i === readings.length - 1 ? 'stale' : r.status,
-  }))
+  return readings.map((r, i) => {
+    const point = { recordedAt: r.recordedAt, value: r.value, source: r.source }
+    if (stale && i === readings.length - 1) return { ...point, status: 'stale' }
+    return r.rule ? { ...point, status: r.status, rule: r.rule } : { ...point, status: r.status }
+  })
 }
 
 /** Data age comes from the indicator's reading spec, so a PVT ages in 4 days and an SpO₂ in 24 h; the source label is the shown Observation's. */
@@ -93,7 +92,7 @@ function evaluateIndicator(system: string, rows: Rule[], observations: Observati
   return latest.rule ? { ...shown, state: latest.status, rule: latest.rule } : { ...shown, state: latest.status }
 }
 
-const RANK: Record<SystemStatus['state'], number> = { 'no-data': 0, stale: 1, nominal: 2, caution: 3, warning: 4 }
+const RANK: Record<SystemStatus['state'], number> = { 'no-data': 0, stale: 1, nominal: 2, watch: 3, check: 4, treat: 5, emergency: 6 }
 
 /** A system's rows grouped by indicator, in table order. */
 export function byIndicator(rows: Rule[]): Rule[][] {

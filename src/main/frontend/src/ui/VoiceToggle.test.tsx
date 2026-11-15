@@ -16,7 +16,7 @@ describe('Voice control (F25)', () => {
     await userEvent.click(mic)
 
     expect(await screen.findByText('Voice: listening')).toBeInTheDocument()
-    expect(voice.output.spoken[0]).toMatch(/^No cautions or warnings\. There is no .* reading yet\. To do today: .*\. What would you like to do next\?$/)
+    expect(voice.output.spoken[0]).toMatch(/^Nothing to act on now\. There is no .* reading yet\. To do today: .*\. What would you like to do next\?$/)
     expect(mic).toHaveAttribute('aria-pressed', 'true')
 
     await userEvent.click(mic)
@@ -33,7 +33,7 @@ describe('Voice control (F25)', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Voice control' }))
 
-    await waitFor(() => expect(voice.output.spoken[1]).toMatch(/^Caution, Respiratory\./))
+    await waitFor(() => expect(voice.output.spoken[1]).toMatch(/^Check, Respiratory\./))
     expect(window.location.hash).toBe('#/systems/Respiratory')
   })
 

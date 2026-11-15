@@ -27,4 +27,14 @@ export class IndexedDbObservationRepository implements ObservationRepository {
   async list(): Promise<Observation[]> {
     return (await this.db).getAll(STORE)
   }
+
+  /** A cursor scan, so the store needs no time index (no schema change). */
+  async deleteBefore(time: string): Promise<void> {
+    const limit = Date.parse(time)
+    const tx = (await this.db).transaction(STORE, 'readwrite')
+    for (let cursor = await tx.store.openCursor(); cursor; cursor = await cursor.continue()) {
+      if (Date.parse(cursor.value.effectiveDateTime) < limit) await cursor.delete()
+    }
+    await tx.done
+  }
 }

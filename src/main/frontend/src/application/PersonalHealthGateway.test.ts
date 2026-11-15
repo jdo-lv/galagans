@@ -165,3 +165,67 @@ describe('PersonalHealthGateway for the other devices', () => {
     expect(await store(id, fields)).toEqual([expected])
   })
 })
+
+describe('PersonalHealthGateway retention (#43 AC25)', () => {
+  const deletes = (repository: FakeObservationRepository) => vi.spyOn(repository, 'deleteBefore')
+
+  it('with retainMs, deletes Observations older than now − retainMs after storing and notifying', async () => {
+    const source = new FakeReadingSource()
+    const repository = new FakeObservationRepository()
+    const spy = deletes(repository)
+    const order: string[] = []
+    spy.mockImplementation(async () => void order.push('delete'))
+    const gateway = new PersonalHealthGateway(source, repository, () => NOW, DEVICES[0], 600_000)
+    gateway.subscribe(() => order.push('notify'))
+    gateway.start()
+
+    source.emit(message())
+    await flush()
+
+    expect(spy).toHaveBeenCalledExactlyOnceWith('2026-11-14T09:50:00.000Z')
+    expect(order).toEqual(['notify', 'delete'])
+  })
+
+  it('without retainMs, deletes nothing', async () => {
+    const source = new FakeReadingSource()
+    const repository = new FakeObservationRepository()
+    const spy = deletes(repository)
+    new PersonalHealthGateway(source, repository, () => NOW, DEVICES[0]).start()
+
+    source.emit(message())
+    await flush()
+
+    expect(repository.items.size).toBe(2)
+    expect(spy).not.toHaveBeenCalled()
+  })
+
+  it('a dropped message deletes nothing; a failing delete is ignored', async () => {
+    const source = new FakeReadingSource()
+    const repository = new FakeObservationRepository()
+    const spy = deletes(repository).mockRejectedValue(new Error('storage failed'))
+    const listener = vi.fn()
+    const gateway = new PersonalHealthGateway(source, repository, () => NOW, DEVICES[0], 600_000)
+    gateway.subscribe(listener)
+    gateway.start()
+
+    source.emit({ id: 'bad' })
+    await flush()
+    expect(spy).not.toHaveBeenCalled()
+
+    source.emit(message())
+    await flush()
+    expect(listener).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+
+  it('the fake deletes like the adapter: strictly older only', async () => {
+    const repository = new FakeObservationRepository()
+    for (const [id, t] of [['a', '2026-11-14T09:49:59Z'], ['b', '2026-11-14T09:50:00Z']]) {
+      await repository.put({ resourceType: 'Observation', id, status: 'final', code: { text: 'spo2Percent' }, valueQuantity: { value: 97, unit: '%' }, effectiveDateTime: t, device: { display: 'oximeter · synthetic' } })
+    }
+
+    await repository.deleteBefore('2026-11-14T09:50:00.000Z')
+
+    expect([...repository.items.keys()]).toEqual(['b'])
+  })
+})

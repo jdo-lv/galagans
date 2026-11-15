@@ -16,7 +16,12 @@ export type Indicator =
   | 'doseRateMsvDay'
   | 'bfoDose30dMgyEq'
 
-export type Status = 'nominal' | 'caution' | 'warning'
+export type Status = 'nominal' | 'watch' | 'check' | 'treat' | 'emergency'
+
+/** Levels 2–5 (watch to emergency): a rule row flagged it. */
+export function isFlagged(state: string | undefined): state is Rule['status'] {
+  return state === 'watch' || state === 'check' || state === 'treat' || state === 'emergency'
+}
 
 /** A value older than this shows as stale. Team heuristic from #1, not from a source. */
 export const STALE_AFTER_MS = 24 * 60 * 60 * 1000
@@ -57,7 +62,7 @@ export interface SystemStatus {
   detail?: string
   /** Not set for no-data. */
   source?: ObservationSource | 'synthetic'
-  /** Only for caution and warning. */
+  /** Only for levels 2–5. */
   rule?: Rule
 }
 
@@ -74,10 +79,14 @@ export interface ChartPoint {
   value: number
   source: ObservationSource
   status: Status | 'stale'
+  /** Only for levels 2–5: the row that decided it. */
+  rule?: Rule
 }
 
 export interface SystemDetail {
   status: SystemStatus
   rules: Rule[]
   points: ChartPoint[]
+  /** The chart spans [now − windowMs, now]. */
+  windowMs: number
 }
