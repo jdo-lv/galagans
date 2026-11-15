@@ -133,7 +133,7 @@ A reading inside the corridor stays quiet and the explanation says "expected for
 | Gravity fields | Bone & muscle, Vision (SANS), Kidney & hydration, Cardiovascular (balance stays in the caption) |
 | Hostile/closed environment | Cognition, Cabin air, Sleep, Immune (headache has no row) |
 
-**Build:** a static table (`domain/hazards.ts`) and a lens class on the Body systems rows and the body figure. No new data.
+**Build:** a static table (`domain/hazards.ts`) and a lens class on the Body systems rows (on Stats; the body figure on Home has no lens marks). No new data.
 
 ### Systems schematic ("Body | Systems" toggle)
 
