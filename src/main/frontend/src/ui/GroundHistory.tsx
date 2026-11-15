@@ -65,13 +65,15 @@ function PacketHistory({ state }: { state: PeriodicState<StoredPacket[]> }) {
 
 /** The crew's side of the ground link (#57): what was sent to flight medicine, and the way to a new packet. */
 export function GroundHistory() {
-  const { packetHistoryReader } = useServices()
+  const { packetHistoryReader, packetUplink } = useServices()
   const history = usePeriodicRead(packetHistoryReader)
   const headingId = useId()
   const heading = useRef<HTMLHeadingElement>(null)
 
   // Once per opening, so a re-read never steals focus.
   useEffect(() => heading.current?.focus(), [])
+
+  useEffect(() => packetUplink.subscribe(history.refresh), [packetUplink, history.refresh])
 
   return (
     <section className="stack" aria-labelledby={headingId}>
