@@ -127,7 +127,6 @@ export function createServices(): Services & { startSync: () => () => void; star
       new WhisperSpeechInput('/voice/stt'),
       new PiperSpeechOutput('/voice/tts'),
       interpreter,
-      recorder,
       new HealthBriefing(statusReader, routineReader),
     ),
     // Device readings only, never `history`: a saved check-in must not prefill the next one.

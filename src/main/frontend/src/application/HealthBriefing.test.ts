@@ -116,16 +116,6 @@ describe('HealthBriefing', () => {
     expect(await briefing.brief()).toBe('All your readings are nominal. To do today: your morning check-in. What would you like to do next?')
   })
 
-  it('alerts() gives every current alert with decision support, or nothing', async () => {
-    expect(await briefing.alerts()).toBe(
-      'Check, Respiratory. SpO₂ is below 94 %. Yours is 92 %. Low oxygen saturation can mean hypoxia. ' +
-        'Re-measure. Still below 94 % → tell the CMO now. Who to involve: CMO. ' +
-        'This is decision support; your flight surgeon has the final word.',
-    )
-    statuses = [sleep]
-    expect(await briefing.alerts()).toBe('')
-  })
-
   it('an old Sleep reading is named old, never nominal', async () => {
     statuses = [{ system: 'Sleep', state: 'stale', label: 'Sleep', unit: 'h', value: 7, source: 'manual' }]
     todo = []

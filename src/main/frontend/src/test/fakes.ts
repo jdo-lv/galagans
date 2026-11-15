@@ -12,13 +12,15 @@ import type {
   PacketRepository,
   ReadingSource,
   RuleSource,
+  CheckInForm,
   SpeechInput,
   SpeechOutput,
   VoiceInterpreter,
   VoiceScreen,
 } from '../domain/ports'
 import type { Rule } from '../domain/rules'
-import { AudioUnavailableError, type VoiceCommand, type VoiceState, type VoiceTarget } from '../domain/voice'
+import type { CheckInStep } from '../domain/checkInSteps'
+import { AudioUnavailableError, type StepAnswer, type VoiceCommand, type VoiceState, type VoiceTarget } from '../domain/voice'
 
 export class FakeRepository implements CheckInRepository, CheckInHistory {
   items = new Map<string, { checkIn: CheckIn; pending: boolean }>()
@@ -137,6 +139,7 @@ export class FakeSpeechInput implements SpeechInput {
   said: string[] = []
   onListen = () => {}
   audioBlocked = false
+  private pending?: (text: string) => void
 
   async listen(signal: AbortSignal) {
     this.onListen()
@@ -144,7 +147,18 @@ export class FakeSpeechInput implements SpeechInput {
     if (signal.aborted) return ''
     const next = this.said.shift()
     if (next !== undefined) return next
-    return new Promise<string>((resolve) => signal.addEventListener('abort', () => resolve(''), { once: true }))
+    return new Promise<string>((resolve) => {
+      this.pending = resolve
+      signal.addEventListener('abort', () => resolve(''), { once: true })
+    })
+  }
+
+  /** Ends the pending listen with `text`; queued for the next listen when none is pending. */
+  hear(text: string) {
+    if (!this.pending) return void this.said.push(text)
+    const resolve = this.pending
+    this.pending = undefined
+    resolve(text)
   }
 }
 
@@ -160,13 +174,67 @@ export class FakeSpeechOutput implements SpeechOutput {
 
 export class FakeVoiceInterpreter implements VoiceInterpreter {
   commands: Record<string, VoiceCommand> = {}
+  /** What `answer` returns per transcript; anything else is `none`. */
+  answers: Record<string, StepAnswer> = {}
+  /** Transcripts `answer` was called with. */
+  answered: string[] = []
   unreachable = false
   onInterpret = () => {}
+  private held?: Promise<void>
 
   async interpret(transcript: string): Promise<VoiceCommand> {
     if (this.unreachable) throw new Error('voice host down')
     this.onInterpret()
     return Object.hasOwn(this.commands, transcript) ? this.commands[transcript] : { kind: 'none' }
+  }
+
+  async answer(_step: CheckInStep, transcript: string): Promise<StepAnswer> {
+    if (this.unreachable) throw new Error('voice host down')
+    this.answered.push(transcript)
+    await this.held
+    return Object.hasOwn(this.answers, transcript) ? this.answers[transcript] : { kind: 'none' }
+  }
+
+  /** Keeps the next `answer()` pending until the returned function is called. */
+  holdAnswer(): () => void {
+    let release = () => {}
+    this.held = new Promise<void>((resolve) => (release = resolve))
+    return () => {
+      this.held = undefined
+      release()
+    }
+  }
+}
+
+export class FakeCheckInForm implements CheckInForm {
+  index = 0
+  prefilled = false
+  prefillSettled = Promise.resolve()
+  outcome: 'moved' | 'refused' | 'saved' | 'failed' = 'moved'
+  filled: StepAnswer[] = []
+  calls: string[] = []
+
+  current() {
+    return { index: this.index, prefilled: this.prefilled }
+  }
+  fill(answer: StepAnswer) {
+    this.filled.push(answer)
+  }
+  async next() {
+    this.calls.push('next')
+    if (this.outcome === 'moved') this.index++
+    return this.outcome
+  }
+  async skip() {
+    this.calls.push('skip')
+    return this.outcome === 'refused' ? 'moved' : this.outcome
+  }
+  back() {
+    this.calls.push('back')
+    if (this.index > 0) this.index--
+  }
+  cancel() {
+    this.calls.push('cancel')
   }
 }
 
@@ -175,14 +243,23 @@ export class FakeVoiceScreen implements VoiceScreen {
   /** True when the last screen opened after a state other than "speaking": the words came first. */
   openedAfterSpeaking = false
   states: VoiceState[] = []
-  savedCount = 0
+  /** The check-in on screen. */
+  form?: CheckInForm
+  /** What opening the check-in shows; `undefined` when `#/check-in` already shows without a form. */
+  opensWith?: CheckInForm
+  checkInOpened = 0
 
   open(target: VoiceTarget) {
     this.opened.push(target)
     this.openedAfterSpeaking = this.states.at(-1) === 'speaking'
   }
-  saved() {
-    this.savedCount++
+  checkIn() {
+    return this.form
+  }
+  async openCheckIn() {
+    this.checkInOpened++
+    this.form = this.opensWith
+    return this.form
   }
   show(state: VoiceState) {
     this.states.push(state)

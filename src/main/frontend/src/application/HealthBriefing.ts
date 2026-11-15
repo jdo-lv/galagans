@@ -16,12 +16,6 @@ export class HealthBriefing {
     private readonly routine: { read(): Promise<RoutineItem[]> },
   ) {}
 
-  /** Every current alert with the decision-support line, or '' when there is none. */
-  async alerts(): Promise<string> {
-    const alerts = speakAlerts(await this.statuses.read())
-    return alerts && `${alerts} ${CLOSING}`
-  }
-
   /** The whole briefing, or one system's. */
   async brief(system?: string): Promise<string> {
     const all = await this.statuses.read()
