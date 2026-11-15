@@ -31,4 +31,17 @@ describe('IndexedDbObservationRepository', () => {
 
     expect(await repository.list()).toEqual([observation('a', 92)])
   })
+
+  it('#43 AC25: deleteBefore removes every Observation strictly older than the time, whatever its offset', async () => {
+    const repository = newRepository()
+    const at = (id: string, effectiveDateTime: string) => ({ ...observation(id), effectiveDateTime })
+    await repository.put(at('old', '2026-11-14T09:49:59Z'))
+    await repository.put(at('offset', '2026-11-14T10:49:00+01:00'))
+    await repository.put(at('edge', '2026-11-14T09:50:00.000Z'))
+    await repository.put(at('new', '2026-11-14T09:59:30Z'))
+
+    await repository.deleteBefore('2026-11-14T09:50:00.000Z')
+
+    expect((await repository.list()).map((o) => o.id).sort()).toEqual(['edge', 'new'])
+  })
 })

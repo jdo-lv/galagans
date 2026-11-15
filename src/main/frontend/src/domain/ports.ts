@@ -74,6 +74,8 @@ export interface ObservationHistory {
 export interface ObservationRepository extends ObservationHistory {
   /** Upserts by `id`, so a redelivered reading replaces itself. */
   put(observation: Observation): Promise<void>
+  /** Deletes every Observation whose `effectiveDateTime` is before `time` (ISO 8601). */
+  deleteBefore(time: string): Promise<void>
 }
 
 export interface ReadingSource {

@@ -194,6 +194,9 @@ export class FakeObservationRepository implements ObservationRepository {
     if (this.failPut) throw new Error('storage failed')
     this.items.set(observation.id, observation)
   }
+  async deleteBefore(time: string) {
+    for (const [id, o] of this.items) if (Date.parse(o.effectiveDateTime) < Date.parse(time)) this.items.delete(id)
+  }
 }
 
 export class FakeReadingSource implements ReadingSource {

@@ -22,6 +22,8 @@ export class PersonalHealthGateway {
     private readonly repository: ObservationRepository,
     private readonly now: () => Date = () => new Date(),
     private readonly device: DeviceSpec = DEVICES[0],
+    /** When set, Observations older than this are deleted after each stored message (demo builds). */
+    private readonly retainMs?: number,
   ) {}
 
   start(): () => void {
@@ -42,6 +44,9 @@ export class PersonalHealthGateway {
       return
     }
     this.listeners.forEach((listener) => listener())
+    if (this.retainMs === undefined) return
+    // Pruning is housekeeping: a failure leaves old readings, never drops the new one.
+    await this.repository.deleteBefore(new Date(this.now().getTime() - this.retainMs).toISOString()).catch(() => {})
   }
 
   private toObservations(message: unknown): Observation[] {
