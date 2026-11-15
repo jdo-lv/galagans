@@ -1,7 +1,7 @@
 ---
 name: issue-create
 description: Write a GitHub issue as a spec an agent can implement without asking questions, then publish it. Use when the user wants to create, write or file an issue, ticket or task for later implementation.
-argument-hint: "<what to build or fix>"
+argument-hint: "<what to build or fix> [; <another request> ...] [--max <n>]"
 model: opus
 ---
 
@@ -11,6 +11,23 @@ Three principles override speed:
 - **Clear or asked.** Every point is either decided by the code, the idea, `research/` or the user, or it's a question to the user. Never settle a doubt with an assumption, even a reasonable one.
 - **Verified, not remembered.** Every path, symbol, endpoint, topic, value and source in the issue was opened or grepped in this session. If you didn't see it, it doesn't go in.
 - **Concise.** The shortest text that leaves nothing to guess.
+
+One request runs the Steps below inline. Two or more run in [Parallel mode](#parallel-mode).
+
+## Parallel mode
+
+You coordinate; one `issue-creator` agent per request writes the spec in its own worktree. Runs in the main session because only it can launch agents and ask the user.
+
+1. **Split.** One line per request with a slug. If two requests overlap (same feature, same touch points), say so and ask whether to merge them into one. Show the list and the cost (one Opus agent per request) and get a yes. At most `--max` agents at once (default 3); the rest start as slots free up.
+2. **Launch.** In one message, one `Agent` call per request: `subagent_type: issue-creator`, `isolation: worktree`, `run_in_background: true`, description `Spec <slug>`, prompt `Spec this request for jdo-lv/galagans. Slug: <slug>. Request: <user's words, verbatim>. Return a QUESTIONS, DRAFT or RESULT block.` Don't poll.
+3. **Relay.** As blocks arrive, never write or guess one for an agent that hasn't reported:
+   - `QUESTIONS`: ask them with `AskUserQuestion`, up to 4 per call, batching across agents that are waiting; prefix each header or question with the slug. Send the answers back with `SendMessage` to that agent, numbered as asked.
+   - `DRAFT` with `skeptic: pending`: run `spec-skeptic` on the draft path, telling it to treat the `worktree` path as the repo root. Send its output verbatim with `SendMessage`. Repeat until it returns `No findings`.
+   - `DRAFT` with `skeptic: clean`: show the user the title, the body (read the draft) and the mock (read the png), and get a yes. Send `publish`, or the user's changes.
+   - `RESULT`: done for that request. For `failed`, say why.
+   If the user stops answering an agent's questions, send `publish with needs-info and list the open questions`.
+4. **Report.** One table: request, issue URL, labels, status. Flag published issues that share touch points, since issue-orchestrate won't run them in the same wave.
+5. **Clean up.** `git worktree list`. For each worktree of this run whose agent returned `RESULT`, run `git worktree remove <path>` only if `git -C <path> status --porcelain` is empty; list the removed and kept ones.
 
 ## Steps
 
