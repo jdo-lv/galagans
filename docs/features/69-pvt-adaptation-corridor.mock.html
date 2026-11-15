@@ -1,0 +1,79 @@
+<!doctype html>
+<!-- Static mock for issue #69 (PVT adaptation corridor on the Cognition detail), built on the app's tokens and classes. Screenshot: node docs/features/69-pvt-adaptation-corridor.mock.mjs -->
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/tokens.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/base.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/status.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/detail.css">
+<style>
+.detail-head{display:flex;flex-direction:column;gap:var(--space-2)}
+.detail-title{display:flex;align-items:center;gap:var(--space-3)}
+.tiers{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-2)}
+.tiers li{display:grid;place-items:center;text-align:center;min-height:52px;padding:var(--space-1);border:1px solid var(--color-edge);border-radius:var(--radius-item)}
+.tiers li[aria-current]{background:var(--color-inverse-bg);color:var(--color-inverse-text);border-color:transparent;font-weight:700}
+.next{margin:0;padding:var(--space-3) var(--space-4);border-radius:var(--radius-item);background:var(--color-inset)}
+.ico{fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.chart-corridor{fill:var(--color-text-muted);fill-opacity:.18;stroke:var(--color-text-muted);stroke-opacity:.5}
+</style></head>
+<body><div class="app">
+<header class="app-header"><span></span><h1 class="wordmark">Health</h1><span></span></header>
+<p class="pill pill--quiet"><span>Online</span></p>
+<a href="#/">← Body systems</a>
+<div class="detail-head">
+  <div class="detail-title"><span class="badge badge--check"><svg class="ico" width="18" height="18" viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>Check</span><h2 class="section-heading">Cognition</h2></div>
+  <div class="muted">PVT median <span class="num">312</span> ms · 1 h ago · in-app test · flight day 142</div>
+</div>
+<main class="layout">
+<div class="stack">
+  <section class="card">
+    <h3 class="card-heading">PVT median · whole mission, flight day 1–142</h3>
+    <div class="chart-scroll"><svg id="chart" class="trend-chart" viewBox="0 0 640 236" role="img" aria-label="PVT median, flight day 1 to 142, with adaptation corridor"></svg></div>
+    <p class="muted">Adaptation corridor: expected up to 315.1 ms on flight days 1–60 (early-flight slowing), up to 304.75 ms from flight day 61. Above the corridor: COG-01, level 3 check. No flag inside. <span class="tag">synthetic history</span></p>
+  </section>
+  <section class="card">
+    <h3 class="card-heading">Explanation</h3>
+    <dl class="status-explanation">
+      <div><dt>What</dt><dd>Your PVT median is 312 ms, 18 % slower than expected for flight day 142 (265 ms). The limit is 304.75 ms.</dd></div>
+      <div><dt>Why it matters</dt><dd>PVT slows early in flight in ISS crews, and nights of 6 h or less of sleep slow it further. Slower attention raises the risk of performance errors.</dd></div>
+      <div><dt>How decided</dt><dd>Rule COG-01: PVT median &gt; 304.75 ms (expected 265 ms for flight day 142 + 15 %) → level 3, check. Expected = pre-flight baseline 265 ms, + 9 ms on flight days 1–60 for early-flight slowing (Dev et al. 2024, ∆z 0.5 converted to ms). The baseline is a synthetic pre-loaded profile; +15 % and the flight-day 1–60 window are team heuristics, not NASA limits.</dd></div>
+      <div><dt>Source</dt><dd>research/health-indicators.md §13; research/long-duration-literature.md [L5] "PVT early-flight shift" <span class="tag tag--rule">rule · COG-01</span></dd></div>
+    </dl>
+  </section>
+</div>
+<div class="stack">
+  <section class="card">
+    <h3 class="card-heading">What next</h3>
+    <p class="next">Tell the CMO today and repeat the test tomorrow morning.</p>
+  </section>
+  <section class="card">
+    <h3 class="card-heading">Who to involve</h3>
+    <ol class="tiers"><li>Self-care</li><li aria-current="true">CMO</li><li>Medical conference</li><li>Urgent ground</li></ol>
+  </section>
+</div>
+</main></div>
+<script>
+const L = 72, R = 620, T = 16, B = 200, NS = 'http://www.w3.org/2000/svg'
+const x = (fd) => L + ((fd - 1) * (R - L)) / 141
+const y = (v) => B - ((v - 200) * (B - T)) / 200
+const svg = document.getElementById('chart')
+const add = (tag, attrs, text) => { const el = document.createElementNS(NS, tag); for (const k in attrs) el.setAttribute(k, attrs[k]); if (text) el.textContent = text; svg.append(el); return el }
+for (const v of [200, 250, 300, 350, 400]) { add('line', { class: 'chart-grid', x1: L, x2: R, y1: y(v), y2: y(v) }); add('text', { class: 'chart-label', x: L - 6, y: y(v) + 5, 'text-anchor': 'end' }, `${v} ms`) }
+const band = [[1, 274, 315.1], [60, 274, 315.1], [60.5, 265, 304.75], [142, 265, 304.75]]
+add('polygon', { class: 'chart-corridor', points: [...band.map(([f, , u]) => `${x(f)},${y(u)}`), ...band.reverse().map(([f, c]) => `${x(f)},${y(c)}`)].join(' ') })
+add('line', { class: 'chart-baseline', x1: L, x2: R, y1: y(265), y2: y(265) })
+add('text', { class: 'chart-label', x: R, y: y(265) + 18, 'text-anchor': 'end' }, 'your pre-flight normal · 265 ms · synthetic')
+add('text', { class: 'chart-label', x: x(64), y: y(304.75) - 8 }, 'adaptation corridor')
+for (const [f, a] of [[1, 'middle'], [30, 'middle'], [60, 'middle'], [90, 'middle'], [142, 'end']]) add('text', { class: 'chart-label', x: x(f) + (a === 'end' ? 0 : 0), y: 228, 'text-anchor': f === 1 ? 'start' : a }, `FD ${f}`)
+const pts = [[2,301],[6,309],[10,306],[14,311],[18,304],[22,308],[26,312],[30,307],[34,310],[38,303],[42,308],[46,299],[50,305],[54,296],[58,301],[62,284],[66,276],[70,271],[74,268],[78,264],[82,270],[86,262],[90,267],[94,265],[98,260],[102,269],[106,263],[110,266],[114,272],[118,268],[122,274],[126,279],[130,283],[134,290],[138,298],[142,312]]
+add('polyline', { class: 'chart-line', points: pts.map(([f, v]) => `${x(f)},${y(v)}`).join(' ') })
+const [tf, tv] = pts.at(-1)
+add('circle', { class: 'chart-point chart-point--check', cx: x(tf), cy: y(tv), r: 6 })
+const m = add('svg', { x: x(tf) - 9, y: y(tv) - 30, width: 18, height: 18, viewBox: '0 0 24 24', class: 'ico chart-marker' })
+m.innerHTML = '<path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/>'
+const hx = x(26), hy = y(312)
+add('line', { class: 'chart-crosshair', x1: hx, x2: hx, y1: T, y2: B })
+add('circle', { class: 'chart-hover chart-hover--nominal', cx: hx, cy: hy, r: 5 })
+add('rect', { class: 'chart-readout-box', x: hx + 12, y: 22, width: 340, height: 60, rx: 8 })
+add('text', { class: 'chart-readout-value', x: hx + 24, y: 46 }, '312 ms · ✓ Nominal')
+add('text', { class: 'chart-readout-meta', x: hx + 24, y: 68 }, 'FD 26 · expected · synthetic')
+</script></body></html>

@@ -30,6 +30,19 @@ This file adds **magnitude, timing and recovery** to the NASA operational view i
 | Multi-system (1 subject) | Telomeres +14.5% in flight; carotid distension and intima-media thickening; retinal and choroidal thickening; 7% body-mass loss; inflammation markers up to 8× after landing | 340-day mission | Most returned to baseline by 6 months; short telomeres, DNA damage, some gene expression and reduced cognition persisted | Body-mass trend; post-landing recovery tracking | [L6] |
 | Behavior / sleep (analog) | Hypokinesis, more sleep and rest, less light exposure; most crew had disturbed sleep quality, vigilance deficits or altered sleep timing | Grows over 520 days | — | Light, meal and exercise timing prompts; actigraphy trend; weekly vigilance test | [L8] |
 
+### PVT early-flight shift (for the adaptation corridor)
+
+From Dev et al. 2024 [L5], full text re-read 2026-11-15:
+
+- 25 astronauts, 6-month ISS missions; Cognition battery once pre-flight (≈ 90 days before launch, M = 116.44 d, SD 65.42), twice in flight, twice after return.
+- Early flight ≈ 30 days after launch (M = 28.88, SD = 10.01). Late flight ≈ 30 days before return (no M or SD given).
+- PVT: validated 3-min version, 2–5 s interstimulus intervals, 355 ms lapse threshold. PVT speed = "10 minus the reciprocal of the response time"; units not stated.
+- "slowed performance during early flight compared to pre-flight mission phases (β = .62, adjusted p = .05, ∆z = .5); the effect size of the mean difference was medium." Discussion: "Slower performance on the PVT was observed during early flight only." Late flight was not significantly different from pre-flight; no recovery date is given.
+- z-scores use the whole sample's pre-flight mean and SD (excluding the individual). Pre-flight PVT speed: n = 24, mean 5.25, SD .24 (Table 1).
+- PVT accuracy (lapses, false starts) stayed stable over time and between phases.
+
+**Team conversion to ms (assumption, not in the paper):** reading RT in seconds, ∆z 0.5 × SD 0.24 = 0.12 s⁻¹ less reciprocal speed. At a 265 ms baseline: 1/0.265 = 3.774 s⁻¹ → 3.654 s⁻¹ → 273.7 ms, about +9 ms (+3.3 %). The paper gives no window, so applying it on flight days 1–60 (covers 28.88 + 3 SD) is a team heuristic.
+
 ## What this adds to the five brief questions
 
 - **Why the exam matters:** the asymptomatic findings (clots, viral shedding, bone loss) are the strongest argument for scheduled measurement over waiting for symptoms [L1][L4][L7].
@@ -52,7 +65,7 @@ All abstracts read through the Europe PMC REST API (`https://www.ebi.ac.uk/europ
 - [L2] Trappe S, et al. Exercise in space: human skeletal muscle after 6 months aboard the International Space Station. *J Appl Physiol* 2009. https://doi.org/10.1152/japplphysiol.91578.2008
 - [L3] McGregor HR, et al. Impacts of spaceflight experience on human brain structure. *Sci Rep* 2023. https://doi.org/10.1038/s41598-023-33331-8
 - [L4] Marshall-Goebel K, et al. Assessment of jugular venous blood flow stasis and thrombosis during spaceflight. *JAMA Netw Open* 2019;2(11):e1915011. https://doi.org/10.1001/jamanetworkopen.2019.15011 (the 6/11 stasis, the clot counts and the 10/17 LBNP sessions come from the full text, as quoted in coverage of it; the Europe PMC abstract is truncated). Full text: https://pmc.ncbi.nlm.nih.gov/articles/PMC6902784/
-- [L5] Dev SI, et al. Cognitive performance in ISS astronauts on 6-month low earth orbit missions. *Front Physiol* 2024;15. https://doi.org/10.3389/fphys.2024.1451269 (full text read 2026-11-06)
+- [L5] Dev SI, et al. Cognitive performance in ISS astronauts on 6-month low earth orbit missions. *Front Physiol* 2024;15. https://doi.org/10.3389/fphys.2024.1451269 (full text read 2026-11-06; PVT details re-read 2026-11-15)
 - [L6] Garrett-Bakelman FE, et al. The NASA Twins Study: a multidimensional analysis of a year-long human spaceflight. *Science* 2019. https://pmc.ncbi.nlm.nih.gov/articles/PMC7580864 (full text read 2026-11-06)
 - [L7] Rooney BV, et al. Herpes virus reactivation in astronauts during spaceflight and its application on Earth. *Front Microbiol* 2019. https://doi.org/10.3389/fmicb.2019.00016
 - [L8] Basner M, et al. Mars 520-d mission simulation reveals protracted crew hypokinesis and alterations of sleep duration and timing. *PNAS* 2013. https://doi.org/10.1073/pnas.1212646110
