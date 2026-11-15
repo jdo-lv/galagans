@@ -250,6 +250,7 @@ Instruments, timing and scoring come from [health-indicators.md](../research/hea
 - **The wording and anchors** are the instrument's own (e.g. KSS 1 "extremely alert" … 9 "extremely sleepy, fighting sleep", from [S56] in health-indicators.md). They're never paraphrased, so scores stay comparable.
 - **"Why you're seeing this"** shows the trigger: scheduled or added by a rule.
 - **Skip is always allowed** and recorded as "not answered", never as a value. Missed sessions don't nag: at most one reminder, then the data age shows on the body map.
+- **Device values are prefilled:** heart rate and SpO₂ are prefilled from the newest device reading (≤ 15 min), which the astronaut confirms or corrects; a confirmed value is saved as "manual" (#55).
 - **The privacy note is per questionnaire:** mood, PHQ and GAD answers are visible to the astronaut and the flight surgeon only, never to crewmates.
 
 ### Where pending questionnaires are shown
@@ -407,6 +408,7 @@ A separate app pretends to be every sensor. It runs on its own laptop or browser
   - *Nominal day:* everything in range, so the crew app stays quiet.
   - *Resting HR drift:* the bracelet's resting HR rises ~9 bpm above baseline over 3 days, with short sleep and low fluids, for the check-and-act demo.
   - *CO2 build-up:* replay of a high-CO2 window, then headache symptoms and a slower PVT.
+  - *Cabin atmosphere fault* (built, issue #53): cabin CO₂ rises to 3.2–3.8 mmHg, then after 20 s SpO₂ drops to 91–93 % and heart rate rises to 105–115 bpm, until the operator unchecks it. Synthetic: the co-occurrence, the heart-rate rise and the delay are a team heuristic, not a physiological model.
   - *Orthostatic risk before landing:* BP and HR trend for pre-landing fluid loading.
   - *Solar particle event:* dosimeter rises toward the 30-day limit.
   - *Sensor dropout:* the oximeter goes silent and the data-age warning appears.

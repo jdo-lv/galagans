@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { CheckInPrefill } from '../application/CheckInPrefill'
 import { CheckInRecorder, type CheckInRecording } from '../application/CheckInRecorder'
 import { LastPacketReader } from '../application/LastPacketReader'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
@@ -120,6 +121,7 @@ export function setup({
   const routineReader = new RoutineReader(repository, () => clock.now, routinePlaceholders)
   const { voice, voiceSession } = voiceFakes({ recorder, statusReader, routineReader })
   const streakReader = new StreakReader(repository, () => clock.now, streakSeed, counters)
+  const checkInPrefill = new CheckInPrefill(device.observations)
   const services = {
     repository,
     connectivity,
@@ -133,6 +135,7 @@ export function setup({
     random,
     ...packet.services,
     voiceSession,
+    checkInPrefill,
   }
   return {
     voice,
@@ -147,6 +150,7 @@ export function setup({
     routineReader: services.routineReader,
     streakReader,
     readingsReader,
+    checkInPrefill,
     packets: packet.packets,
     packetGateway: packet.packetGateway,
     packetUplink: packet.services.packetUplink,

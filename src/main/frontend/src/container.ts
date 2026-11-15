@@ -1,3 +1,4 @@
+import { CheckInPrefill } from './application/CheckInPrefill'
 import { CheckInRecorder, type CheckInRecording } from './application/CheckInRecorder'
 import { HealthBriefing } from './application/HealthBriefing'
 import { CombinedObservationHistory } from './application/CombinedObservationHistory'
@@ -60,6 +61,8 @@ export interface Services {
   packetSender: PacketSender
   packetUplink: Synchronizer
   voiceSession: VoiceSession
+  /** Check-in values from the newest device readings (#55). */
+  checkInPrefill: CheckInPrefill
 }
 
 /** Demo builds keep 10 min of device readings; the 1-minute chart never needs more. */
@@ -127,6 +130,8 @@ export function createServices(): Services & { startSync: () => () => void; star
       recorder,
       new HealthBriefing(statusReader, routineReader),
     ),
+    // Device readings only, never `history`: a saved check-in must not prefill the next one.
+    checkInPrefill: new CheckInPrefill(observations),
     startGateway: () => {
       const stops = gateways.map((gateway) => gateway.start())
       return () => stops.forEach((stop) => stop())

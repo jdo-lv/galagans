@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { CheckInPrefill } from '../application/CheckInPrefill'
 import { CheckInRecorder } from '../application/CheckInRecorder'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
 import { RoutineReader } from '../application/RoutineReader'
@@ -34,6 +35,7 @@ function setup(online: boolean) {
     random: () => 0,
     voiceSession: voiceFakes({ recorder, statusReader, routineReader }).voiceSession,
     ...packetFakes(readingsReader, connectivity).services,
+    checkInPrefill: new CheckInPrefill(device.observations),
   }
   render(
     <ServicesProvider services={services}>

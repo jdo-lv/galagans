@@ -11,6 +11,7 @@ import type { LinkState } from '../infrastructure/DeviceLink'
 import { ThemeToggle } from '../ui/theme/ThemeToggle'
 import type { Publisher } from './Publisher'
 import { startRepeating } from './repeat'
+import { activeRanges, drivenIndicators, SCENARIOS, type Scenario, stepAt } from './scenarios'
 import { SIM_CONFIG, SIM_DEVICES, type SimDevice } from './simDevices'
 
 const EVERY_MIN_S = 1
@@ -46,6 +47,20 @@ const everyOk = (input: string) => /^\d+$/.test(input) && Number(input) >= EVERY
 
 const clock = (at: Date) => at.toISOString().slice(11, 19)
 
+/** A checked scenario, when it was checked (ms) and its step delay (s). */
+interface Running {
+  scenario: Scenario
+  checkedAt: number
+  delayS: number
+}
+
+const elapsedS = (running: Running, at: Date) => (at.getTime() - running.checkedAt) / 1000
+
+const drives = (scenario: Scenario, sim: SimDevice) => {
+  const indicators = drivenIndicators(scenario)
+  return sim.device.fields.some((field) => indicators.has(field.indicator))
+}
+
 const initialLevels = () => Object.fromEntries(SIM_DEVICES.map((s) => [s.device.id, SIM_CONFIG[s.device.id].level])) as Record<DeviceId, Status>
 
 export function SimulatorApp({ publisher, rules, display, now =() => new Date(), newId = generateId, random = Math.random }: Props) {
@@ -53,6 +68,10 @@ export function SimulatorApp({ publisher, rules, display, now =() => new Date(),
   const linkStateRef = useRef(linkState)
   const [levels, setLevels] = useState(initialLevels)
   const levelsRef = useRef(levels)
+  const [running, setRunning] = useState<Running | null>(null)
+  const runningRef = useRef(running)
+  const [, setTick] = useState(0)
+  const stepTimers = useRef<ReturnType<typeof setTimeout>[]>([])
 
   // A layout effect, so the link state is known before the device sections auto-start in their effects.
   useLayoutEffect(
@@ -67,7 +86,9 @@ export function SimulatorApp({ publisher, rules, display, now =() => new Date(),
   /** Publishes one message at the current levels of all devices. */
   function send(sim: SimDevice): Sent {
     const at = now()
-    const values = randomValues(sim.device, indicatorLevels(levelsRef.current, rules), rules, random)
+    const scenario = runningRef.current
+    const ranges = scenario ? activeRanges(scenario.scenario, elapsedS(scenario, at), scenario.delayS) : undefined
+    const values = randomValues(sim.device, indicatorLevels(levelsRef.current, rules), rules, random, ranges)
     const sent = publisher.publish(sim.device.topic, deviceMessage(sim.device, values, at, newId))
     return sent ? { status: `Last sent ${clock(at)}`, values } : { status: `Not sent · device link ${linkStateRef.current} ${clock(at)}` }
   }
@@ -76,6 +97,28 @@ export function SimulatorApp({ publisher, rules, display, now =() => new Date(),
     const next = { ...levelsRef.current, [id]: level }
     levelsRef.current = next
     setLevels(next)
+  }
+
+  function clearStepTimers() {
+    stepTimers.current.forEach(clearTimeout)
+    stepTimers.current = []
+  }
+
+  useEffect(() => clearStepTimers, [])
+
+  /** Checking or unchecking puts the driven devices back at their SIM_CONFIG level. */
+  function toggleScenario(scenario: Scenario, delayS: number) {
+    clearStepTimers()
+    const next = runningRef.current ? null : { scenario, checkedAt: now().getTime(), delayS }
+    runningRef.current = next
+    setRunning(next)
+    const reset = { ...levelsRef.current }
+    for (const sim of SIM_DEVICES) if (drives(scenario, sim)) reset[sim.device.id] = SIM_CONFIG[sim.device.id].level
+    levelsRef.current = reset
+    setLevels(reset)
+    // The timers only re-render the step line; send() reads the elapsed time itself.
+    if (next)
+      stepTimers.current = scenario.steps.slice(1).map((_, i) => setTimeout(() => setTick((n) => n + 1), (i + 1) * delayS * 1000))
   }
 
   return (
@@ -93,6 +136,8 @@ export function SimulatorApp({ publisher, rules, display, now =() => new Date(),
 
       {display && <DotDisplaySection source={display.source} feed={display.feed} now={now} />}
 
+      <ScenariosSection running={running} now={now} onToggle={toggleScenario} />
+
       <div className="sim-devices">
         {SIM_DEVICES.map((sim) => {
           const id = sim.device.id
@@ -101,6 +146,7 @@ export function SimulatorApp({ publisher, rules, display, now =() => new Date(),
               key={id}
               sim={sim}
               level={levels[id]}
+              locked={running !== null && drives(running.scenario, sim)}
               available={levelsFor(sim.device, rules)}
               onLevel={(level) => changeLevel(id, level)}
               send={send}
@@ -115,13 +161,15 @@ export function SimulatorApp({ publisher, rules, display, now =() => new Date(),
 interface DeviceSectionProps {
   sim: SimDevice
   level: Status
+  /** A running scenario sets this device's values; its picker is read-only. */
+  locked: boolean
   /** Levels with a rule row for one of the device's fields. */
   available: Status[]
   onLevel: (level: Status) => void
   send: (sim: SimDevice) => Sent
 }
 
-function DeviceSection({ sim, level, available, onLevel, send }: DeviceSectionProps) {
+function DeviceSection({ sim, level, locked, available, onLevel, send }: DeviceSectionProps) {
   const id = useId()
   const [every, setEvery] = useState(() => String(SIM_CONFIG[sim.device.id].everyS))
   const [running, setRunning] = useState<string | null>(null)
@@ -158,22 +206,22 @@ function DeviceSection({ sim, level, available, onLevel, send }: DeviceSectionPr
     <section className="card sim-device" aria-labelledby={id}>
       <div className="sim-device__top">
         <h2 id={id}>{sim.name}</h2>
-        {running && <span className="tag">{`sending every ${running} s · ${LEVEL_WORD[level]}`}</span>}
+        {running && <span className="tag">{`sending every ${running} s · ${locked ? 'Scenario' : LEVEL_WORD[level]}`}</span>}
       </div>
       <p className="muted">
         <span className="num">{sim.device.topic}</span> · source: synthetic
       </p>
       <fieldset className="sim-levels">
-        <legend>Level</legend>
+        <legend>{locked ? 'Level · Set by scenario' : 'Level'}</legend>
         {LEVELS.map(([value, word]) => {
-          const enabled = available.includes(value)
+          const enabled = !locked && available.includes(value)
           return (
             <button
               key={value}
               type="button"
               aria-pressed={value === level}
               disabled={!enabled}
-              title={enabled ? undefined : 'No rule row for this level'}
+              title={locked ? 'Set by scenario' : enabled ? undefined : 'No rule row for this level'}
               onClick={() => onLevel(value)}
             >
               {word}
@@ -213,6 +261,60 @@ function DeviceSection({ sim, level, available, onLevel, send }: DeviceSectionPr
       <p className="muted" role="status">
         {status}
       </p>
+    </section>
+  )
+}
+
+interface ScenariosSectionProps {
+  running: Running | null
+  now: () => Date
+  onToggle: (scenario: Scenario, delayS: number) => void
+}
+
+/** One checkbox per scenario; one runs at a time. */
+function ScenariosSection({ running, now, onToggle }: ScenariosSectionProps) {
+  const id = useId()
+  const [delays, setDelays] = useState(() => Object.fromEntries(SCENARIOS.map((s) => [s.id, String(s.delayS)])))
+  return (
+    <section className="card sim-scenarios" aria-labelledby={id}>
+      <h2 id={id} className="card-heading">
+        Scenarios
+      </h2>
+      {SCENARIOS.map((scenario) => {
+        const on = running?.scenario.id === scenario.id
+        const step = on ? stepAt(scenario, elapsedS(running, now()), running.delayS) : 0
+        const delay = delays[scenario.id]
+        return (
+          <div key={scenario.id} className="sim-scenario">
+            <input
+              type="checkbox"
+              id={`${id}-${scenario.id}`}
+              checked={on}
+              disabled={running !== null ? !on : !everyOk(delay)}
+              aria-describedby={`${id}-${scenario.id}-caption`}
+              onChange={() => onToggle(scenario, Number(delay))}
+            />
+            <div>
+              <label className="sim-scenario__name" htmlFor={`${id}-${scenario.id}`}>{scenario.name}</label>
+              <p id={`${id}-${scenario.id}-caption`} className="muted">
+                {scenario.caption}
+              </p>
+              <label className="sim-every">
+                Next step after
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={delay}
+                  disabled={on}
+                  onChange={(event) => setDelays({ ...delays, [scenario.id]: event.target.value })}
+                />
+                s
+              </label>
+              {on && <p>{`Step ${step} / ${scenario.steps.length} · ${scenario.steps[step - 1].label}`}</p>}
+            </div>
+          </div>
+        )
+      })}
     </section>
   )
 }
