@@ -6,11 +6,13 @@ import type { CheckIn } from '../domain/checkIn'
 import type { Observation, ObservationSource } from '../domain/observation'
 import { mockRoutine } from '../infrastructure/mockRoutine'
 import { mockCounters, mockStreakSeed } from '../infrastructure/mockStreak'
-import { openCheckIn, saveCheckIn, setup } from '../test/renderApp'
+import { openCheckIn, pvt, readingsPanel, saveCheckIn, setup } from '../test/renderApp'
 
 // Local times, so the tests pass in any TZ.
 const at = (h: number, m = 0, day = 14) => new Date(2026, 10, day, h, m)
-const setupAt = (now = at(8)) => setup({ now: now.toISOString(), routinePlaceholders: mockRoutine })
+const setupAt = (now = at(8), seed: CheckIn[] = []) => setup({ now: now.toISOString(), routinePlaceholders: mockRoutine, seed })
+/** A PVT this morning, so once the check-in is saved nothing is owed and Home is Nominal, with Today's routine (#52). */
+const PVT_DONE = pvt('p0', at(6, 50).toISOString(), 268)
 
 const checkIn = () => screen.getByRole('region', { name: 'Morning check-in' })
 const tabItems = () => within(within(checkIn()).getByRole('list', { name: 'Steps' })).getAllByRole('listitem')
@@ -44,18 +46,12 @@ async function goTo(n: number) {
 const bodySystemsHeading = () => screen.getByRole('heading', { name: 'Body systems' })
 
 describe('Home and navigation', () => {
-  it('AC1: the due row offers Start · ~90 s as a secondary button', async () => {
-    setupAt().renderApp()
-    const card = await screen.findByRole('region', { name: "Today's routine" })
-    expect(await within(card).findByRole('button', { name: 'Start · ~90 s' })).toHaveClass('button-secondary')
-  })
-
-  it('AC2: Start opens #/check-in at step 1 and saves nothing', async () => {
+  it('AC1 and AC2 with #52: while due, Home offers the check-in at step 1 in its To do panel, and nothing is saved', async () => {
+    // The routine card and its Start show only while nothing is owed (#52); the card's own tests cover its due row.
     const s = setupAt()
     s.renderApp()
-    await userEvent.click(await screen.findByRole('button', { name: 'Start · ~90 s' }))
-    await screen.findByRole('region', { name: 'Morning check-in' })
-    expect(window.location.hash).toBe('#/check-in')
+    const todo = await screen.findByRole('region', { name: 'To do · 2' })
+    expect(within(todo).getByRole('button', { name: /^Morning check-in Due 07:00–09:00/ })).toHaveAttribute('aria-expanded', 'true')
     await expectStep(1, 'What is your heart rate?')
     expect(s.repository.items.size).toBe(0)
   })
@@ -74,19 +70,16 @@ describe('Home and navigation', () => {
     expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Add entry' })).toBeInTheDocument()
   })
 
-  it('AC6: home has no Check-in card, no input and no primary button', async () => {
-    const { container } = setupAt().renderApp()
+  it('AC6: Nominal home has no Check-in card, no input and no primary button (#52 shows the check-in only while it is owed)', async () => {
+    const seed: CheckIn[] = [
+      { id: 'c', recordedAt: at(7, 30).toISOString(), symptoms: [] },
+      { id: 'p', recordedAt: at(7, 40).toISOString(), pvtMedianMs: 268, pvtLapses: 0, pvtFalseStarts: 0, symptoms: [] },
+    ]
+    const { container } = setup({ now: at(8).toISOString(), routinePlaceholders: mockRoutine, seed }).renderApp()
     await screen.findByRole('region', { name: "Today's routine" })
     expect(screen.queryByRole('region', { name: 'Check-in' })).toBeNull()
     expect(container.querySelector('main input')).toBeNull()
     expect(document.querySelectorAll('.button-primary')).toHaveLength(0)
-    const column = screen.getByRole('region', { name: "Today's routine" }).parentElement as HTMLElement
-    expect(column).toHaveClass('stack')
-    expect([...column.children]).toEqual([
-      screen.getByRole('region', { name: "Today's routine" }),
-      screen.getByRole('region', { name: 'Latest readings' }),
-      screen.getByRole('region', { name: 'Reaction test' }),
-    ])
   })
 })
 
@@ -354,7 +347,7 @@ describe('Save and leave', () => {
   })
 
   it('AC30: after save, home with focus on Body systems and the row done', async () => {
-    const s = setupAt(at(8, 5))
+    const s = setupAt(at(8, 5), [PVT_DONE])
     await open(s)
     await answerAll()
     await userEvent.click(await screen.findByRole('button', { name: 'Done' }))
@@ -495,8 +488,9 @@ describe('Save and leave', () => {
     await saveCheckIn({ spo2: 88 })
     const systems = screen.getByRole('region', { name: 'Body systems' })
     await waitFor(() => expect(within(systems).getAllByRole('listitem')[0]).toHaveTextContent('Emergency'))
-    const tiles = screen.getByRole('region', { name: 'Latest readings' })
-    await waitFor(() => expect(within(tiles).getAllByRole('listitem')[0]).toHaveTextContent('88 %'))
+    // The owed PVT's tile comes first while it is owed (#52), so the SpO₂ tile is found by its label.
+    const spo2Tile = () => within(readingsPanel()).getAllByRole('listitem').find((li) => li.textContent?.startsWith('88'))
+    await waitFor(() => expect(spo2Tile()).toHaveTextContent('SpO₂'))
   })
 })
 
@@ -678,7 +672,7 @@ describe('Reporting is a win (#40)', () => {
 
   describe('Leaving and saving', () => {
     it('AC18: Done is the only primary button and goes home with focus on Body systems and the row done', async () => {
-      await open(setup40())
+      await open(setup40({ seed: [PVT_DONE] }))
       await save()
       expect([...completion().querySelectorAll('.button-primary')].map((b) => b.textContent)).toEqual(['Done'])
       await userEvent.click(screen.getByRole('button', { name: 'Done' }))
@@ -1084,7 +1078,10 @@ describe('Device prefill (#55)', () => {
   it('AC20: readings stored after the check-in opens change nothing, and read runs once', async () => {
     const s = withDevices()
     const read = vi.spyOn(s.checkInPrefill, 'read')
-    await open(s)
+    // Opened at load: Home's To do panel holds a check-in of its own (#52), with its own read.
+    window.history.replaceState(null, '', '#/check-in')
+    s.renderApp()
+    await screen.findByRole('region', { name: 'Morning check-in' })
     await act(() => Promise.allSettled(read.mock.results.map((r) => r.value)))
     s.readings.emit({ id: 'm1', t: opened.toISOString(), spo2_pct: 97, pulse_bpm: 63, src: 'synthetic' })
     await waitFor(() => expect(s.observations.items.size).toBe(2))

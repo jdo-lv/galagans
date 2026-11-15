@@ -1,0 +1,217 @@
+/* Home (#52, ideas/home-variants.md "iPad layout"). Colours and sizes: ideas/ui-guidelines.md tokens. */
+/* Body figure: the drawing is decoration; the labels carry the meaning (level badge) */
+.body-figure {
+  position: relative;
+}
+
+.body-figure > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.body-figure .silhouette {
+  fill: var(--color-inset);
+  stroke: var(--color-edge);
+  stroke-width: 1.6;
+}
+
+.body-figure .organ {
+  fill: none;
+  stroke: var(--color-text-muted);
+  stroke-width: 1.4;
+}
+
+.body-figure .leader {
+  stroke: var(--color-edge);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.hotspots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hotspot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.hotspot--flagged,
+.hotspot--todo {
+  color: var(--color-text);
+}
+
+/* Level 1 on the body is the organ filled in --color-todo (ui-guidelines §5 "Body figure"): the one place blue fills a shape */
+.body-figure .organ--todo {
+  fill: var(--color-todo);
+  stroke: var(--color-todo);
+}
+
+@media (min-width: 600px) {
+  .hotspot {
+    position: absolute;
+    top: var(--y);
+    left: var(--x);
+    transform: translateY(-50%);
+  }
+
+  .hotspot--left {
+    right: calc(100% - var(--x));
+    left: auto;
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+
+@media (max-width: 599px) {
+  .body-figure > svg {
+    max-width: 220px;
+    margin: 0 auto;
+  }
+
+  .body-figure .leader {
+    display: none;
+  }
+
+  .hotspots {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-4);
+    margin-top: var(--space-3);
+  }
+
+  .hotspot {
+    justify-content: center;
+    min-height: 44px;
+    padding-left: var(--space-3);
+  }
+}
+
+/* Alert levels legend under the figure: one badge per level, as the app shows it */
+.level-legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.level-legend__heading {
+  font-size: var(--text-body);
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.level-legend ul {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* To do card: one row per owed input, the open one showing why, how long, where from, and its action */
+ul.todo-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.todo-item + .todo-item {
+  border-top: 1px solid var(--color-divider);
+}
+
+.todo-item__head {
+  margin: 0;
+  font-size: var(--text-body);
+}
+
+.todo-item__head button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'title badge'
+    'when badge';
+  align-items: center;
+  column-gap: var(--space-3);
+  width: 100%;
+  min-height: var(--target-min);
+  padding: var(--space-3) 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.todo-item__title {
+  grid-area: title;
+  font-weight: 700;
+}
+
+.todo-item__when {
+  grid-area: when;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.todo-item__head .badge {
+  grid-area: badge;
+}
+
+.todo-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+
+.todo-item__body > .button-primary {
+  align-self: flex-start;
+}
+
+/* Why / Takes / Source: an inset like the detail screen's explanation */
+.todo-facts {
+  --color-text-muted: var(--color-text-muted-on-inset);
+  margin: 0;
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-item);
+  background: var(--color-inset);
+}
+
+.todo-facts > div {
+  display: grid;
+  grid-template-columns: 6.5em minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.todo-facts > div + div {
+  border-top: 1px solid var(--color-surface);
+}
+
+.todo-facts dt {
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.todo-facts dd {
+  margin: 0;
+}
+
+/* The six step tabs take two rows in a pane */
+.check-in--embedded .step-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}

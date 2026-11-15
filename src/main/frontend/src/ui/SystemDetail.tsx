@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { formatAge, formatStaleAge } from '../application/formatAge'
 import type { SystemDetail as Detail } from '../domain/rules'
 import './detail.css'
+import { ScreenLayout } from './ScreenLayout'
 import { Badge } from './SystemStatusList'
 import { TrendChart, windowLabel } from './TrendChart'
 import { useSystemDetail } from './useSystemDetail'
@@ -34,7 +35,8 @@ function ChartScroll({ children }: { children: ReactNode }) {
   )
 }
 
-function DetailBody({ detail, now, headingRef }: { detail: Detail; now: Date; headingRef: React.Ref<HTMLHeadingElement> }) {
+/** The detail's three parts for the shell: the head beside, the chart and explanation, then what next and who to involve. */
+function detailParts(detail: Detail, now: Date, headingRef: React.Ref<HTMLHeadingElement>) {
   const { status, rules, points, windowMs } = detail
   const { rule, recordedAt } = status
   const age = recordedAt && (status.state === 'stale' ? formatStaleAge(recordedAt, now) : formatAge(recordedAt, now))
@@ -51,8 +53,8 @@ function DetailBody({ detail, now, headingRef }: { detail: Detail; now: Date; he
     </Card>
   )
 
-  return (
-    <>
+  return {
+    head: (
       <div className="detail-head">
         <div className="detail-title">
           <Badge state={status.state} rule={rule} />
@@ -67,53 +69,53 @@ function DetailBody({ detail, now, headingRef }: { detail: Detail; now: Date; he
         )}
         {!rule && <p>Nothing to act on now.</p>}
       </div>
-      <div className="layout">
-        <div className="stack">
-          {chart}
-          {rule && (
-            <Card title="Explanation">
-              <dl className="status-explanation">
-                {(
-                  [
-                    ['What', rule.what],
-                    ['Why it matters', rule.why],
-                    ['How decided', rule.howDecided],
-                  ] as const
-                ).map(([term, text]) => (
-                  <div key={term}>
-                    <dt>{term}</dt>
-                    <dd>{text}</dd>
-                  </div>
-                ))}
-                <div>
-                  <dt>Source</dt>
-                  <dd>
-                    {rule.source} <span className="tag tag--rule">{`rule · ${rule.id}`}</span>
-                  </dd>
-                </div>
-              </dl>
-            </Card>
-          )}
-        </div>
+    ),
+    primary: (
+      <>
+        {chart}
         {rule && (
-          <div className="stack">
-            <Card title="What next">
-              <p className="detail-next">{rule.next}</p>
-            </Card>
-            <Card title="Who to involve">
-              <ol className="tiers">
-                {TIERS.map((tier) => (
-                  <li key={tier} aria-current={tier === rule.tier ? 'true' : undefined}>
-                    {tier}
-                  </li>
-                ))}
-              </ol>
-            </Card>
-          </div>
+          <Card title="Explanation">
+            <dl className="status-explanation">
+              {(
+                [
+                  ['What', rule.what],
+                  ['Why it matters', rule.why],
+                  ['How decided', rule.howDecided],
+                ] as const
+              ).map(([term, text]) => (
+                <div key={term}>
+                  <dt>{term}</dt>
+                  <dd>{text}</dd>
+                </div>
+              ))}
+              <div>
+                <dt>Source</dt>
+                <dd>
+                  {rule.source} <span className="tag tag--rule">{`rule · ${rule.id}`}</span>
+                </dd>
+              </div>
+            </dl>
+          </Card>
         )}
-      </div>
-    </>
-  )
+      </>
+    ),
+    secondary: rule && (
+      <>
+        <Card title="What next">
+          <p className="detail-next">{rule.next}</p>
+        </Card>
+        <Card title="Who to involve">
+          <ol className="tiers">
+            {TIERS.map((tier) => (
+              <li key={tier} aria-current={tier === rule.tier ? 'true' : undefined}>
+                {tier}
+              </li>
+            ))}
+          </ol>
+        </Card>
+      </>
+    ),
+  }
 }
 
 export function SystemDetail({ system, onUnknown }: { system: string; onUnknown: () => void }) {
@@ -134,13 +136,20 @@ export function SystemDetail({ system, onUnknown }: { system: string; onUnknown:
     }
   }, [detail])
 
+  const parts = state.kind === 'ready' && detail ? detailParts(detail, state.now, heading) : undefined
   return (
-    <section className="detail stack" aria-label={`${system} detail`}>
-      <a href="#/" className="detail-back">
-        ← Body systems
-      </a>
-      {state.kind === 'unavailable' && <p className="status-unavailable">Detail unavailable</p>}
-      {state.kind === 'ready' && detail && <DetailBody detail={detail} now={state.now} headingRef={heading} />}
-    </section>
+    <ScreenLayout
+      label={`${system} detail`}
+      side={
+        <div className="detail-side">
+          <a href="#/" className="detail-back">
+            ← Body systems
+          </a>
+          {parts?.head}
+        </div>
+      }
+      primary={state.kind === 'unavailable' ? <p className="status-unavailable">Detail unavailable</p> : parts?.primary}
+      secondary={parts?.secondary}
+    />
   )
 }

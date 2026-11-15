@@ -1,24 +1,21 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { AddEntryScreen } from "./AddEntryScreen";
 import { AppHeader } from "./AppHeader";
 import { CheckInScreen } from "./CheckInScreen";
 import { GroundHistory } from "./GroundHistory";
 import { GroundLinkPill } from "./GroundLinkPill";
-import { HazardLens } from "./HazardLens";
-import { LatestReadings } from "./LatestReadings";
+import { HomeScreen } from "./HomeScreen";
 import { NavBar } from "./NavBar";
-import { PvtCard } from "./PvtCard";
 import { PvtTest } from "./PvtTest";
-import { StatisticsScreen } from "./StatisticsScreen";
+import { ScreenLayout, SideContextProvider } from "./ScreenLayout";
+import { StatsScreen } from "./StatsScreen";
 import { StatusBar } from "./StatusBar";
 import { SurgeonPacket } from "./SurgeonPacket";
 import { SymptomLogScreen } from "./SymptomLogScreen";
 import { SystemDetail } from "./SystemDetail";
-import { SystemStatusList } from "./SystemStatusList";
-import { TodaysRoutine } from "./TodaysRoutine";
 import { VoicePill, VoiceToggle } from "./VoiceToggle";
 import { useServices } from "./ServicesContext";
-import { CHECK_IN_HASH, useHashRoute, voiceHref } from "./useHashRoute";
+import { CHECK_IN_HASH, useHashRoute, voiceHref, type Route } from "./useHashRoute";
 import { useHazardLens } from "./useHazardLens";
 import { useLatestReadings } from "./useLatestReadings";
 import { useOnlineStatus } from "./useOnlineStatus";
@@ -89,79 +86,61 @@ export function App() {
     if (route.kind === "pvt") stopVoice();
   }, [route.kind, stopVoice]);
 
-  return (
-    <div className="app">
-      <AppHeader actions={<VoiceToggle status={voice.status} onToggle={voice.toggle} disabled={route.kind === "pvt"} />} />
-      <div className="pill-row">
-        <StatusBar online={online} pending={pending} />
-        <GroundLinkPill current={route.kind === "packet"} />
-        <VoicePill status={voice.status} />
-      </div>
-      {route.kind === "check-in" ? (
-        <main>
+  // Screens without side content of their own fill the main panel; the shell still gives them the pills.
+  const single = (screen: ReactNode) => <ScreenLayout primary={screen} />;
+
+  function screenFor(route: Route): ReactNode {
+    switch (route.kind) {
+      case "check-in":
+        return single(
           <CheckInScreen
             onSaved={refreshAll}
             onExit={() => goHome({ returned: true })}
             onTouchSaved={stopVoice}
             registerForm={registerForm}
-          />
-        </main>
-      ) : route.kind === "packet" ? (
-        <main>
-          <SurgeonPacket />
-        </main>
-      ) : route.kind === "statistics" ? (
-        <main>
-          <StatisticsScreen />
-        </main>
-      ) : route.kind === "add" ? (
-        <main>
-          <AddEntryScreen />
-        </main>
-      ) : route.kind === "symptoms" ? (
-        <main>
-          <SymptomLogScreen />
-        </main>
-      ) : route.kind === "ground" ? (
-        <main>
-          <GroundHistory />
-        </main>
-      ) : route.kind === "pvt" ? (
-        <main>
-          <PvtTest onSaved={refreshAll} />
-        </main>
-      ) : route.kind === "system" ? (
-        <main>
-          <SystemDetail
-            key={route.system}
-            system={route.system}
-            onUnknown={goHome}
-          />
-        </main>
-      ) : (
-        <main className="layout layout--home">
-          <SystemStatusList
-            state={statuses.state}
-            focusHeading={returnedHome}
-            lens={lens.selected}
-          />
-          <HazardLens
-            selected={lens.selected}
-            onToggle={lens.toggle}
+          />,
+        );
+      case "packet":
+        return <SurgeonPacket />;
+      case "stats":
+        return <StatsScreen statuses={statuses.state} lens={lens.selected} onToggleHazard={lens.toggle} />;
+      case "add":
+        return single(<AddEntryScreen />);
+      case "symptoms":
+        return single(<SymptomLogScreen />);
+      case "ground":
+        return single(<GroundHistory />);
+      case "pvt":
+        return single(<PvtTest onSaved={refreshAll} />);
+      case "system":
+        return <SystemDetail key={route.system} system={route.system} onUnknown={goHome} />;
+      default:
+        return (
+          <HomeScreen
             statuses={statuses.state}
+            readings={readings.state}
+            routine={routine.state}
+            returnedHome={returnedHome}
+            onCheckInSaved={refreshAll}
           />
-          <div className="stack">
-            <TodaysRoutine
-              state={routine.state}
-              onStart={() => {
-                window.location.hash = CHECK_IN_HASH;
-              }}
-            />
-            <LatestReadings state={readings.state} />
-            <PvtCard />
-          </div>
-        </main>
-      )}
+        );
+    }
+  }
+
+  return (
+    <div className="app">
+      <AppHeader actions={<VoiceToggle status={voice.status} onToggle={voice.toggle} disabled={route.kind === "pvt"} />} />
+      <SideContextProvider
+        pills={
+          <>
+            <StatusBar online={online} pending={pending} />
+            <GroundLinkPill current={route.kind === "packet"} />
+            <VoicePill status={voice.status} />
+          </>
+        }
+      >
+        <main className="app-body">{screenFor(route)}</main>
+      </SideContextProvider>
       {/* Like voice, the bar stays off the timed reaction test: a stray tap would end it. */}
       {route.kind !== "pvt" && <NavBar current={route.kind} />}
     </div>

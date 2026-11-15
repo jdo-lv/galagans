@@ -20,6 +20,13 @@
   min-height: var(--target-min);
 }
 
+/* Back link and head in the shell's side panel (#52) */
+.packet-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
 .packet-head {
   display: flex;
   flex-direction: column;

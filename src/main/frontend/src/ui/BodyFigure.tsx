@@ -1,7 +1,6 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react'
-import { lensMark, type Hazard } from '../domain/hazards'
 import { isFlagged, type SystemStatus } from '../domain/rules'
-import { Badge } from './SystemStatusList'
+import { Badge, TodoBadge } from './SystemStatusList'
 import type { StatusListState } from './useSystemStatuses'
 
 interface Hotspot {
@@ -91,13 +90,15 @@ const HOTSPOTS: Hotspot[] = [
 const SILHOUETTE =
   'M255,72 L255,88 C240,90 214,92 204,104 C196,112 194,128 192,146 L182,232 C180,246 184,256 192,256 C199,256 202,248 201,236 L208,150 C209,140 212,132 216,128 C218,160 220,182 220,200 C220,214 216,226 216,240 L226,336 C226,346 234,350 246,348 C252,347 252,340 250,334 L256,252 C258,246 262,244 266,244 C270,244 274,246 276,252 L282,334 C280,340 280,347 286,348 C298,350 306,346 306,336 L316,240 C316,226 312,214 312,200 C312,182 314,160 316,128 C320,132 323,140 324,150 L331,236 C330,248 333,256 340,256 C348,256 352,246 350,232 L340,146 C338,128 336,112 328,104 C318,92 292,90 277,88 L277,72 Z'
 
-/** Display-only body figure (F6) under the hazard lens: quiet labels, a badge only when a system is flagged. */
-export function BodyFigure({ statuses, lens }: { statuses: StatusListState; lens: Hazard | null }) {
+/**
+ * Display-only body figure (F6) in Home's Body card: quiet labels, a level badge when a system is flagged, and the
+ * level 1 mark (filled organ, To do badge) on the systems in `todo`, which the open to-do item feeds (#52).
+ */
+export function BodyFigure({ statuses, todo = [] }: { statuses: StatusListState; todo?: string[] }) {
   const bySystem = new Map<string, SystemStatus>(statuses.kind === 'ready' ? statuses.data.map((s) => [s.system, s]) : [])
   const spots = HOTSPOTS.map((spot) => {
     const status = bySystem.get(spot.system)
-    const state = status?.state
-    return { ...spot, state, rule: status?.rule, mark: lensMark(lens, spot.system, state) }
+    return { ...spot, state: status?.state, rule: status?.rule, owed: todo.includes(spot.system) }
   })
 
   return (
@@ -105,15 +106,13 @@ export function BodyFigure({ statuses, lens }: { statuses: StatusListState; lens
       <svg viewBox="0 0 532 362" aria-hidden="true" focusable="false">
         <path className="silhouette" d={SILHOUETTE} />
         <ellipse className="silhouette" cx="266" cy="40" rx="26" ry="32" />
-        {spots.map(({ system, organ, mark }) => (
-          <Fragment key={system}>
-            {organ({ className: mark === 'affected' ? 'organ organ--affected' : 'organ', 'data-system': system })}
-          </Fragment>
+        {spots.map(({ system, organ, owed }) => (
+          <Fragment key={system}>{organ({ className: owed ? 'organ organ--todo' : 'organ', 'data-system': system })}</Fragment>
         ))}
-        {spots.map(({ system, leader: [x1, y1, x2, y2], mark }) => (
+        {spots.map(({ system, leader: [x1, y1, x2, y2] }) => (
           <line
             key={system}
-            className={mark === 'affected' ? 'leader leader--affected' : 'leader'}
+            className="leader"
             data-system={system}
             x1={x1}
             y1={y1}
@@ -123,18 +122,15 @@ export function BodyFigure({ statuses, lens }: { statuses: StatusListState; lens
         ))}
       </svg>
       <ul className="hotspots" aria-label="Body figure">
-        {spots.map(({ label, system, side, x, y, state, rule, mark }) => (
+        {spots.map(({ label, system, side, x, y, state, rule, owed }) => (
           <li
             key={system}
             data-system={system}
-            className={['hotspot', `hotspot--${side}`, isFlagged(state) && 'hotspot--flagged', mark && `lens-${mark}`]
-              .filter(Boolean)
-              .join(' ')}
+            className={['hotspot', `hotspot--${side}`, isFlagged(state) && 'hotspot--flagged', owed && 'hotspot--todo'].filter(Boolean).join(' ')}
             style={{ '--x': `${x}%`, '--y': `${y}%` } as CSSProperties}
           >
             <span className="hotspot__label">{label}</span>
-            {isFlagged(state) && <Badge state={state} rule={rule} />}
-            {mark === 'affected' && <span className="visually-hidden">Affected by {lens?.name}</span>}
+            {isFlagged(state) ? <Badge state={state} rule={rule} /> : owed && <TodoBadge />}
           </li>
         ))}
       </ul>

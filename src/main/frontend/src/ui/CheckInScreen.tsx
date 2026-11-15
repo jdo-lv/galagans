@@ -96,18 +96,23 @@ function toggled(symptoms: State['symptoms'], id: string | 'none'): State['sympt
 /**
  * The morning check-in at #/check-in: one question per step (mockup 06), then its completion (mockup 09, #40).
  * Nothing is stored until save. `onSaved` refreshes home; Cancel and Done leave through `onExit`.
+ * `embedded` (Home's To do item, #52): no card or visible heading, no focus until the user moves a step, no Cancel on
+ * step 1 and no completion, since Home moves on to the next owed item once the check-in is saved.
  * While a question shows, `registerForm` gives voice (#64) the same moves as the buttons; `onTouchSaved` follows a save by tap.
+ * Voice always opens the full screen, so the embedded one passes neither.
  */
 export function CheckInScreen({
   onSaved,
   onExit,
+  embedded = false,
   onTouchSaved,
   registerForm,
 }: {
   onSaved: () => void
-  onExit: () => void
-  onTouchSaved: () => void
-  registerForm: (form: CheckInForm | undefined) => void
+  onExit?: () => void
+  embedded?: boolean
+  onTouchSaved?: () => void
+  registerForm?: (form: CheckInForm | undefined) => void
 }) {
   const { recorder, streakReader, checkInPrefill } = useServices()
   const [openedAt] = useState(() => streakReader.now())
@@ -124,6 +129,8 @@ export function CheckInScreen({
     let settle = () => {}
     return { promise: new Promise<void>((resolve) => (settle = resolve)), settle: () => settle() }
   })
+  // Set once the user moves a step, so an embedded check-in never takes focus just by appearing.
+  const moved = useRef(false)
   const headingId = useId()
   const promptId = useId()
   const errorId = useId()
@@ -133,7 +140,9 @@ export function CheckInScreen({
   const saving = save === 'saving'
   const prefill = prefillShown(step, state)
 
-  useEffect(() => promptRef.current?.focus(), [index])
+  useEffect(() => {
+    if (!embedded || moved.current) promptRef.current?.focus()
+  }, [index, embedded])
 
   // Read once: readings stored later never change a field, and a failed read leaves every step empty, silently.
   useEffect(() => {
@@ -157,6 +166,7 @@ export function CheckInScreen({
 
   function go(to: number) {
     shown.current.index = to
+    moved.current = true
     setError(undefined)
     setSave('idle')
     setIndex(to)
@@ -228,8 +238,8 @@ export function CheckInScreen({
       back: () => shown.current.index > 0 && go(shown.current.index - 1),
       cancel: () => {
         // Cleared now, not after the next render, so voice never answers a screen that is gone.
-        registerForm(undefined)
-        onExit()
+        registerForm?.(undefined)
+        onExit?.()
       },
     }
   })
@@ -243,26 +253,26 @@ export function CheckInScreen({
     cancel: () => moves.current.cancel(),
   }))
   useEffect(() => {
-    if (saved) return
+    if (saved || !registerForm) return
     registerForm(form)
     return () => registerForm(undefined)
   }, [saved, form, registerForm])
 
   async function onNext(event: FormEvent) {
     event.preventDefault()
-    if ((await submit()) === 'saved') onTouchSaved()
+    if ((await submit()) === 'saved') onTouchSaved?.()
   }
 
   async function onSkip() {
-    if ((await skip()) === 'saved') onTouchSaved()
+    if ((await skip()) === 'saved') onTouchSaved?.()
   }
 
-  if (saved) return <CheckInComplete checkIn={saved} openedAt={openedAt} onDone={onExit} />
+  if (saved) return embedded ? null : <CheckInComplete checkIn={saved} openedAt={openedAt} onDone={() => onExit?.()} />
 
   return (
-    <section className="card check-in" aria-labelledby={headingId}>
+    <section className={embedded ? 'check-in check-in--embedded' : 'card check-in'} aria-labelledby={headingId}>
       <div className="check-in__top">
-        <h2 id={headingId} className="card-heading">
+        <h2 id={headingId} className={embedded ? 'visually-hidden' : 'card-heading'}>
           Morning check-in
         </h2>
         <p className="pill">{`about ${secondsLeft(index)} s left`}</p>
@@ -318,9 +328,11 @@ export function CheckInScreen({
           )}
         </div>
         <div className="step-actions">
-          <button type="button" className="button-secondary" disabled={saving} onClick={index === 0 ? onExit : () => go(index - 1)}>
-            {index === 0 ? 'Cancel' : '← Back'}
-          </button>
+          {!(embedded && index === 0) && (
+            <button type="button" className="button-secondary" disabled={saving} onClick={index === 0 ? () => onExit?.() : () => go(index - 1)}>
+              {index === 0 ? 'Cancel' : '← Back'}
+            </button>
+          )}
           <span className="step-actions__note muted">Skip is saved as "not answered", never as a value</span>
           <button type="button" className="button-secondary" disabled={saving} onClick={onSkip}>
             Skip

@@ -102,13 +102,13 @@ describe('Start', () => {
     expect(spoken(s)).toHaveLength(2)
   })
 
-  it('AC4: tapping Today\'s routine "Start · …" with voice on asks step 1 once the listen ends', async () => {
+  it('AC4: tapping Add entry "Morning check-in" with voice on asks step 1 once the listen ends', async () => {
     const s = await start({ home: true })
     await userEvent.click(mic())
     await waitFor(() => expect(spoken(s)).toHaveLength(1))
-    const routine = await screen.findByRole('region', { name: "Today's routine" })
 
-    await userEvent.click(await within(routine).findByRole('button', { name: /^Start/ }))
+    await userEvent.click(screen.getByRole('link', { name: 'Add entry' }))
+    await userEvent.click(await screen.findByRole('link', { name: /Morning check-in/ }))
     s.voice.input.hear('')
 
     await lastSpoken(s, 'Heart rate value?')
@@ -596,7 +596,8 @@ describe('Control words', () => {
     await micOn(s, 'Heart rate value?')
     said(s, 'Cancel.')
     await lastSpoken(s, 'Check-in cancelled.')
-    await waitFor(() => expect(screen.queryByRole('region', { name: 'Morning check-in' })).not.toBeInTheDocument())
+    // Home may embed the owed check-in (#52); the #/check-in screen itself is gone.
+    await waitFor(() => expect(window.location.hash).not.toBe('#/check-in'))
 
     said(s, 'How am I doing?')
     s.voice.interpreter.commands['How am I doing?'] = { kind: 'briefing' }

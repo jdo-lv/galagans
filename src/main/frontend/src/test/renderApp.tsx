@@ -163,6 +163,9 @@ export function setup({
   }
 }
 
+/** Home's readings card: "Latest readings" when Nominal, "Relevant readings" while an input is owed (#52). */
+export const readingsPanel = () => screen.getByRole('region', { name: /^(Latest|Relevant) readings$/ })
+
 /** Clicks a link in the navigation bar (#57). */
 export async function clickBarLink(name: 'Home' | 'Stats' | 'Add entry' | 'Ground') {
   await userEvent.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('link', { name }))
