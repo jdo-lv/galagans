@@ -250,6 +250,7 @@ Instruments, timing and scoring come from [health-indicators.md](../research/hea
 - **The wording and anchors** are the instrument's own (e.g. KSS 1 "extremely alert" … 9 "extremely sleepy, fighting sleep", from [S56] in health-indicators.md). They're never paraphrased, so scores stay comparable.
 - **"Why you're seeing this"** shows the trigger: scheduled or added by a rule.
 - **Skip is always allowed** and recorded as "not answered", never as a value. Missed sessions don't nag: at most one reminder, then the data age shows on the body map.
+- **Device values are prefilled:** heart rate and SpO₂ are prefilled from the newest device reading (≤ 15 min), which the astronaut confirms or corrects; a confirmed value is saved as "manual" (#55).
 - **The privacy note is per questionnaire:** mood, PHQ and GAD answers are visible to the astronaut and the flight surgeon only, never to crewmates.
 
 ### Where pending questionnaires are shown

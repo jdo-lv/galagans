@@ -72,6 +72,18 @@
   max-width: 240px;
 }
 
+/* A prefilled value's source tag, then its age, which wraps whole under the tag (#55). */
+.field-tile__source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.field-tile__source .tile-label__suffix {
+  white-space: nowrap;
+}
+
 /* Big number buttons, a word under some of them (KSS 1/3/5/7/9, mood 1/5). */
 .scale,
 .choices {

@@ -1,5 +1,6 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { CheckInPrefill } from '../application/CheckInPrefill'
 import { CheckInRecorder } from '../application/CheckInRecorder'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
 import { RoutineReader } from '../application/RoutineReader'
@@ -46,6 +47,7 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
     random: () => 0,
     voiceSession: voiceFakes({ recorder, statusReader, routineReader }).voiceSession,
     ...packetFakes(readingsReader, connectivity, () => clock.now).services,
+    checkInPrefill: new CheckInPrefill(device.observations),
   }
   return {
     clock,
