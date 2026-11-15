@@ -1,6 +1,6 @@
-// Issue mock (#50): the five-item navigation bar, the Add entry chooser and the Ground history, injected into the
+// Issue mock (#57): the five-item navigation bar, the Add entry chooser and the Ground history, injected into the
 // running crew app before they are built. Start the dev server (cd src/main/frontend && npm run dev), then from the
-// repo root: APP_URL=http://localhost:5173/ node docs/features/50-nav-bar-ground.mock.mjs
+// repo root: APP_URL=http://localhost:5173/ node docs/features/57-nav-bar-ground.mock.mjs
 import { openPage } from '../../tools/cdp.mjs'
 
 const APP = process.env.APP_URL ?? 'http://localhost:5173/'
@@ -84,6 +84,6 @@ async function shoot({ width, height, theme, current, screen, file }) {
   await page.close()
 }
 
-await shoot({ width: 1280, height: 800, theme: 'dark', current: 'home', file: 'docs/features/img/50-mock.png' })
-await shoot({ width: 1280, height: 800, theme: 'light', current: 'ground', screen: GROUND, file: 'docs/features/img/50-mock-ground.png' })
-await shoot({ width: 390, height: 844, theme: 'light', current: 'add', screen: ADD, file: 'docs/features/img/50-mock-add-390.png' })
+await shoot({ width: 1280, height: 800, theme: 'dark', current: 'home', file: 'docs/features/img/57-mock.png' })
+await shoot({ width: 1280, height: 800, theme: 'light', current: 'ground', screen: GROUND, file: 'docs/features/img/57-mock-ground.png' })
+await shoot({ width: 390, height: 844, theme: 'light', current: 'add', screen: ADD, file: 'docs/features/img/57-mock-add-390.png' })
