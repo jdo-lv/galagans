@@ -115,8 +115,9 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
     let live = true
     checkInPrefill.read(openedAt).then(
       (read) => {
+        if (!live) return
         const from = shownIndex.current
-        if (live) setState((s) => withPrefill(s, read, from))
+        setState((s) => withPrefill(s, read, from))
       },
       () => {},
     )
