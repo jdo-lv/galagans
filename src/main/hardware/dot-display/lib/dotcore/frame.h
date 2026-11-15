@@ -16,7 +16,7 @@ struct FrameResult {
   float pct;  // set when Accepted
 };
 
-/** Reads `{"topic": ..., "payload": {"id", "t", "pct", "src"}}`, the device link's frame shape. */
+/** Reads `{"topic": ..., "payload": {"id", "t", "pct", "level", "src", "metrics"}}` from the backend; only `pct` is used. */
 FrameResult readFrame(const char *json, size_t length, const char *topic);
 
 }  // namespace dots

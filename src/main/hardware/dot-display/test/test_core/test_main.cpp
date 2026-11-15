@@ -102,7 +102,7 @@ void test_scenario_stays_in_range_and_loops_every_90_s() {
   TEST_ASSERT_EQUAL_FLOAT(scenarioPct(12.0f), scenarioPctLooped(5 * kScenarioMs + 12000));
 }
 
-// ---- readFrame: {"topic", "payload": {id, t, pct, src}} from the device link -----------------------------
+// ---- readFrame: {"topic", "payload": {id, t, pct, level, src, metrics}} from the backend (backend-rules) ---
 
 static FrameResult read(const std::string &json) { return readFrame(json.c_str(), json.size(), "crew/a1/dot-display"); }
 
@@ -112,6 +112,21 @@ void test_frame_with_the_topic_and_a_valid_pct_is_accepted() {
   TEST_ASSERT_EQUAL_INT(static_cast<int>(FrameKind::Accepted), static_cast<int>(r.kind));
   TEST_ASSERT_EQUAL_FLOAT(72.0f, r.pct);
   TEST_ASSERT_EQUAL_FLOAT(41.5f, read(R"({"topic":"crew/a1/dot-display","payload":{"pct":41.5}})").pct);
+}
+
+void test_full_backend_status_frame_with_10_metrics_is_accepted() {
+  const std::string metric =
+      R"({"indicator":"heartRateBpm","label":"Heart rate","value":104,"unit":"bpm","level":"check","ruleId":"CV-01",)"
+      R"("recordedAt":"2026-11-14T09:31:07Z","src":"bracelet · synthetic"})";
+  std::string metrics;
+  for (int i = 0; i < 10; i++) metrics += (i ? "," : "") + metric;
+  const std::string json = R"({"topic":"crew/a1/dot-display","payload":{"id":"6f1c2a9e-0b7d-4c1e-9a55-3f2b8d7e6a10",)"
+                           R"("t":"2026-11-14T09:31:08Z","pct":46,"level":"check","src":"backend-rules","metrics":[)" +
+                           metrics + "]}}";
+  TEST_ASSERT_GREATER_THAN(1400, json.size());
+  const FrameResult r = read(json);
+  TEST_ASSERT_EQUAL_INT(static_cast<int>(FrameKind::Accepted), static_cast<int>(r.kind));
+  TEST_ASSERT_EQUAL_FLOAT(46.0f, r.pct);
 }
 
 void test_frame_for_another_device_is_skipped() {
@@ -250,6 +265,7 @@ int main() {
   RUN_TEST(test_scenario_changes_dots_at_the_mockup_times);
   RUN_TEST(test_scenario_stays_in_range_and_loops_every_90_s);
   RUN_TEST(test_frame_with_the_topic_and_a_valid_pct_is_accepted);
+  RUN_TEST(test_full_backend_status_frame_with_10_metrics_is_accepted);
   RUN_TEST(test_frame_for_another_device_is_skipped);
   RUN_TEST(test_frame_with_a_bad_pct_is_invalid);
   RUN_TEST(test_fresh_value_shows_its_dots_word_and_colour_quietly);
