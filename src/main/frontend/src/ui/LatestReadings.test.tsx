@@ -391,3 +391,14 @@ describe('Reaction time tile with COG-01 (#17)', () => {
     expect(tileOf().querySelector('.badge')).toBeNull()
   })
 })
+
+describe('Heart rate tile with the CV-03 drift (#35)', () => {
+  it('AC20: a 3-day resting HR drift leaves the Heart rate tile without a badge', async () => {
+    const seed = [12, 13, 14].map((day) => stored(`hr-${day}`, `2026-11-${day}T07:00:00Z`, { heartRateBpm: 70 }))
+    setup({ seed }).renderApp()
+    await tiles()
+
+    await waitFor(() => expect(tile('Heart rate')).toHaveTextContent('70 bpm'))
+    expect(tile('Heart rate').querySelector('.badge')).toBeNull()
+  })
+})

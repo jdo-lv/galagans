@@ -39,6 +39,27 @@ describe('DEVICES', () => {
     expect(unknown).toBe('glucometer')
   })
 
+  it('#45 AC3: lists the same 12 fields as the backend DeviceCatalog (DeviceCatalogTest.kt)', () => {
+    const lines = DEVICES.flatMap((d) =>
+      d.fields.map((f) => `${d.topic} · ${d.label} · ${f.key} · ${f.indicator} · ${f.validMin} · ${f.validMax} · ${f.required}`),
+    )
+
+    expect(lines).toEqual([
+      'crew/a1/oximeter · oximeter · spo2_pct · spo2Percent · 50 · 100 · true',
+      'crew/a1/oximeter · oximeter · pulse_bpm · heartRateBpm · 20 · 250 · false',
+      'crew/a1/wrist/hr · bracelet · hr_bpm · heartRateBpm · 20 · 250 · true',
+      'crew/a1/bp · BP cuff · systolic_mmhg · systolicMmHg · 50 · 250 · true',
+      'crew/a1/bp · BP cuff · diastolic_mmhg · diastolicMmHg · 30 · 150 · true',
+      'crew/a1/bp · BP cuff · pulse_bpm · heartRateBpm · 20 · 250 · false',
+      'crew/a1/thermometer · thermometer · temp_c · bodyTempC · 30 · 43 · true',
+      'module/hab/env · environment node · co2_mmhg_1h · cabinCo2MmHg · 0 · 20 · true',
+      'module/hab/env · environment node · temp_c · cabinTempC · 0 · 50 · false',
+      'module/hab/env · environment node · rh_pct · cabinHumidityPct · 0 · 100 · false',
+      'module/hab/dose · dosimeter · dose_rate_msv_day · doseRateMsvDay · 0 · 100 · true',
+      'module/hab/dose · dosimeter · dose_30d_mgy_eq · bfoDose30dMgyEq · 0 · 2000 · true',
+    ])
+  })
+
   it('every topic is unique', () => {
     expect(new Set(DEVICES.map((d) => d.topic)).size).toBe(DEVICES.length)
   })

@@ -2,6 +2,7 @@ package com.galagans.crewhealth.device
 
 import com.galagans.crewhealth.device.application.DeviceRelay
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -25,6 +26,7 @@ class DeviceSocketIntegrationTest(
     @LocalServerPort private val port: Int,
 ) {
     private val peers = mutableListOf<Peer>()
+    private var baseline = 0
 
     /** One WebSocket client: records every frame it receives and sends what it's given. */
     private inner class Peer {
@@ -59,10 +61,16 @@ class DeviceSocketIntegrationTest(
         }
     }
 
+    /** Subscribers before any peer, the health status publisher's own included. */
+    @BeforeEach
+    fun countBaseline() {
+        baseline = relay.subscriberCount()
+    }
+
     @AfterEach
     fun closeAll() {
         peers.forEach { it.close() }
-        awaitSubscribers(0)
+        awaitSubscribers(baseline)
     }
 
     @Test
@@ -103,7 +111,7 @@ class DeviceSocketIntegrationTest(
         val (a, b, c) = connect(3)
 
         c.close()
-        awaitSubscribers(2)
+        awaitSubscribers(baseline + 2)
         a.sendText("after close")
 
         assertEquals("after close", b.next(1_000))

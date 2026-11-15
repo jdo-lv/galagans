@@ -1,5 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { LinkFeed } from '../device/LinkFeed'
 import type { LinkState } from '../infrastructure/DeviceLink'
+import { FakeReadingSource } from '../test/fakes'
 import { RULES } from '../test/rules'
 import type { Publisher } from './Publisher'
 import { SimulatorApp } from './SimulatorApp'
@@ -280,5 +282,166 @@ describe('SimulatorApp', () => {
     expect(localStorage.getItem('simulator.theme')).not.toBe(first)
     expect(document.documentElement.dataset.theme).toBe(localStorage.getItem('simulator.theme'))
     expect(localStorage.getItem('crew-health.theme')).toBe('light')
+  })
+})
+
+describe('SimulatorApp Dot display card (#45)', () => {
+  const metric = (label: string, value: number, unit: string, level: string, ruleId: string | undefined, at: string, src: string) => ({
+    indicator: label,
+    label,
+    value,
+    unit,
+    level,
+    ...(ruleId ? { ruleId } : {}),
+    recordedAt: `2026-11-14T09:31:0${at}Z`,
+    src,
+  })
+  // The mock's payload (docs/features/img/dot-display-status-mock.png).
+  const MOCK = {
+    id: 'status-1',
+    t: '2026-11-14T09:31:08Z',
+    pct: 46,
+    level: 'check',
+    src: 'backend-rules',
+    metrics: [
+      metric('SpO₂', 92, '%', 'check', 'SPO-01', '6', 'oximeter · synthetic'),
+      metric('Heart rate', 104, 'bpm', 'check', 'CV-01', '7', 'bracelet · synthetic'),
+      metric('Systolic', 110, 'mmHg', 'nominal', undefined, '7', 'BP cuff · synthetic'),
+      metric('Diastolic', 69, 'mmHg', 'nominal', undefined, '7', 'BP cuff · synthetic'),
+      metric('Temperature', 36.9, '°C', 'nominal', undefined, '6', 'thermometer · synthetic'),
+      metric('CO₂ (1-h avg)', 2.3, 'mmHg', 'nominal', undefined, '7', 'environment node · synthetic'),
+      metric('Cabin temp', 22.3, '°C', 'nominal', undefined, '7', 'environment node · synthetic'),
+      metric('Cabin humidity', 46, '% RH', 'nominal', undefined, '7', 'environment node · synthetic'),
+      metric('Dose rate', 0.51, 'mSv/day', 'nominal', undefined, '6', 'dosimeter · synthetic'),
+      metric('30-day BFO dose', 96.2, 'mGy-Eq', 'nominal', undefined, '6', 'dosimeter · synthetic'),
+    ],
+  }
+  const MOCK_ROWS = [
+    ['SpO₂', '92 %', 'Check', 'SPO-01', '09:31:06', 'oximeter · synthetic'],
+    ['Heart rate', '104 bpm', 'Check', 'CV-01', '09:31:07', 'bracelet · synthetic'],
+    ['Systolic', '110 mmHg', 'Nominal', '', '09:31:07', 'BP cuff · synthetic'],
+    ['Diastolic', '69 mmHg', 'Nominal', '', '09:31:07', 'BP cuff · synthetic'],
+    ['Temperature', '36.9 °C', 'Nominal', '', '09:31:06', 'thermometer · synthetic'],
+    ['CO₂ (1-h avg)', '2.3 mmHg', 'Nominal', '', '09:31:07', 'environment node · synthetic'],
+    ['Cabin temp', '22.3 °C', 'Nominal', '', '09:31:07', 'environment node · synthetic'],
+    ['Cabin humidity', '46 % RH', 'Nominal', '', '09:31:07', 'environment node · synthetic'],
+    ['Dose rate', '0.51 mSv/day', 'Nominal', '', '09:31:06', 'dosimeter · synthetic'],
+    ['30-day BFO dose', '96.2 mGy-Eq', 'Nominal', '', '09:31:06', 'dosimeter · synthetic'],
+  ]
+
+  const connectedLink = { onState: (listener: (state: LinkState) => void) => (listener('connected'), () => {}) }
+
+  function renderWithDisplay() {
+    const source = new FakeReadingSource()
+    const display = { source, feed: new LinkFeed(connectedLink, source) }
+    render(<SimulatorApp publisher={new FakePublisher()} rules={RULES} display={display} newId={() => `id-${++ids}`} />)
+    return { emit: (payload: unknown) => act(() => source.emit(payload)) }
+  }
+
+  const card = () => screen.getByRole('region', { name: 'Dot display' })
+  const statusText = () => card().querySelector('.sim-display__status')?.textContent?.replace(/\s+/g, ' ')
+  const subLine = () => card().querySelector('p.muted')?.textContent
+  const rows = () => [...card().querySelectorAll('tbody tr')].map((tr) => [...tr.querySelectorAll('td')].map((td) => td.textContent))
+  const panelLabel = () => card().querySelector('.sim-display__panel svg.dot-display')?.getAttribute('aria-label')
+
+  it('AC17: without display there is no Dot display card', () => {
+    renderSimulator()
+    expect(screen.queryByRole('region', { name: 'Dot display' })).not.toBeInTheDocument()
+    expect(document.querySelector('.sim-display')).toBeNull()
+  })
+
+  it('AC18, AC21: before any payload the card is first, waits and has no tag or table', () => {
+    renderWithDisplay()
+
+    expect(screen.getAllByRole('heading', { level: 2 })[0]).toHaveTextContent('Dot display')
+    expect(card()).toHaveClass('card', 'sim-display')
+    expect(subLine()).toBe('crew/a1/dot-display · source: —')
+    expect(statusText()).toBe('Waiting for crew/a1/dot-display')
+    expect(card().querySelector('.tag')).toBeNull()
+    expect(card().querySelector('table')).toBeNull()
+  })
+
+  it('AC18: tags receiving while the last payload arrived under 30 s ago, by arrival time', () => {
+    const { emit } = renderWithDisplay()
+
+    emit({ ...MOCK, t: '2020-01-01T00:00:00Z' })
+    expect(subLine()).toBe('crew/a1/dot-display · source: backend-rules')
+    expect(card().querySelector('.tag')).toHaveTextContent('receiving')
+
+    advance(29_000)
+    expect(card().querySelector('.tag')).toHaveTextContent('receiving')
+    advance(1_000)
+    expect(card().querySelector('.tag')).toBeNull()
+  })
+
+  it('AC19: the panel inside .sim-display__panel shows pct 46 as 3 of 6 dots, Check', () => {
+    const { emit } = renderWithDisplay()
+
+    emit(MOCK)
+
+    expect(panelLabel()).toBe('3 of 6 dots, Check')
+  })
+
+  it('AC20, AC22: the mock payload gives the status line and its 10 rows in payload order', () => {
+    const { emit } = renderWithDisplay()
+
+    emit(MOCK)
+
+    expect(statusText()).toBe('Health status 46 % · worst level Check · 8 of 10 metrics nominal')
+    expect([...card().querySelectorAll('thead th')].map((th) => th.textContent)).toEqual(['Metric', 'Value', 'Level', 'Rule', 'Reading', 'Source'])
+    expect(rows()).toEqual(MOCK_ROWS)
+  })
+
+  it('AC20: a stale entry reads Stale · <last level>; bad entries are skipped and not counted', () => {
+    const { emit } = renderWithDisplay()
+    const spo2 = { ...MOCK.metrics[0], level: 'stale', lastLevel: 'check' }
+    const temp = MOCK.metrics[4]
+
+    emit({
+      ...MOCK,
+      pct: 48,
+      metrics: [
+        spo2,
+        temp,
+        { ...temp, label: 7 },
+        { ...temp, value: '36.9' },
+        { ...temp, level: 'caution' },
+        { ...temp, recordedAt: 'yesterday' },
+        { ...temp, recordedAt: undefined },
+        { ...spo2, lastLevel: 'stale' },
+        { ...spo2, lastLevel: undefined },
+        'not an entry',
+      ],
+    })
+
+    expect(rows()).toEqual([
+      ['SpO₂', '92 %', 'Stale · Check', 'SPO-01', '09:31:06', 'oximeter · synthetic'],
+      MOCK_ROWS[4],
+    ])
+    expect(statusText()).toBe('Health status 48 % · worst level Check · 1 of 2 metrics nominal')
+  })
+
+  it('AC20, AC21: a payload whose level is not one of the five levels shows no table', () => {
+    const { emit } = renderWithDisplay()
+
+    emit({ ...MOCK, level: 'stale' })
+
+    expect(statusText()).toBe('Health status 46 % · no metrics in payload')
+    expect(card().querySelector('table')).toBeNull()
+  })
+
+  it('AC21: a pct-only payload shows pct and no table; a payload without a valid pct is ignored', () => {
+    const { emit } = renderWithDisplay()
+
+    emit({ id: 'a', t: '2026-11-14T09:30:00Z', pct: 72, src: 'synthetic' })
+    expect(statusText()).toBe('Health status 72 % · no metrics in payload')
+    expect(subLine()).toBe('crew/a1/dot-display · source: synthetic')
+    expect(panelLabel()).toBe('5 of 6 dots, To do')
+    expect(card().querySelector('table')).toBeNull()
+
+    for (const bad of [{ ...MOCK, pct: 140 }, { ...MOCK, pct: '46' }, { ...MOCK, pct: undefined }, null, 'x']) emit(bad)
+
+    expect(statusText()).toBe('Health status 72 % · no metrics in payload')
+    expect(panelLabel()).toBe('5 of 6 dots, To do')
   })
 })

@@ -1,0 +1,16 @@
+/* Device screen page (/device/simulation, /device/websocket): the panel alone, scaled to fill the browser. */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+}
+
+.dot-display {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+}

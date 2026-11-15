@@ -83,7 +83,7 @@ The app shows the same screen in a browser, scaled to the window: `/device/simul
 
 ## Trying server mode without the backend
 
-Nothing publishes this value yet. The Spring Boot relay at `/ws/devices` already forwards any frame, so a script can stand in for the backend:
+The backend's health engine publishes this value once a second while any device reading is fresh (run the Device Simulator at `/simulator.html`). To set a value by hand instead, stop the simulator's devices and let a script stand in (running both mixes two publishers on one topic):
 
 1. Run the app (`mvn spring-boot:run` in the repository root) and set `SERVER_HOST` to that machine's IP.
 2. From the repository root, send one value, or loop the scenario at one frame a second:
@@ -102,8 +102,8 @@ Stop the script and the display shows the age of its last value, then dims after
 
 The relay sends every device's frames to every other open socket, so the display keeps its own topic and skips the rest.
 
-- Topic `crew/a1/dot-display` (placeholder until the backend publishes it, set in `src/Protocol.h`).
-- Payload `{id, t, pct, src}` as in the other device topics; only `pct` is read: a number from 0 to 100. Any other frame on this topic is ignored and the last value stays.
+- Topic `crew/a1/dot-display` (set in `src/Protocol.h`), published by the backend's health engine (`com.galagans.crewhealth.health`, src `backend-rules`) once a second.
+- Payload `{id, t, pct, level, src, metrics}`; only `pct` is read: a number from 0 to 100. Any other frame on this topic is ignored and the last value stays.
 - The relay stores nothing, so a frame sent while the display is offline is lost. The publisher should re-send its current value at least every 30 s, or the display will show the value as stale.
 - Data age is the time since the display received the value; the display has no clock of its own.
 

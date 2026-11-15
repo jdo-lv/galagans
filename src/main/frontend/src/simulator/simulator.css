@@ -1,4 +1,4 @@
-/* Device Simulator (mock docs/features/img/43-mock.png on ideas/mockups/src/12-simulator-device-sections.html). Operator page: level buttons pick a range, so neutral greys only, never a level colour. */
+/* Device Simulator (mock docs/features/img/43-mock.png on ideas/mockups/src/12-simulator-device-sections.html). Operator page: level buttons pick a range, so neutral greys only, never a level colour; only the Dot display card shows levels, as the display does. */
 .sim {
   max-width: var(--content-max);
   margin: 0 auto;
@@ -150,6 +150,77 @@
 
 .sim-send__now {
   margin-left: auto;
+}
+
+/* Dot display card (mock docs/features/img/dot-display-status-mock.png): the panel and status line beside the metric table. */
+.sim-display {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+  padding: var(--space-4);
+}
+
+.sim-display__side {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.sim-display p {
+  margin: 0;
+}
+
+/* The board's LCD is always dark, whatever the page theme. The build compiles light-dark() into variables resolved on
+   :root, so color-scheme alone doesn't flip the tokens here: the panel's tokens are set to their dark values (tokens.css). */
+.sim-display__panel {
+  color-scheme: dark;
+  --color-bg: var(--palette-ink);
+  --color-surface: var(--palette-olive);
+  --color-text: var(--palette-bone);
+  --color-text-muted: var(--palette-khaki);
+  --color-alert: var(--palette-bright-red);
+  --color-todo: var(--palette-blue-tint);
+  max-width: 420px;
+  overflow: hidden;
+  border-radius: var(--radius-item);
+}
+
+.sim-display__panel .dot-display {
+  width: 100%;
+  height: auto;
+}
+
+.sim-display__pct {
+  font-family: var(--font-data);
+  font-size: var(--text-value);
+  font-variant-numeric: tabular-nums;
+}
+
+.sim-display__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sim-display__table th,
+.sim-display__table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-divider);
+  text-align: left;
+}
+
+.sim-display__table th {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.sim-display__table td.num {
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .sim-display {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 600px) {

@@ -351,4 +351,22 @@ describe('Body figure with COG-01 (#17)', () => {
 
     await vi.waitFor(() => expect(itemOf('Cognition').querySelector('.badge')?.textContent).toBe(badge))
   })
+
+  it.each([
+    ['HR 70 on 12–14 Nov (AC6)', false, 'Watch'],
+    ['plus HR 66 on 14 Nov 08:00 (AC8)', true, 'none'],
+  ])('#35 AC19: %s → Heart item badge: %s', async (_, lower, badge) => {
+    const seed = [12, 13, 14].map((day) => ({ id: `hr-${day}`, recordedAt: `2026-11-${day}T07:00:00Z`, heartRateBpm: 70, symptoms: [] }))
+    if (lower) seed.push({ id: 'hr-14-08', recordedAt: '2026-11-14T08:00:00Z', heartRateBpm: 66, symptoms: [] })
+    setup({ now: NOW, placeholders: mockStatuses, seed }).renderApp()
+    await within(list()).findByText(badge === 'none' ? 'Heart rate' : 'Resting HR', { exact: false })
+
+    const element = itemOf('Cardiovascular').querySelector('.badge')
+    expect(element?.textContent ?? 'none').toBe(badge)
+    if (element) {
+      expect(element).toHaveClass('badge', 'badge--watch')
+      expect(element.querySelector('svg')).toHaveClass('tabler-icon-trending-up')
+    }
+  })
 })
+
