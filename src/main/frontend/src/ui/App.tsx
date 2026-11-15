@@ -11,6 +11,7 @@ import { PvtTest } from "./PvtTest";
 import { StatisticsScreen } from "./StatisticsScreen";
 import { StatusBar } from "./StatusBar";
 import { SurgeonPacket } from "./SurgeonPacket";
+import { SymptomLogScreen } from "./SymptomLogScreen";
 import { SystemDetail } from "./SystemDetail";
 import { SystemStatusList } from "./SystemStatusList";
 import { TodaysRoutine } from "./TodaysRoutine";
@@ -92,6 +93,10 @@ export function App() {
       ) : route.kind === "add" ? (
         <main>
           <AddEntryScreen />
+        </main>
+      ) : route.kind === "symptoms" ? (
+        <main>
+          <SymptomLogScreen />
         </main>
       ) : route.kind === "pvt" ? (
         <main>
