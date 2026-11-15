@@ -15,7 +15,7 @@ import { systemHref } from './useHashRoute'
 import './status.css'
 import type { StatusListState } from './useSystemStatuses'
 
-export const LEVEL_WORDS: Record<Rule['status'], string> = { watch: 'Watch', check: 'Check', treat: 'Treat', emergency: 'Emergency' }
+const LEVEL_WORDS: Record<Rule['status'], string> = { watch: 'Watch', check: 'Check', treat: 'Treat', emergency: 'Emergency' }
 
 /** The icon of a level (ideas/alert-levels.md "Icon" column); Watch has one only when its rule gives a direction. */
 export function levelIcon(level: SystemStatus['state'], rule?: Rule): AppIcon | undefined {

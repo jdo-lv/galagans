@@ -1,6 +1,7 @@
-import { useState, type PointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 'react'
+import { formatAge, formatStaleAge } from '../application/formatAge'
 import type { ChartPoint, Indicator, Rule } from '../domain/rules'
-import { LEVEL_WORDS, levelIcon } from './SystemStatusList'
+import { levelIcon } from './SystemStatusList'
 
 // Plot area in viewBox units.
 const LEFT = 72
@@ -20,6 +21,12 @@ const DRIFT_Y_RANGE: Partial<Record<Indicator, [number, number, number]>> = { he
 
 const MARKER_SIZE = 18
 const READOUT_ICON = 16
+const READOUT_HEIGHT = 60
+const READOUT_PAD = 12
+const HIT_MARGIN = 8
+
+/** Most severe first; the readout shows the first of the readings at one time. */
+const SEVERITY: ChartPoint['status'][] = ['emergency', 'treat', 'check', 'watch', 'nominal', 'stale']
 
 /** Same level from the same rule: consecutive points like this form one run. */
 const sameRun = (a: ChartPoint, b: ChartPoint | undefined) => b !== undefined && a.status === b.status && a.rule?.id === b.rule?.id
@@ -76,7 +83,7 @@ interface XY {
   cy: number
 }
 
-/** Monotone cubic (Fritsch–Carlson): smooth, and never overshoots between two readings. */
+/** Monotone cubic Hermite with Fritsch–Butland tangents (as PCHIP): smooth, and never overshoots between two readings. */
 export function smoothPath(pts: XY[]): string {
   const n = pts.length
   if (n < 2) return ''
@@ -94,6 +101,10 @@ export function smoothPath(pts: XY[]): string {
     d += ` C${pts[i].cx + h},${pts[i].cy + tangent[i] * h} ${pts[i + 1].cx - h},${pts[i + 1].cy - tangent[i + 1] * h} ${pts[i + 1].cx},${pts[i + 1].cy}`
   }
   return d
+}
+
+function mostSevere<T extends ChartPoint>(points: T[]): T | undefined {
+  return points.reduce<T | undefined>((best, p) => (best === undefined || SEVERITY.indexOf(p.status) <= SEVERITY.indexOf(best.status) ? p : best), undefined)
 }
 
 function nearest(points: XY[], vx: number): number {
@@ -117,23 +128,81 @@ export function TrendChart({ rules, points, now, windowMs }: { rules: Rule[]; po
   const grid: number[] = []
   for (let v = min; v <= max; v += step) grid.push(v)
   const drawn = points.map((p, i) => ({ ...p, cx: x(Date.parse(p.recordedAt)), cy: y(p.value), Marker: marker(points, i) }))
-  const [hover, setHover] = useState<number | null>(null)
-  const hovered = hover === null ? undefined : drawn[hover]
+  const [hover, setHover] = useState<string | null>(null)
+  const [pinned, setPinned] = useState(false)
+  const svgRef = useRef<SVGSVGElement>(null)
+  const tap = useRef<number | null>(null)
+  const hovered = hover === null ? undefined : mostSevere(drawn.filter((p) => p.recordedAt === hover))
+  const isPinned = pinned && hovered !== undefined
+
+  // The reading left the window: drop the readout and its pin.
+  useEffect(() => {
+    if (hover !== null && !hovered) {
+      setHover(null)
+      setPinned(false)
+    }
+  }, [hover, hovered])
+
+  // A touch outside the chart unpins.
+  useEffect(() => {
+    if (!pinned) return
+    const away = (e: Event) => {
+      if (e.target instanceof Node && svgRef.current?.contains(e.target)) return
+      setHover(null)
+      setPinned(false)
+    }
+    document.addEventListener('pointerdown', away)
+    return () => document.removeEventListener('pointerdown', away)
+  }, [pinned])
+
+  /** Viewbox x of the pointer inside the plot range, else undefined. */
+  const plotX = (e: PointerEvent<SVGSVGElement>) => {
+    const box = e.currentTarget.getBoundingClientRect()
+    if (box.width === 0 || drawn.length === 0) return undefined
+    const vx = ((e.clientX - box.left) / box.width) * WIDTH
+    return vx < LEFT - HIT_MARGIN || vx > RIGHT + HIT_MARGIN ? undefined : vx
+  }
+  const show = (vx: number) => setHover(drawn[nearest(drawn, vx)].recordedAt)
+  const unpin = () => {
+    setHover(null)
+    setPinned(false)
+  }
+  const isTouch = (e: PointerEvent) => e.pointerType === 'touch' || e.pointerType === 'pen'
 
   const onPointerMove = (e: PointerEvent<SVGSVGElement>) => {
-    const box = e.currentTarget.getBoundingClientRect()
-    if (box.width === 0 || drawn.length === 0) return
-    const vx = ((e.clientX - box.left) / box.width) * WIDTH
-    setHover(vx < LEFT - 8 || vx > RIGHT + 8 ? null : nearest(drawn, vx))
+    const vx = plotX(e)
+    if (!isTouch(e)) return vx === undefined ? setHover(null) : show(vx)
+    if (pinned && vx !== undefined) show(vx)
+  }
+  const onPointerDown = (e: PointerEvent<SVGSVGElement>) => {
+    const vx = plotX(e)
+    if (!isTouch(e)) return vx === undefined ? setHover(null) : show(vx)
+    if (vx === undefined) {
+      tap.current = null
+      return unpin()
+    }
+    tap.current = vx
+  }
+  const onPointerUp = (e: PointerEvent<SVGSVGElement>) => {
+    if (!isTouch(e) || tap.current === null) return
+    show(tap.current)
+    setPinned(true)
+    tap.current = null
+  }
+  const onPointerLeave = (e: PointerEvent<SVGSVGElement>) => {
+    if (!isTouch(e)) setHover(null)
   }
 
   return (
     <svg
-      className="trend-chart"
+      ref={svgRef}
+      className={isPinned ? 'trend-chart trend-chart--pinned' : 'trend-chart'}
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       onPointerMove={onPointerMove}
-      onPointerDown={onPointerMove}
-      onPointerLeave={() => setHover(null)}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={() => (tap.current = null)}
+      onPointerLeave={onPointerLeave}
       role="img"
       aria-label={`${label}, ${windowLabel(windowMs)}, ${points.length} ${points.length === 1 ? 'reading' : 'readings'}`}
     >
@@ -189,42 +258,67 @@ export function TrendChart({ rules, points, now, windowMs }: { rules: Rule[]; po
           {p.Marker && <p.Marker className="chart-marker" size={MARKER_SIZE} x={p.cx - MARKER_SIZE / 2} y={markerY(p.cy)} />}
         </g>
       ))}
-      {hovered && <Readout point={hovered} unit={unit} />}
+      {hovered && <Readout point={hovered} unit={unit} now={now} />}
     </svg>
   )
 }
 
-/** Hover readout: value, level icon + word, UTC time and source of the nearest reading. */
-function Readout({ point, unit }: { point: XY & ChartPoint; unit: string }) {
-  const Icon = levelIcon(point.status, point.rule)
-  const word = point.status === 'stale' ? 'No recent data' : point.status === 'nominal' ? '' : LEVEL_WORDS[point.status]
-  const head = `${point.value} ${unit}${word ? ' · ' : ''}`
-  const iconW = Icon ? READOUT_ICON + 4 : 0
-  const meta = `${timeLabel.format(Date.parse(point.recordedAt)).replace(',', '')} UTC · ${point.source}`
-  const w = Math.max(head.length * CHAR + iconW + word.length * CHAR, meta.length * CHAR) + 24
-  const h = 60
-  const left = point.cx + 14 + w > WIDTH ? point.cx - 14 - w : point.cx + 14
-  const top = Math.min(Math.max(point.cy - h / 2, 0), HEIGHT - h)
-  const iconX = left + 12 + head.length * CHAR
+/** Rendered length of an SVG text; jsdom has no text measuring, so it falls back to characters × the DM Mono advance. */
+function textLength(el: SVGTextElement | null, chars: number): number {
+  const measured = el?.getComputedTextLength?.() ?? 0
+  return measured > 0 ? measured : chars * CHAR
+}
+
+/** Hover readout: value, level icon + word, then age, UTC time and source of the nearest reading. */
+function Readout({ point, unit, now }: { point: XY & ChartPoint; unit: string; now: Date }) {
+  const { status } = point
+  const Icon = levelIcon(status, point.rule)
+  const word = status === 'nominal' ? '' : status
+  const head = `${point.value} ${unit}${word ? ' ·' : ''}`
+  const age = status === 'stale' ? formatStaleAge(point.recordedAt, now) : formatAge(point.recordedAt, now)
+  const meta = `${age} · ${timeLabel.format(Date.parse(point.recordedAt)).replace(',', '')} UTC · ${point.source}`
+  const headRef = useRef<SVGTextElement>(null)
+  const wordRef = useRef<SVGTextElement>(null)
+  const metaRef = useRef<SVGTextElement>(null)
+  const [widths, setWidths] = useState<{ head: number; word: number; meta: number } | null>(null)
+
+  useLayoutEffect(() => {
+    const next = {
+      head: textLength(headRef.current, head.length),
+      word: textLength(wordRef.current, word.length),
+      meta: textLength(metaRef.current, meta.length),
+    }
+    setWidths((prev) => (prev && prev.head === next.head && prev.word === next.word && prev.meta === next.meta ? prev : next))
+  }, [head, word, meta])
+
+  const w = widths ?? { head: head.length * CHAR, word: word.length * CHAR, meta: meta.length * CHAR }
+  const iconW = Icon ? READOUT_ICON + CHAR : 0
+  const line1 = w.head + (word ? CHAR + iconW + w.word : 0)
+  const boxW = Math.max(line1, w.meta) + 2 * READOUT_PAD
+  const right = point.cx + 14
+  const leftSide = point.cx - 14 - boxW
+  const left = right + boxW <= WIDTH ? right : leftSide >= 0 ? leftSide : Math.min(Math.max(leftSide, 0), WIDTH - boxW)
+  const top = Math.min(Math.max(point.cy - READOUT_HEIGHT / 2, 0), HEIGHT - READOUT_HEIGHT)
+  const iconX = left + READOUT_PAD + w.head + CHAR
   return (
     <g className="chart-readout" aria-hidden="true">
       <circle
-        className={point.status === 'nominal' ? 'chart-hover chart-hover--nominal' : 'chart-hover'}
+        className={status === 'nominal' ? 'chart-hover chart-hover--nominal' : 'chart-hover'}
         cx={point.cx}
         cy={point.cy}
-        r={point.status === 'nominal' ? 5 : 10}
+        r={status === 'nominal' ? 5 : 10}
       />
-      <rect className="chart-readout-box" x={left} y={top} width={w} height={h} rx={8} />
-      <text className="chart-readout-value" x={left + 12} y={top + 24}>
+      <rect className="chart-readout-box" x={left} y={top} width={boxW} height={READOUT_HEIGHT} rx={8} />
+      <text ref={headRef} className="chart-readout-value" x={left + READOUT_PAD} y={top + 24}>
         {head}
       </text>
       {Icon && <Icon className="chart-readout-icon" size={READOUT_ICON} x={iconX} y={top + 24 - READOUT_ICON + 2} />}
       {word && (
-        <text className="chart-readout-value" x={iconX + iconW} y={top + 24}>
+        <text ref={wordRef} className="chart-readout-value" x={iconX + iconW} y={top + 24}>
           {word}
         </text>
       )}
-      <text className="chart-readout-meta" x={left + 12} y={top + 46}>
+      <text ref={metaRef} className="chart-readout-meta" x={left + READOUT_PAD} y={top + 46}>
         {meta}
       </text>
     </g>
