@@ -85,7 +85,7 @@ describe('randomValues against the rules engine', () => {
     for (let i = 0; i < 500; i++) {
       const values = randomValues(spec, levels, RULES, Math.random)
       for (const field of spec.fields) {
-        const rows = RULES.filter((r) => r.indicator === field.indicator)
+        const rows = RULES.filter((r) => r.indicator === field.indicator && (r.below !== undefined || r.above !== undefined))
         const expected = rows.some((r) => r.status === level) ? level : 'nominal'
         const reading = latestReading([observation(field.indicator, values[field.key])], field.indicator, field.validMin, field.validMax, rows)
         expect([field.key, values[field.key], reading?.status]).toEqual([field.key, values[field.key], expected])
@@ -121,6 +121,22 @@ describe('randomValues against the rules engine', () => {
     ['dosimeter', 'dose_30d_mgy_eq', 'emergency', [250.1, 275]],
   ] as const)('AC17: %s %s at %s spans %j', (id, key, level, expected) => {
     expect(range(id, key, level)).toEqual(expected)
+  })
+})
+
+describe('drift rows (#35)', () => {
+  const withoutDrift = RULES.filter((r) => r.atLeast === undefined)
+
+  it.each(['bracelet', 'oximeter'] as const)('AC16: %s levels ignore CV-03', (id) => {
+    expect(levelsFor(device(id), RULES)).toEqual(levelsFor(device(id), withoutDrift))
+    expect(levelsFor(device('bracelet'), RULES)).toEqual(['nominal', 'check'])
+  })
+
+  it.each([LOWEST, () => 0.5, HIGHEST])('AC16: the bp-cuff at watch keeps the pulse nominal (62–64 bpm)', (random) => {
+    const values = randomValues(device('bp-cuff'), indicatorLevels({ 'bp-cuff': 'watch' }, RULES), RULES, random)
+    expect(Number.isInteger(values.pulse_bpm)).toBe(true)
+    expect(values.pulse_bpm).toBeGreaterThanOrEqual(62)
+    expect(values.pulse_bpm).toBeLessThanOrEqual(64)
   })
 })
 

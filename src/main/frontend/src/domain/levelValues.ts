@@ -5,12 +5,17 @@ import type { Indicator, Rule, Status } from './rules'
 const LEVELS: Status[] = ['nominal', 'watch', 'check', 'treat', 'emergency']
 const severity = (level: Status) => LEVELS.indexOf(level)
 
-const rowsOf = (indicator: Indicator, rules: Rule[]) => rules.filter((r) => r.indicator === indicator)
+/** A single reading can only be placed by a `below` or `above` row; drift rows need several days. */
+const isValueRow = (r: Rule) => r.below !== undefined || r.above !== undefined
+
+const rowsOf = (indicator: Indicator, rules: Rule[]) => rules.filter((r) => r.indicator === indicator && isValueRow(r))
 
 /** Nominal plus each level that has a rule row for one of the device's fields; a level without a row is never invented. */
 export function levelsFor(device: DeviceSpec, rules: Rule[]): Status[] {
   const indicators = new Set(device.fields.map((f) => f.indicator))
-  return LEVELS.filter((level) => level === 'nominal' || rules.some((r) => r.status === level && indicators.has(r.indicator)))
+  return LEVELS.filter(
+    (level) => level === 'nominal' || rules.some((r) => r.status === level && indicators.has(r.indicator) && isValueRow(r)),
+  )
 }
 
 /** Per indicator, the most severe device level that has a row for it, so devices sharing an indicator agree. */
