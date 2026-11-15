@@ -36,7 +36,7 @@ export type Route =
   | { kind: 'statistics' }
   | { kind: 'unknown' }
 
-const LEAVES_TO_HOME: Route['kind'][] = ['system', 'pvt', 'packet', 'check-in']
+const LEAVES_TO_HOME: Route['kind'][] = ['system', 'pvt', 'packet', 'check-in', 'statistics']
 
 export function parseHash(hash: string): Route {
   if (hash === '' || hash === '#' || hash === '#/') return { kind: 'home' }
@@ -54,8 +54,8 @@ export function parseHash(hash: string): Route {
 }
 
 /**
- * The screen from `location.hash`. `returnedHome` is true when the user came back from a detail, the PVT, the packet or the
- * check-in, so Home can move focus; a redirect from an unknown route doesn't count.
+ * The screen from `location.hash`. `returnedHome` is true when the user came back from a detail, the PVT, the packet, the
+ * check-in or Statistics, so Home can move focus; a redirect from an unknown route doesn't count.
  */
 export function useHashRoute(): { route: Route; returnedHome: boolean; goHome: (options?: { returned?: boolean }) => void } {
   const [state, setState] = useState(() => ({ route: parseHash(window.location.hash), returnedHome: false }))
