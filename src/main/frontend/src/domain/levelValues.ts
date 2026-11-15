@@ -33,6 +33,12 @@ export function indicatorLevels(levels: Partial<Record<DeviceId, Status>>, rules
   return result
 }
 
+/** Inclusive bounds a scenario step puts on an indicator's synthetic values. */
+export interface IndicatorRange {
+  min: number
+  max: number
+}
+
 interface Interval {
   lo: number
   hi: number
@@ -70,14 +76,23 @@ function draw(field: DeviceField, { lo, hi, loOpen, hiOpen }: Interval, random: 
   return (min + Math.floor(random() * (max - min + 1))) / scale
 }
 
-/** One synthetic value per field at its indicator's level (nominal when absent or without a row at that level). */
+/** One synthetic value per field: inside its indicator's range if given, else at its level (nominal when absent or without a row at that level). */
 export function randomValues(
   device: DeviceSpec,
   levels: Partial<Record<Indicator, Status>>,
   rules: Rule[],
   random: () => number,
+  ranges: Partial<Record<Indicator, IndicatorRange>> = {},
 ): Record<string, number> {
-  return Object.fromEntries(device.fields.map((field) => [field.key, draw(field, interval(field, levels[field.indicator] ?? 'nominal', rules), random)]))
+  return Object.fromEntries(
+    device.fields.map((field) => {
+      const range = ranges[field.indicator]
+      const bounds = range
+        ? { lo: range.min, hi: range.max, loOpen: false, hiOpen: false }
+        : interval(field, levels[field.indicator] ?? 'nominal', rules)
+      return [field.key, draw(field, bounds, random)]
+    }),
+  )
 }
 
 /** The device's JSON payload, keys in contract order: `{id, t, <fields>, src}`. */

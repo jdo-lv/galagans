@@ -407,6 +407,7 @@ A separate app pretends to be every sensor. It runs on its own laptop or browser
   - *Nominal day:* everything in range, so the crew app stays quiet.
   - *Resting HR drift:* the bracelet's resting HR rises ~9 bpm above baseline over 3 days, with short sleep and low fluids, for the check-and-act demo.
   - *CO2 build-up:* replay of a high-CO2 window, then headache symptoms and a slower PVT.
+  - *Cabin atmosphere fault* (built, issue #53): cabin CO₂ rises to 3.2–3.8 mmHg, then after 20 s SpO₂ drops to 91–93 % and heart rate rises to 105–115 bpm, until the operator unchecks it. Synthetic: the co-occurrence, the heart-rate rise and the delay are a team heuristic, not a physiological model.
   - *Orthostatic risk before landing:* BP and HR trend for pre-landing fluid loading.
   - *Solar particle event:* dosimeter rises toward the 30-day limit.
   - *Sensor dropout:* the oximeter goes silent and the data-age warning appears.
