@@ -53,6 +53,8 @@ export const SYMPTOMS = [
 // 15 s per step is a team heuristic: the research times the full sleep diary and checklist at 1 min, these are shorter.
 const SECONDS = 15
 const DEVICE_HINT = 'Type the value from your device, or skip.'
+/** Replaces a number step's hint while it shows a value prefilled from a device reading (#55). */
+export const PREFILL_HINT = 'From your device. Next keeps it; type to correct it, or skip.'
 
 /** Input limits shared with the Latest readings tiles and the server DTO, not clinical thresholds. */
 function reading(field: Indicator) {

@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
+import type { Observation, ObservationSource } from '../domain/observation'
 import { mockRoutine } from '../infrastructure/mockRoutine'
 import { mockCounters, mockStreakSeed } from '../infrastructure/mockStreak'
 import { clickBarLink, saveCheckIn, setup } from '../test/renderApp'
@@ -849,5 +850,39 @@ describe('Reporting is a win (#40)', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Done' }))
       await screen.findByRole('region', { name: 'Body systems' })
     })
+  })
+})
+
+describe('Device prefill (#55)', () => {
+  const MIN = 60_000
+  const opened = at(8)
+  const ago = (ms: number) => new Date(opened.getTime() - ms).toISOString()
+  const device = (id: string, indicator: 'heartRateBpm' | 'spo2Percent', value: number, recordedAt: string, display: ObservationSource = 'oximeter · synthetic'): Observation => ({
+    resourceType: 'Observation',
+    id,
+    status: 'final',
+    code: { text: indicator },
+    valueQuantity: { value, unit: indicator === 'heartRateBpm' ? 'bpm' : '%' },
+    effectiveDateTime: recordedAt,
+    device: { display },
+  })
+  const HR_63 = device('oximeter:m1:heartRateBpm', 'heartRateBpm', 63, ago(2 * MIN))
+  const withDevices = (...observationSeed: Observation[]) => setup({ now: opened.toISOString(), routinePlaceholders: mockRoutine, observationSeed })
+  const PREFILL_HINT = 'From your device. Next keeps it; type to correct it, or skip.'
+  const hint = () => checkIn().querySelector('.step-hint')
+  const sourceRow = () => checkIn().querySelector('.field-tile__source')
+  const sourceRowText = () => [...(sourceRow()?.children ?? [])].map((c) => c.textContent)
+
+  async function expectPrefilled(value: number, source: string, age: string) {
+    await waitFor(() => expect(input()).toHaveValue(value))
+    expect(sourceRowText()).toEqual([source, age])
+    expect(sourceRow()?.children[0]).toHaveClass('tag')
+    expect(sourceRow()?.children[1]).toHaveClass('tile-label__suffix')
+    expect(hint()).toHaveTextContent(PREFILL_HINT)
+  }
+
+  it('AC1: a heart rate 2 min old fills step 1 with its tag, age and the prefill hint', async () => {
+    await open(withDevices(HR_63))
+    await expectPrefilled(63, 'oximeter · synthetic', '2 min ago')
   })
 })

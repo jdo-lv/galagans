@@ -1,7 +1,10 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type RefObject } from 'react'
+import type { Prefill } from '../application/CheckInPrefill'
+import { formatAge } from '../application/formatAge'
 import {
   CHECK_IN_STEPS,
   checkNumber,
+  PREFILL_HINT,
   secondsLeft,
   SYMPTOMS,
   toDraft,
@@ -18,14 +21,36 @@ import { READING_ICONS } from './readingIcons'
 import { useServices } from './ServicesContext'
 import './checkin.css'
 
-/** Raw text for number steps (Back shows what was typed), picks for scales, symptom ids or "none". */
+/** Raw text for number steps (Back shows what was typed), picks for scales, symptom ids or "none", and the device values the prefill filled in. */
 type State = {
   raw: Partial<Record<NumberStep['field'], string>>
   picks: Partial<Record<ScaleStep['field'], number>>
   symptoms: string[] | 'none'
+  prefilled: Prefill
 }
 
-const EMPTY: State = { raw: {}, picks: {}, symptoms: [] }
+const EMPTY: State = { raw: {}, picks: {}, symptoms: [], prefilled: {} }
+
+/** Fills the untouched number steps from step `from` on; a step already passed stays as it was shown. */
+function withPrefill(state: State, prefill: Prefill, from: number): State {
+  const raw = { ...state.raw }
+  const prefilled: Prefill = {}
+  for (const step of CHECK_IN_STEPS.slice(from)) {
+    if (step.kind !== 'number' || state.raw[step.field] !== undefined) continue
+    const reading = prefill[step.field]
+    if (!reading) continue
+    raw[step.field] = String(reading.value)
+    prefilled[step.field] = reading
+  }
+  return { ...state, raw, prefilled }
+}
+
+/** The device reading behind a number step, while its text is still the prefilled value. */
+function prefillShown(step: CheckInStep, state: State) {
+  if (step.kind !== 'number') return undefined
+  const reading = state.prefilled[step.field]
+  return reading && state.raw[step.field] === String(reading.value) ? reading : undefined
+}
 
 function isAnswered(step: CheckInStep, state: State): boolean {
   if (step.kind === 'number') return (state.raw[step.field] ?? '') !== ''
@@ -63,7 +88,7 @@ function toggled(symptoms: State['symptoms'], id: string | 'none'): State['sympt
  * Nothing is stored until save. `onSaved` refreshes home; Cancel and Done leave through `onExit`.
  */
 export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit: () => void }) {
-  const { recorder, streakReader } = useServices()
+  const { recorder, streakReader, checkInPrefill } = useServices()
   const [openedAt] = useState(() => streakReader.now())
   const [saved, setSaved] = useState<CheckIn>()
   const [index, setIndex] = useState(0)
@@ -72,6 +97,8 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
   const [save, setSave] = useState<'idle' | 'saving' | 'failed'>('idle')
   const promptRef = useRef<HTMLHeadingElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  // The step on screen when the prefill resolves, which the mount effect's closure can't see.
+  const shownIndex = useRef(0)
   const headingId = useId()
   const promptId = useId()
   const errorId = useId()
@@ -79,10 +106,27 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
   const step = CHECK_IN_STEPS[index]
   const last = index === CHECK_IN_STEPS.length - 1
   const saving = save === 'saving'
+  const prefill = prefillShown(step, state)
 
   useEffect(() => promptRef.current?.focus(), [index])
 
+  // Read once: readings stored later never change a field, and a failed read leaves every step empty, silently.
+  useEffect(() => {
+    let live = true
+    checkInPrefill.read(openedAt).then(
+      (read) => {
+        const from = shownIndex.current
+        if (live) setState((s) => withPrefill(s, read, from))
+      },
+      () => {},
+    )
+    return () => {
+      live = false
+    }
+  }, [checkInPrefill, openedAt])
+
   function go(to: number) {
+    shownIndex.current = to
     setError(undefined)
     setSave('idle')
     setIndex(to)
@@ -147,7 +191,7 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
       <h3 ref={promptRef} id={promptId} tabIndex={-1} className="step-prompt">
         {step.prompt}
       </h3>
-      <p className="step-hint muted">{step.hint}</p>
+      <p className="step-hint muted">{prefill ? PREFILL_HINT : step.hint}</p>
       <form noValidate onSubmit={onNext}>
         <div className="step-body">
           {step.kind === 'number' && (
@@ -155,6 +199,7 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
               key={step.field}
               step={step}
               value={state.raw[step.field] ?? ''}
+              device={prefill && { source: prefill.source, age: formatAge(prefill.recordedAt, openedAt) }}
               inputRef={inputRef}
               errorId={error ? errorId : undefined}
               onChange={(raw) => setState({ ...state, raw: { ...state.raw, [step.field]: raw } })}
@@ -211,12 +256,15 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
 function NumberInput({
   step,
   value,
+  device,
   inputRef,
   errorId,
   onChange,
 }: {
   step: NumberStep
   value: string
+  /** The source and age of a prefilled value. */
+  device?: { source: string; age: string }
   inputRef: RefObject<HTMLInputElement | null>
   errorId?: string
   onChange: (raw: string) => void
@@ -243,6 +291,12 @@ function NumberInput({
       <span className="tile-label">
         {step.label} <span className="tile-label__suffix">/ {step.unit}</span>
       </span>
+      {device && (
+        <span className="field-tile__source">
+          <span className="tag">{device.source}</span>
+          <span className="tile-label__suffix">{device.age}</span>
+        </span>
+      )}
     </label>
   )
 }
