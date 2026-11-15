@@ -65,6 +65,29 @@ describe('randomValues', () => {
   ] as const)('AC16: %s at %j with random %s → %j', (id, levels, random, values) => {
     expect(randomValues(device(id), levels as Partial<Record<Indicator, Status>>, RULES, random)).toEqual(values)
   })
+
+  it.each([{}, { spo2Percent: 'emergency' }, { spo2Percent: 'check', heartRateBpm: 'check' }] as const)(
+    'AC15 (#53): a range sets spo2_pct whatever its level (%j); pulse_bpm keeps its level',
+    (levels) => {
+      const ranges = { spo2Percent: { min: 91, max: 93 } }
+      const low = randomValues(device('oximeter'), levels, RULES, LOWEST, ranges)
+      const high = randomValues(device('oximeter'), levels, RULES, HIGHEST, ranges)
+      expect(low.spo2_pct).toBe(91)
+      expect(high.spo2_pct).toBe(93)
+      expect(low.pulse_bpm).toBe(randomValues(device('oximeter'), levels, RULES, LOWEST).pulse_bpm)
+      expect(high.pulse_bpm).toBe(randomValues(device('oximeter'), levels, RULES, HIGHEST).pulse_bpm)
+    },
+  )
+
+  it('AC15 (#53): a range with decimals draws on the field grid', () => {
+    const ranges = { cabinCo2MmHg: { min: 3.2, max: 3.8 } }
+    expect(randomValues(device('env-node'), {}, RULES, LOWEST, ranges).co2_mmhg_1h).toBe(3.2)
+    expect(randomValues(device('env-node'), {}, RULES, HIGHEST, ranges).co2_mmhg_1h).toBe(3.8)
+  })
+
+  it('AC15 (#53): without ranges the output is unchanged', () => {
+    expect(randomValues(device('oximeter'), {}, RULES, LOWEST, undefined)).toEqual({ spo2_pct: 95, pulse_bpm: 62 })
+  })
 })
 
 describe('randomValues against the rules engine', () => {
