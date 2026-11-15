@@ -20,4 +20,20 @@ describe('Navigation bar (#46)', () => {
       ['Statistics', '#/statistics'],
     ])
   })
+
+  it('AC2: each link is a 24 px decorative icon and no text', async () => {
+    setup().renderApp()
+    await findBar()
+
+    const icons = links().map((a) => {
+      expect(a).toHaveTextContent(/^$/)
+      expect(a.children).toHaveLength(1)
+      const svg = a.firstElementChild as Element
+      expect(svg.tagName).toBe('svg')
+      expect(svg).toHaveAttribute('aria-hidden', 'true')
+      expect(svg).toHaveAttribute('width', '24')
+      return [...svg.classList].find((c) => c.startsWith('tabler-icon-'))
+    })
+    expect(icons).toEqual(['tabler-icon-home', 'tabler-icon-clipboard-list', 'tabler-icon-satellite', 'tabler-icon-chart-bar'])
+  })
 })

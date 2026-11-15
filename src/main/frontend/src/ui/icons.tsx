@@ -11,6 +11,7 @@ import {
   IconBrain,
   IconCalendarEvent,
   IconCamera,
+  IconChartBar,
   IconChartLine,
   IconChevronRight,
   IconCircleCheck,
@@ -28,6 +29,7 @@ import {
   IconGauge,
   IconHeart,
   IconHeartbeat,
+  IconHome,
   IconMist,
   IconInfoCircle,
   IconLock,
@@ -177,3 +179,6 @@ export const PausedIcon = /* @__PURE__ */ decorative(IconPlayerPause)
 export const LightThemeIcon = /* @__PURE__ */ decorative(IconSun)
 export const DarkThemeIcon = /* @__PURE__ */ decorative(IconMoon)
 export const VoiceIcon = /* @__PURE__ */ decorative(IconMicrophone)
+/** Navigation bar (#46): Home and Statistics; Check-in and Messages reuse QuestionnaireIcon and GroundLinkIcon. */
+export const HomeIcon = /* @__PURE__ */ decorative(IconHome)
+export const StatisticsIcon = /* @__PURE__ */ decorative(IconChartBar)
