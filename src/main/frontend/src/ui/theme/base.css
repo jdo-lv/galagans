@@ -34,13 +34,15 @@ input {
   color: inherit;
 }
 
+/* Links are neutral: colour means only an alert level (ui-guidelines rule 1) */
 a {
-  color: var(--color-accent);
+  color: var(--color-text);
+  text-decoration: underline;
   text-underline-offset: 0.15em;
 }
 
 a:hover {
-  color: var(--color-link-hover);
+  color: var(--color-text);
 }
 
 /* Every Tabler (and custom) icon shares one line weight; CSS beats the stroke-width attribute */
@@ -256,10 +258,6 @@ a:hover {
   background: var(--color-surface);
   border-radius: var(--radius-card);
   padding: var(--space-4) var(--space-5);
-}
-
-.card a {
-  color: var(--color-link-on-surface);
 }
 
 .card-heading {
@@ -498,10 +496,6 @@ ul.tile-grid {
   color: var(--color-text-muted);
 }
 
-.pill--due {
-  border-color: var(--color-accent);
-}
-
 /* Context pills under the header on every screen: connection, then ground link */
 .pill-row {
   display: flex;
@@ -572,15 +566,21 @@ ul.tile-grid {
 }
 
 .badge--check {
-  background: var(--color-caution);
-  color: var(--color-on-caution);
-  box-shadow: inset 0 0 0 1.5px var(--color-on-caution); /* the yellow fill is 1.00:1 on the light background */
+  background: var(--color-check);
+  color: var(--color-on-check);
 }
 
 .badge--treat,
 .badge--emergency {
-  background: var(--color-warning);
-  color: var(--color-on-warning);
+  background: var(--color-alert);
+  color: var(--color-on-alert);
+}
+
+/* Yellow is 1.00:1 on the light background and red 1.53:1 on the dark surface (ui-guidelines §2.4) */
+.badge--check,
+.badge--treat,
+.badge--emergency {
+  box-shadow: inset 0 0 0 1.5px var(--color-text);
 }
 
 /* Today's routine rows (mockup 01) */
@@ -607,9 +607,9 @@ ul.routine-list {
   padding: var(--space-3) 0;
 }
 
-/* The outline replaces the divider; neutral accent, never red or yellow (ui-guidelines §2.3) */
+/* The outline replaces the divider; level 1 "to do" (alert-levels.md), never red or yellow */
 .routine-list > .routine-item--due {
-  border: 1px solid var(--color-accent);
+  border: 1px solid var(--color-todo);
   border-radius: var(--radius-item);
   padding: var(--space-3);
   margin: var(--space-2) 0;

@@ -147,14 +147,20 @@
 }
 
 .chart-point--check {
-  fill: var(--color-caution);
-  stroke: var(--color-on-caution);
-  stroke-width: 1.5;
+  fill: var(--color-check);
 }
 
 .chart-point--treat,
 .chart-point--emergency {
-  fill: var(--color-warning);
+  fill: var(--color-alert);
+}
+
+/* Same outline as the filled badges: yellow and red alone lack contrast on one of the themes */
+.chart-point--check,
+.chart-point--treat,
+.chart-point--emergency {
+  stroke: var(--color-text);
+  stroke-width: 1.5;
 }
 
 .chart-point--stale {
@@ -163,8 +169,7 @@
   stroke-width: 1.5;
 }
 
+/* The level icon above the point; the point carries the level colour */
 .chart-marker {
-  fill: var(--color-text);
-  font-size: 16px;
-  font-weight: 700;
+  color: var(--color-text);
 }

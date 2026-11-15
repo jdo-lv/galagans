@@ -14,7 +14,6 @@
   --palette-khaki: #868375;
   --palette-olive: #52574e;
   --palette-blue: #1651b6;
-  --palette-deep-blue: #0032a0;
   --palette-red: #c61e37;
   --palette-bright-red: #e4002b;
   --palette-caution-yellow: #ffc72c;
@@ -33,9 +32,7 @@
   --color-inset: var(--color-bg); /* recessed area inside a surface: fields, explanations */
   --color-text-muted-on-inset: light-dark(var(--palette-olive), var(--palette-khaki)); /* stale values on metric tiles */
   --color-ring: light-dark(var(--palette-warm-grey), var(--palette-khaki));
-  --color-accent: light-dark(var(--palette-blue), var(--palette-blue-tint));
-  --color-link-on-surface: light-dark(var(--palette-blue), var(--palette-bone));
-  --color-link-hover: light-dark(var(--palette-deep-blue), var(--palette-bone));
+  --color-focus: var(--color-text);
   --color-inverse-bg: light-dark(var(--palette-ink), var(--palette-bone));
   --color-inverse-text: light-dark(var(--palette-bone), var(--palette-ink));
 
@@ -45,11 +42,13 @@
   --color-feature-2: var(--palette-olive);
   --color-on-feature-2: var(--palette-bone);
 
-  /* Status: only on badges, ring segments and chart markers, always with icon + word */
-  --color-caution: var(--palette-caution-yellow);
-  --color-on-caution: var(--palette-ink);
-  --color-warning: light-dark(var(--palette-red), var(--palette-bright-red));
-  --color-on-warning: var(--palette-white);
+  /* Alert levels (ideas/alert-levels.md): only on level badges, ring segments, chart points and the level 1 outline, always with icon + word.
+     Yellow is level 3 Check, red levels 4 Treat and 5 Emergency, blue only level 1 To do. */
+  --color-check: var(--palette-caution-yellow);
+  --color-on-check: var(--palette-ink);
+  --color-alert: light-dark(var(--palette-red), var(--palette-bright-red));
+  --color-on-alert: var(--palette-white);
+  --color-todo: light-dark(var(--palette-blue), var(--palette-blue-tint));
 
   /* Type: Inter for words, DM Mono for numbers. 16px floor = NASA 0.25° minimum at 50 cm on a tablet. */
   --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -81,7 +80,7 @@
   --radius-tag: 6px;
   --radius-pill: 999px;
   --content-max: 1200px;
-  --focus-ring: 2px solid var(--color-accent);
+  --focus-ring: 2px solid var(--color-focus);
   --transition-theme: background-color 0.25s, color 0.25s, border-color 0.25s;
 }
 
