@@ -25,6 +25,7 @@ import {
   IconDroplet,
   IconEar,
   IconEye,
+  IconFirstAidKit,
   IconGauge,
   IconHeart,
   IconHeartbeat,
@@ -52,6 +53,8 @@ import {
   IconSun,
   IconTemperaturePlus,
   IconThermometer,
+  IconTrendingDown,
+  IconTrendingUp,
   IconUser,
   IconUsersGroup,
   IconWind,
@@ -63,7 +66,7 @@ import type { ComponentType } from 'react'
 
 // The app's icon vocabulary (ideas/ui-guidelines.md §5 "Icons"): Tabler outline icons named by what they mean here,
 // one icon per meaning. Line weight comes from CSS (--icon-stroke). Every icon is decorative: a word or label carries the meaning.
-type AppIcon = ComponentType<IconProps>
+export type AppIcon = ComponentType<IconProps>
 
 function decorative(Svg: AppIcon): AppIcon {
   const Decorative = (props: IconProps) => <Svg size={22} aria-hidden="true" focusable="false" {...props} />
@@ -107,8 +110,12 @@ function IconSpo2({ size = 24, stroke = 2, className, ...props }: IconProps) {
 
 /* Status (never the only cue: always with the status word) */
 export const NominalIcon = /* @__PURE__ */ decorative(IconCircleCheck)
-export const CautionIcon = /* @__PURE__ */ decorative(IconAlertTriangle)
-export const WarningIcon = /* @__PURE__ */ decorative(IconAlertOctagon)
+/** Level icons (ideas/alert-levels.md "Icon" column). Watch's arrow follows its rule's direction. */
+export const LevelWatchUpIcon = /* @__PURE__ */ decorative(IconTrendingUp)
+export const LevelWatchDownIcon = /* @__PURE__ */ decorative(IconTrendingDown)
+export const LevelCheckIcon = /* @__PURE__ */ decorative(IconAlertTriangle)
+export const LevelTreatIcon = /* @__PURE__ */ decorative(IconFirstAidKit)
+export const LevelEmergencyIcon = /* @__PURE__ */ decorative(IconAlertOctagon)
 export const InfoIcon = /* @__PURE__ */ decorative(IconInfoCircle)
 export const DataAgeIcon = /* @__PURE__ */ decorative(IconClock)
 export const NoDataIcon = /* @__PURE__ */ decorative(IconCircleDashed)
