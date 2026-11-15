@@ -11,6 +11,8 @@ const DAY = 24 * 60 * MINUTE
 
 /** Fixed Y axis per indicator [min, max, step], so threshold lines always show. */
 const Y_RANGE: Partial<Record<Indicator, [number, number, number]>> = { spo2Percent: [80, 100, 5], pvtMedianMs: [200, 400, 50] }
+/** Drift charts (daily resting value) zoom in on the baseline and limit. */
+const DRIFT_Y_RANGE: Partial<Record<Indicator, [number, number, number]>> = { heartRateBpm: [50, 80, 10] }
 
 const MARKER_SIZE = 18
 
@@ -65,8 +67,9 @@ const timeLabel = new Intl.DateTimeFormat('en-GB', {
 })
 
 export function TrendChart({ rules, points, now, windowMs }: { rules: Rule[]; points: ChartPoint[]; now: Date; windowMs: number }) {
-  const { indicator, label, unit, validMin, validMax, baseline } = rules[0]
-  const [min, max, step] = Y_RANGE[indicator] ?? [validMin, validMax, (validMax - validMin) / 4]
+  const { indicator, label, unit, validMin, validMax, baseline, atLeast } = rules[0]
+  const ranges = atLeast !== undefined ? DRIFT_Y_RANGE : Y_RANGE
+  const [min, max, step] = ranges[indicator] ?? [validMin, validMax, (validMax - validMin) / 4]
   const to = now.getTime()
   const from = to - windowMs
   const x = (time: number) => LEFT + ((time - from) / windowMs) * (RIGHT - LEFT)
@@ -111,12 +114,13 @@ export function TrendChart({ rules, points, now, windowMs }: { rules: Rule[]; po
         </g>
       )}
       {rules.map((rule) => {
-        const limit = rule.below ?? rule.above ?? min
-        const sign = rule.below !== undefined ? '<' : '>'
+        const limit = rule.below ?? rule.above ?? rule.atLeast ?? min
+        const sign = rule.below !== undefined ? '<' : rule.atLeast !== undefined ? '≥' : '>'
+        const days = rule.days !== undefined ? ` ${rule.days} days` : ''
         return (
           <g key={rule.id}>
             <line className="chart-threshold" x1={LEFT} x2={RIGHT} y1={y(limit)} y2={y(limit)} />
-            <text className="chart-label" x={LEFT + 6} y={y(limit) - 5}>{`${rule.id} · ${sign} ${limit} ${unit} ${rule.status}`}</text>
+            <text className="chart-label" x={LEFT + 6} y={y(limit) - 5}>{`${rule.id} · ${sign} ${limit} ${unit}${days} ${rule.status}`}</text>
           </g>
         )
       })}

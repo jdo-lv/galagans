@@ -13,7 +13,8 @@ function pairText(spec: ReadingSpec, id: string, value: number, observations: Ob
 }
 
 function fromObservations(spec: ReadingSpec, rules: Rule[], observations: Observation[], now: Date): LatestReading {
-  const rows = rules.filter((rule) => rule.indicator === spec.indicator)
+  // A drift row needs several days, so it never rates a single reading.
+  const rows = rules.filter((rule) => rule.indicator === spec.indicator && (rule.below !== undefined || rule.above !== undefined))
   const rating = rows.length === 0 ? { unrated: true as const } : {}
   const latest = latestReading(observations, spec.indicator, spec.validMin, spec.validMax, rows)
   if (!latest) return { spec, state: 'no-data', ...rating }

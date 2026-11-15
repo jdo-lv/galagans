@@ -21,7 +21,7 @@ const LEVEL_WORDS: Record<Rule['status'], string> = { watch: 'Watch', check: 'Ch
 export function levelIcon(level: SystemStatus['state'], rule?: Rule): AppIcon | undefined {
   switch (level) {
     case 'watch':
-      if (rule?.above !== undefined) return LevelWatchUpIcon
+      if (rule?.above !== undefined || rule?.atLeast !== undefined) return LevelWatchUpIcon
       return rule?.below !== undefined ? LevelWatchDownIcon : undefined
     case 'check':
       return LevelCheckIcon
