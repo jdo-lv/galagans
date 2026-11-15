@@ -1,13 +1,20 @@
 import { useEffect, useId, useRef } from 'react'
 import { formatAge, formatStaleAge } from '../application/formatAge'
 import { lensMark, type Hazard } from '../domain/hazards'
-import type { SystemStatus } from '../domain/rules'
-import { ChevronIcon, WarningIcon } from './icons'
+import type { Rule, SystemStatus } from '../domain/rules'
+import { ChevronIcon } from './icons'
 import { systemHref } from './useHashRoute'
 import './status.css'
 import type { StatusListState } from './useSystemStatuses'
 
-export function Badge({ state }: { state: SystemStatus['state'] }) {
+/** Words and glyphs of the level badges (ideas/alert-levels.md "Icon" column). */
+function watchGlyph(rule?: Rule): string {
+  if (rule?.above !== undefined) return '↗ '
+  if (rule?.below !== undefined) return '↘ '
+  return ''
+}
+
+export function Badge({ state, rule }: { state: SystemStatus['state']; rule?: Rule }) {
   switch (state) {
     case 'no-data':
       return <span className="badge badge--quiet">No data</span>
@@ -15,15 +22,14 @@ export function Badge({ state }: { state: SystemStatus['state'] }) {
       return <span className="badge badge--quiet">No recent data</span>
     case 'nominal':
       return <span className="badge badge--nominal">✓ Nominal</span>
-    case 'caution':
-      return <span className="badge badge--caution">▲ CAUTION</span>
-    case 'warning':
-      return (
-        <span className="badge badge--warning">
-          <WarningIcon size={18} />
-          <span>WARNING</span>
-        </span>
-      )
+    case 'watch':
+      return <span className="badge badge--watch">{`${watchGlyph(rule)}WATCH`}</span>
+    case 'check':
+      return <span className="badge badge--check">▲ CHECK</span>
+    case 'treat':
+      return <span className="badge badge--treat">✚ TREAT</span>
+    case 'emergency':
+      return <span className="badge badge--emergency">⬣ EMERGENCY</span>
   }
 }
 
@@ -46,7 +52,7 @@ function StatusRow({ status, now, lens }: { status: SystemStatus; now: Date; len
         )}
         {status.detail !== undefined && <div className="status-sub">{`${status.detail} · ${status.source}`}</div>}
       </div>
-      <Badge state={state} />
+      <Badge state={state} rule={status.rule} />
     </div>
   )
   // Only flagged rows open the detail (F5); quiet rows stay plain.

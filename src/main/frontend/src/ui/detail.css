@@ -140,13 +140,20 @@
   fill: var(--color-text);
 }
 
-.chart-point--caution {
+.chart-point--watch {
+  fill: var(--color-inset);
+  stroke: var(--color-text);
+  stroke-width: 1.5;
+}
+
+.chart-point--check {
   fill: var(--color-caution);
   stroke: var(--color-on-caution);
   stroke-width: 1.5;
 }
 
-.chart-point--warning {
+.chart-point--treat,
+.chart-point--emergency {
   fill: var(--color-warning);
 }
 
