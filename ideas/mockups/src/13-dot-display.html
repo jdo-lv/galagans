@@ -1,0 +1,458 @@
+<!doctype html>
+<html data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>Dot display</title>
+<!-- Mockup 13: Waveshare ESP32-C6-Touch-LCD-1.47 (172 × 320) showing a 0–100 % value as 1–6 dots.
+     Interactive: open in a browser. ./render.sh 13-dot-display.html renders the PNG. Everything is simulated in this page. -->
+<link rel="stylesheet" href="../../../src/main/frontend/src/ui/theme/tokens.css">
+<link rel="stylesheet" href="../../../src/main/frontend/src/ui/theme/base.css">
+<style>
+body { margin: 0; min-height: 0; }
+.page { width: 1280px; height: 800px; padding: var(--space-4) var(--gutter); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--space-4); }
+.top { display: flex; align-items: center; gap: var(--space-3); }
+.top h1 { font-size: var(--text-heading); margin-right: var(--space-3); }
+.top .pill { align-self: center; }
+.main { display: grid; grid-template-columns: 520px minmax(0, 1fr); gap: var(--gap-cards); min-height: 0; }
+.side { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr) auto; gap: var(--gap-cards); min-height: 0; }
+.log { grid-column: 1 / -1; }
+.card { min-height: 0; }
+.card-heading { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); }
+.card-heading .tag { font-size: 14px; letter-spacing: 0; text-transform: none; font-weight: 400; }
+
+/* Device */
+.stage-card { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: var(--space-3); }
+.stage { display: grid; place-items: center; min-height: 0; }
+.board { background: var(--palette-warm-grey); border-radius: 18px; padding: 12px; box-shadow: 0 2px 0 var(--palette-olive); }
+.board canvas { display: block; border-radius: 6px; cursor: pointer; }
+.caption { font-size: 14px; text-align: center; }
+
+/* Controls */
+.sender, .options { display: flex; flex-direction: column; gap: var(--space-3); }
+.options { gap: var(--space-2); }
+.reading { display: flex; align-items: baseline; gap: var(--space-3); }
+.reading input[type=range] { flex: 1; accent-color: var(--color-inverse-bg); }
+.value { min-width: 4.2ch; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.chip { min-height: 34px; padding: 0 12px; border: 1px solid var(--color-edge); border-radius: var(--radius-pill); background: transparent; font-weight: 600; cursor: pointer; font-family: var(--font-data); font-size: 14px; }
+.chip--word { font-family: var(--font-ui); }
+.chip[aria-pressed='true'] { background: var(--color-inverse-bg); color: var(--color-inverse-text); border-color: transparent; }
+.btn { min-height: 40px; padding: 0 14px; border: 1px solid var(--color-edge); border-radius: var(--radius-pill); background: transparent; font-weight: 700; cursor: pointer; }
+.btn[aria-pressed='true'] { background: var(--color-inverse-bg); color: var(--color-inverse-text); border-color: transparent; }
+.scenario { display: flex; align-items: center; gap: var(--space-3); }
+.scenario .btn { min-width: 96px; }
+.timeline { flex: 1; min-width: 0; height: 40px; overflow: visible; }
+.timeline line, .timeline polyline { vector-effect: non-scaling-stroke; fill: none; }
+.timeline .band { stroke: var(--color-edge); stroke-width: 1; stroke-dasharray: 2 3; }
+.timeline .curve { stroke: var(--color-text); stroke-width: 1.5; }
+.timeline .head { stroke: var(--color-text); stroke-width: 2; }
+.small { font-size: 14px; }
+.opt { display: grid; grid-template-columns: 96px 1fr; align-items: center; gap: var(--space-2); }
+.opt > span { font-size: 14px; color: var(--color-text-muted); }
+
+/* Log */
+.lines { font-family: var(--font-data); font-size: 13px; display: grid; gap: 2px; }
+.lines div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lines .muted { color: var(--color-text-muted); }
+
+/* Every state */
+.minis { display: flex; gap: var(--space-4); justify-content: space-between; }
+.mini { display: grid; gap: 4px; justify-items: start; }
+.mini canvas { display: block; border-radius: 4px; background: var(--palette-ink); }
+.mini b { font-size: 13px; font-family: var(--font-data); font-weight: 500; }
+.mini span { font-size: 13px; color: var(--color-text-muted); line-height: 1.2; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <h1>Dot display</h1>
+    <span class="pill">Waveshare ESP32-C6-Touch-LCD-1.47 · <b class="num">172 × 320</b></span>
+    <span class="pill">Mockup · all data simulated</span>
+  </header>
+
+  <div class="main">
+    <section class="card stage-card" aria-label="Device">
+      <div class="stage"><div class="board"><canvas id="screen" role="img"></canvas></div></div>
+      <p class="muted caption" id="caption"></p>
+    </section>
+
+    <div class="side">
+      <section class="card sender">
+        <h2 class="card-heading">Sender <span class="tag">Device Simulator</span></h2>
+        <p class="muted small"><span class="num">crew/a1/dot-display</span> · source: synthetic</p>
+        <div class="reading">
+          <span class="value" id="pctOut">72 %</span>
+          <input id="pct" type="range" min="0" max="100" step="1" value="72" aria-label="Percentage to send">
+        </div>
+        <div class="row" id="presets"></div>
+        <div class="row">
+          <button class="btn" id="send">Send now</button>
+          <button class="btn" id="bad">Send 140</button>
+        </div>
+        <div class="scenario">
+          <button class="btn" id="scenario" aria-pressed="false">Scenario</button>
+          <svg class="timeline" id="timeline" viewBox="0 0 90 100" preserveAspectRatio="none" role="img"
+               aria-label="Scenario: 6 dots, drop to 3 and hold, then 2, then 1, then back up to 6, over 90 seconds"></svg>
+        </div>
+        <p class="muted small" id="lastSent">Sending every 10 s</p>
+      </section>
+
+      <section class="card options">
+        <h2 class="card-heading">Display</h2>
+        <div class="opt"><span>Device Wi-Fi</span><div class="row" data-opt="net"><button class="chip chip--word" value="up">Up</button><button class="chip chip--word" value="down">Down</button></div></div>
+        <div class="opt"><span>4 dots</span><div class="row" data-opt="four"><button class="chip chip--word" value="neutral">Neutral</button><button class="chip chip--word" value="yellow">Yellow</button></div></div>
+        <div class="opt"><span>Layout</span><div class="row" data-opt="layout"><button class="chip chip--word" value="row">Row</button><button class="chip chip--word" value="column">Column</button></div></div>
+        <div class="opt"><span>Empty slots</span><div class="row" data-opt="empty"><button class="chip chip--word" value="hide">Hide</button><button class="chip chip--word" value="show">Show</button></div></div>
+        <div class="opt"><span>Word</span><div class="row" data-opt="word"><button class="chip chip--word" value="hide">Hide</button><button class="chip chip--word" value="show">Show</button></div></div>
+      </section>
+
+      <section class="card log">
+        <h2 class="card-heading">Frames <span class="tag">ws://&lt;host&gt;:8080/ws/devices</span></h2>
+        <div class="lines" id="lines"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card states">
+    <h2 class="card-heading">Every state</h2>
+    <div class="minis" id="minis"></div>
+  </section>
+</div>
+
+<script>
+// ---- Rules: the firmware's dots.h mirrors these three functions ----------------------------------
+const STALE_MS = 30_000;
+const LEVELS = [ // index = alert level = 6 − dots (ideas/alert-levels.md)
+  { word: 'Nominal', colour: 'white' },
+  { word: 'To do', colour: 'blue' },
+  { word: 'Watch', colour: 'white' },   // level 2 has no colour; "4 dots: Yellow" overrides it
+  { word: 'Check', colour: 'yellow' },
+  { word: 'Treat', colour: 'red' },
+  { word: 'Emergency', colour: 'red', flash: true },
+];
+/** 0–16 → 1, 17–33 → 2, 34–49 → 3, 50–66 → 4, 67–83 → 5, 84–100 → 6 (boundaries at each sixth go up). */
+function dotsFor(pct) { return Math.min(6, Math.floor(pct * 6 / 100) + 1); }
+function levelFor(dots) { return LEVELS[6 - dots]; }
+function colourFor(dots, four) { return dots === 4 && four === 'yellow' ? 'yellow' : levelFor(dots).colour; }
+/** A frame the device accepts: its topic, and pct a finite number in 0–100. Anything else is ignored. */
+function validate(frame) {
+  if (frame.topic !== TOPIC) return 'other topic';
+  const pct = frame.payload && frame.payload.pct;
+  if (typeof pct !== 'number' || !Number.isFinite(pct)) return 'pct missing';
+  if (pct < 0 || pct > 100) return `pct ${pct} outside 0–100`;
+  return null;
+}
+
+// ---- Device palette (dark theme tokens; RGB565 for the firmware) ----------------------------------
+const INK = {
+  bg: '#1B1B1B',     // 0x18C3
+  white: '#DADADA',  // 0xDEDB
+  blue: '#7FA6F0',   // 0x7D3E
+  yellow: '#FFC72C', // 0xFE25
+  red: '#E4002B',    // 0xE005
+  ring: '#52574E',   // 0x52A9
+  muted: '#868375',  // 0x840E
+};
+const UI_FONT = 'Inter, system-ui, -apple-system, sans-serif';
+const DATA_FONT = '"DM Mono", ui-monospace, monospace';
+
+// Fixed geometry in panel pixels. The dots span the whole line. The band above them is for the connection
+// (NO CONNECTION, Waiting for data); the band below for the word and the data age. Nothing moves when text appears.
+function geometry(layout) {
+  if (layout === 'row') {
+    const d = 46, step = 52; // 6 × 46 + 5 × 6 = 306 of 320, 7 px margins
+    return { w: 320, h: 172, d, centres: [0, 1, 2, 3, 4, 5].map(i => [30 + i * step, 86]),
+      top: [160, 32], topMax: 34, word: [160, 136], wordSize: 22, age: [160, 160], ageSize: 13,
+      big: [160, 70], bigSize: 64, under: [160, 126], under2: [160, 154] };
+  }
+  const d = 34, step = 40; // column fills bottom-up: 6 × 34 + 5 × 6 = 234, between the two bands
+  return { w: 172, h: 320, d, centres: [0, 1, 2, 3, 4, 5].map(i => [86, 260 - i * step]),
+    top: [86, 20], topMax: 24, word: [86, 294], wordSize: 16, age: [86, 312], ageSize: 12,
+    big: [86, 130], bigSize: 44, under: [86, 182], under2: [86, 210] };
+}
+
+const NO_CONNECTION = 'NO CONNECTION';
+const NO_CONNECTION_FLASH_MS = 1000; // 1 s on, 1 s off: slower than the 1 Hz Emergency dot, so the two never look alike
+
+function age(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return s < 60 ? `${s} s` : s < 3600 ? `${Math.floor(s / 60)} min` : `${Math.floor(s / 3600)} h`;
+}
+
+/** Draws one frame of the panel. `v` is what the firmware knows; `o` the display options. */
+function draw(ctx, v, o, now) {
+  const g = geometry(o.layout);
+  ctx.fillStyle = INK.bg;
+  ctx.fillRect(0, 0, g.w, g.h);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const text = (s, [x, y], size, colour, font = UI_FONT, weight = 600) => {
+    ctx.font = `${weight} ${size}px ${font}`;
+    ctx.fillStyle = colour;
+    ctx.fillText(s, x, y);
+  };
+  const ring = ([x, y]) => {
+    ctx.beginPath(); ctx.arc(x, y, g.d / 2 - 1.5, 0, Math.PI * 2);
+    ctx.lineWidth = 3; ctx.strokeStyle = INK.ring; ctx.stroke();
+  };
+  const dot = ([x, y], colour) => {
+    ctx.beginPath(); ctx.arc(x, y, g.d / 2, 0, Math.PI * 2);
+    ctx.fillStyle = INK[colour]; ctx.fill();
+  };
+
+  // The largest bold size up to topMax at which NO CONNECTION fits the width with 8 px margins.
+  const noConnection = () => {
+    if (Math.floor(now / NO_CONNECTION_FLASH_MS) % 2 === 1) return;
+    let size = g.topMax;
+    do { ctx.font = `700 ${size}px ${UI_FONT}`; } while (ctx.measureText(NO_CONNECTION).width > g.w - 16 && --size > 10);
+    text(NO_CONNECTION, g.top, size, INK.white, UI_FONT, 700);
+  };
+
+  if (v.phase === 'boot') { text('Connecting to Wi-Fi…', [g.w / 2, g.h / 2], 14, INK.muted, UI_FONT, 500); return; }
+
+  const linkDown = !v.linkUp;
+  const dataAge = v.t == null ? null : now - v.t;
+  const stale = dataAge != null && dataAge > STALE_MS;
+  const ageLine = dataAge != null && (linkDown || stale) ? `data ${age(dataAge)} old` : '';
+
+  if (v.phase === 'wait') {
+    g.centres.forEach(ring);
+    if (linkDown) noConnection(); else text('Waiting for data', g.top, 13, INK.muted, UI_FONT, 500);
+    return;
+  }
+
+  const dots = dotsFor(v.pct);
+  const level = levelFor(dots);
+  const colour = colourFor(dots, o.four);
+
+  if (now < v.tapUntil) { // touch: details for 4 s, then back to the dots
+    text(`${Math.round(v.pct)} %`, g.big, g.bigSize, INK.white, DATA_FONT, 400);
+    text(`${level.word} · ${dots} of 6`, g.under, g.wordSize - 2, INK.white);
+    const via = `WebSocket · ${age(dataAge)} ago`;
+    text(linkDown ? `No connection · ${ageLine}` : ageLine || via, g.under2, 13, INK.muted, UI_FONT, 500);
+    return;
+  }
+
+  const flashOff = level.flash && !stale && Math.floor(now / 500) % 2 === 1;
+  ctx.globalAlpha = stale ? 0.35 : 1;
+  g.centres.forEach((c, i) => {
+    if (i < dots && !flashOff) dot(c, colour);
+    else if (o.empty === 'show' || (i < dots && flashOff)) ring(c);
+  });
+  ctx.globalAlpha = 1;
+  if (linkDown) noConnection();
+  if (o.word === 'show') text(level.word, g.word, g.wordSize, INK.white);
+  if (ageLine) text(ageLine, g.age, g.ageSize, INK.muted, UI_FONT, 500);
+}
+
+function sizeCanvas(canvas, w, h, scale) {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(w * scale * dpr);
+  canvas.height = Math.round(h * scale * dpr);
+  canvas.style.width = `${w * scale}px`;
+  canvas.style.height = `${h * scale}px`;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+  return ctx;
+}
+
+// ---- Simulation: sender → WebSocket relay (/ws/devices) → device --------------------------------------
+const TOPIC = 'crew/a1/dot-display';
+const opts = { net: 'up', four: 'neutral', layout: 'row', empty: 'show', word: 'show' };
+const sender = { pct: 72, lastSent: null, scenario: null, scenarioStart: 0 };
+const device = { phase: 'boot', pct: null, t: null, via: 'ws', linkUp: false, tapUntil: 0 };
+const log = [];
+
+const clock = ms => new Date(ms).toTimeString().slice(0, 8);
+const id = () => Math.random().toString(16).slice(2, 10);
+function note(line, cls = '') {
+  log.push({ line: `${clock(Date.now())}  ${line}`, cls });
+  if (log.length > 4) log.shift();
+  document.getElementById('lines').innerHTML = log.map(l => `<div class="${l.cls}">${l.line.replace(/</g, '&lt;')}</div>`).join('');
+}
+
+// "Device Wi-Fi: Down" cuts only the display's link; the sender still reaches the relay.
+function publish(pct) {
+  const frame = { topic: TOPIC, payload: { id: id(), t: Date.now(), pct, src: 'synthetic' } };
+  sender.lastSent = Date.now();
+  if (device.phase === 'boot') return;
+  if (opts.net === 'down') { note(`→ relay  pct ${pct}  lost: display offline and the relay stores nothing`, 'muted'); return; }
+  setTimeout(() => receive(frame, 'ws'), 40);
+}
+
+function receive(frame, via) {
+  const why = validate(frame);
+  const json = JSON.stringify({ topic: frame.topic, payload: { ...frame.payload, t: new Date(frame.payload.t).toISOString().slice(11, 19) } });
+  if (why) { note(`× ${via}  ignored: ${why}  ${json}`); return; }
+  Object.assign(device, { phase: 'live', pct: frame.payload.pct, t: frame.payload.t, via });
+  note(`← ${via}  ${json}`);
+}
+
+// Boot: Wi-Fi, then the link, then the first frame from the sender.
+setTimeout(() => { device.phase = 'wait'; device.linkUp = opts.net === 'up'; note('⇄ ws  connected, subscribed to crew/a1/dot-display', 'muted'); }, 1200);
+setTimeout(() => publish(sender.pct), 1800);
+setInterval(() => { if (!sender.scenario) publish(sender.pct); }, 10_000);
+// WebSocket reconnect: DeviceLink and the firmware both retry every 5 s.
+setInterval(() => {
+  if (opts.net === 'up' && device.phase !== 'boot' && !device.linkUp) {
+    device.linkUp = true; note('⇄ ws  reconnected', 'muted');
+  }
+}, 5000);
+
+// ---- Controls ----------------------------------------------------------------------------------------
+const pctInput = document.getElementById('pct');
+const pctOut = document.getElementById('pctOut');
+function setPct(p, send = true) {
+  sender.pct = p; pctInput.value = p; pctOut.textContent = `${p} %`;
+  if (send) publish(p);
+}
+let throttle = 0;
+pctInput.addEventListener('input', () => {
+  stopScenario();
+  const p = Number(pctInput.value);
+  pctOut.textContent = `${p} %`; sender.pct = p;
+  if (Date.now() - throttle > 250) { throttle = Date.now(); publish(p); }
+});
+pctInput.addEventListener('change', () => publish(Number(pctInput.value)));
+
+const presets = document.getElementById('presets');
+[8, 25, 42, 58, 75, 92].forEach(p => { // the middle of each band: one preset per dot count
+  const b = document.createElement('button');
+  b.className = 'chip'; b.textContent = p; b.title = `${dotsFor(p)} dots`;
+  b.onclick = () => { stopScenario(); setPct(p); };
+  presets.append(b);
+});
+document.getElementById('send').onclick = () => publish(sender.pct);
+document.getElementById('bad').onclick = () => publish(140);
+
+// ---- Scenario: a real-world dip and recovery over 90 s -----------------------------------------------
+const SCENARIO_S = 90;
+/** 6 dots; a sudden drop to 3 that holds; then 2 and 1 (Emergency); then a steady climb back to 6.
+ *  Holds wobble ±2 like a live reading, always inside their band; the climb crosses a band about every 7.5 s. */
+function scenarioPct(t) {
+  const wobble = Math.round(2 * Math.sin(t * 1.3));
+  if (t < 6) return Math.min(100, 92 + wobble); // 6 dots
+  if (t < 30) return 42 + wobble;                // 3 dots, held for 24 s
+  if (t < 40) return 25 + wobble;                // 2 dots
+  if (t < 52) return 8 + wobble;                 // 1 dot
+  return Math.round(8 + (Math.min(t, SCENARIO_S) - 52) / (SCENARIO_S - 52) * 84); // back to 92: 6 dots
+}
+const scenarioButton = document.getElementById('scenario');
+// Elapsed time comes from the clock, not from counting ticks, so a throttled background tab keeps the timeline.
+function startScenario() {
+  sender.scenarioStart = Date.now();
+  setPct(scenarioPct(0));
+  sender.scenario = setInterval(() => {
+    const t = (Date.now() - sender.scenarioStart) / 1000;
+    setPct(scenarioPct(t));
+    if (t >= SCENARIO_S) stopScenario();
+  }, 1000);
+  syncScenario();
+}
+function stopScenario() {
+  if (!sender.scenario) return;
+  clearInterval(sender.scenario); sender.scenario = null;
+  syncScenario();
+}
+function syncScenario() {
+  scenarioButton.textContent = sender.scenario ? 'Stop' : 'Scenario';
+  scenarioButton.setAttribute('aria-pressed', String(!!sender.scenario));
+}
+scenarioButton.onclick = () => (sender.scenario ? stopScenario() : startScenario());
+
+const timeline = document.getElementById('timeline');
+{
+  const bands = [1, 2, 3, 4, 5].map(k => { const y = 100 - k * 100 / 6; return `<line class="band" x1="0" x2="${SCENARIO_S}" y1="${y}" y2="${y}"/>`; });
+  const points = [];
+  for (let t = 0; t <= SCENARIO_S; t += 0.5) points.push(`${t},${100 - scenarioPct(t)}`);
+  timeline.innerHTML = `${bands.join('')}<polyline class="curve" points="${points.join(' ')}"/><line class="head" id="head" x1="0" x2="0" y1="0" y2="100" visibility="hidden"/>`;
+}
+const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+document.querySelectorAll('[data-opt]').forEach(group => {
+  const key = group.dataset.opt;
+  const sync = () => group.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.value === opts[key])));
+  group.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b || opts[key] === b.value) return;
+    opts[key] = b.value; sync(); changed(key);
+  });
+  sync();
+});
+
+function changed(key) {
+  if (key === 'net' && opts.net === 'down' && device.phase !== 'boot') {
+    device.linkUp = false; note('× ws  closed (network down), retrying every 5 s');
+  }
+  layout();
+}
+
+const screen = document.getElementById('screen');
+screen.addEventListener('click', () => { if (device.phase === 'live') { device.tapUntil = Date.now() + 4000; tick(); } });
+let screenCtx, scale;
+
+function layout() {
+  const g = geometry(opts.layout);
+  // Fit the panel into the stage; the board adds 12 px padding on each side.
+  const stage = document.querySelector('.stage').getBoundingClientRect();
+  scale = Math.min((stage.width - 24) / g.w, (stage.height - 24) / g.h, 2);
+  scale = Math.floor(scale * 20) / 20;
+  screenCtx = sizeCanvas(screen, g.w, g.h, scale);
+  document.getElementById('caption').textContent =
+    `Drawn at ${+scale.toFixed(2)} × panel pixels; the real screen is ${opts.layout === 'row' ? '33 × 18' : '18 × 33'} mm. Tap it for details.`;
+  drawMinis();
+  tick(); // resizing clears the canvas; redraw now, not on the next tick
+}
+
+// ---- Every state -----------------------------------------------------------------------------------
+const BANDS = { 1: '0–16 %', 2: '17–33 %', 3: '34–49 %', 4: '50–66 %', 5: '67–83 %', 6: '84–100 %' };
+function drawMinis() {
+  const now = Date.now();
+  const live = pct => ({ phase: 'live', pct, t: now, linkUp: true, tapUntil: 0, via: 'ws' });
+  const states = [
+    ...[92, 75, 58, 42, 25, 8].map(p => {
+      const d = dotsFor(p);
+      return { v: live(p), head: `${d} dot${d > 1 ? 's' : ''} · ${BANDS[d]}`, sub: levelFor(d).word + (d === 1 ? ', flashing' : '') };
+    }),
+    { v: { phase: 'wait', pct: null, t: null, linkUp: true, tapUntil: 0 }, head: 'Waiting', sub: 'linked, no value yet' },
+    { v: { ...live(75), t: now - 95_000, linkUp: false }, head: 'No connection', sub: `flashing; dims after ${STALE_MS / 1000} s` },
+  ];
+  const g = geometry(opts.layout);
+  const s = opts.layout === 'row' ? 0.4 : 0.3;
+  const box = document.getElementById('minis');
+  box.innerHTML = '';
+  for (const st of states) {
+    const fig = document.createElement('figure');
+    fig.className = 'mini'; fig.style.margin = '0';
+    const c = document.createElement('canvas');
+    c.setAttribute('role', 'img');
+    c.setAttribute('aria-label', `${st.head}, ${st.sub}`);
+    draw(sizeCanvas(c, g.w, g.h, s), st.v, opts, now - (now % 2000)); // both flashes frozen "on"
+    const head = document.createElement('b'); head.textContent = st.head;
+    const sub = document.createElement('span'); sub.textContent = st.sub;
+    fig.append(c, head, sub);
+    box.append(fig);
+  }
+}
+
+function tick() {
+  const now = Date.now();
+  draw(screenCtx, device, opts, now);
+  const d = device.phase === 'live' ? dotsFor(device.pct) : 0;
+  screen.setAttribute('aria-label', d ? `${d} of 6 dots, ${colourFor(d, opts.four)}, ${levelFor(d).word}` : 'No value yet');
+  const t = Math.min(SCENARIO_S, (now - sender.scenarioStart) / 1000);
+  const head = document.getElementById('head');
+  head.setAttribute('visibility', sender.scenario ? 'visible' : 'hidden');
+  head.setAttribute('x1', t); head.setAttribute('x2', t);
+  document.getElementById('lastSent').textContent = sender.scenario
+    ? `Scenario ${mmss(t)} of ${mmss(SCENARIO_S)} · sending every 1 s`
+    : `Sending every 10 s · last ${sender.lastSent ? clock(sender.lastSent) : '–'}`;
+}
+
+layout();
+setInterval(tick, 100);
+window.addEventListener('resize', layout);
+</script>
+</body>
+</html>

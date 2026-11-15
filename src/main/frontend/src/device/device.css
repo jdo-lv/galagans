@@ -1,0 +1,77 @@
+/* Device screen (/device/simulation, /device/websocket): the dot display's panel alone, scaled to fill the browser.
+   Always dark like the board's LCD: device.html sets data-theme="dark", so these tokens resolve to the firmware's
+   palette (src/main/hardware/dot-display/lib/dotcore/palette.h). Colour only on the dots: they are alert levels. */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+}
+
+.device-routes {
+  padding: var(--space-4) var(--gutter);
+}
+
+.dot-display {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--color-bg);
+  font-family: var(--font-ui);
+}
+
+.dot-display text {
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.dot--white {
+  fill: var(--color-text);
+}
+
+/* Level 1 To do: the blue of the due pill */
+.dot--blue {
+  fill: var(--color-accent);
+}
+
+.dot--yellow {
+  fill: var(--color-caution);
+}
+
+.dot--red {
+  fill: var(--color-warning);
+}
+
+/* Empty slot: olive ring, as on the board */
+.dot--empty {
+  fill: none;
+  stroke: var(--color-surface);
+  stroke-width: 3;
+}
+
+.dot-display__dots.is-dim .dot:not(.dot--empty) {
+  opacity: 0.35;
+}
+
+.dot-display__banner,
+.dot-display__age {
+  fill: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.dot-display__alarm {
+  fill: var(--color-text);
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.dot-display__word {
+  fill: var(--color-text);
+  font-size: 22px;
+  font-weight: 700;
+}

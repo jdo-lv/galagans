@@ -1,0 +1,3 @@
+.pio/
+# Your copy of config.example.h: it holds the Wi-Fi password.
+include/config.h
