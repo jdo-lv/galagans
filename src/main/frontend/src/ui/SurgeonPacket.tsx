@@ -5,6 +5,7 @@ import { NOTE_MAX, ONE_WAY_DELAY_MS, type PacketItem, type StoredPacket } from '
 import { isFlagged, type Rule } from '../domain/rules'
 import { PrivateIcon, StepCurrentIcon, StepDoneIcon, StepPendingIcon } from './icons'
 import './packet.css'
+import { ScreenLayout } from './ScreenLayout'
 import { useServices } from './ServicesContext'
 import { Badge } from './SystemStatusList'
 import { usePeriodicRead, type PeriodicState } from './usePeriodicRead'
@@ -257,28 +258,31 @@ export function SurgeonPacket() {
   useEffect(() => packetUplink.subscribe(last.refresh), [packetUplink, last.refresh])
 
   return (
-    <section className="stack" aria-labelledby={headingId}>
-      <a href="#/" className="packet-home">
-        ← Home
-      </a>
-      <div className="packet-head">
-        <h2 id={headingId} ref={heading} tabIndex={-1} className="section-heading">
-          Surgeon packet
-        </h2>
-        <p className="muted packet-privacy">
-          <PrivateIcon size={18} />
-          <span>{`Shared with flight medicine only · Mars transit, one-way delay ${formatDelay(ONE_WAY_DELAY_MS)} (demo value)`}</span>
-        </p>
-      </div>
-      <div className="layout">
-        <div className="stack">
+    <ScreenLayout
+      labelledBy={headingId}
+      side={
+        <div className="packet-side">
+          <a href="#/" className="packet-home">
+            ← Home
+          </a>
+          <div className="packet-head">
+            <h2 id={headingId} ref={heading} tabIndex={-1} className="section-heading">
+              Surgeon packet
+            </h2>
+            <p className="muted packet-privacy">
+              <PrivateIcon size={18} />
+              <span>{`Shared with flight medicine only · Mars transit, one-way delay ${formatDelay(ONE_WAY_DELAY_MS)} (demo value)`}</span>
+            </p>
+          </div>
+        </div>
+      }
+      primary={
+        <>
           <LastPacket state={last.state} />
           <PacketContents state={draft.state} />
-        </div>
-        <div className="stack">
-          <NoteAndSend contentsReady={draft.state.kind === 'ready'} onSent={last.refresh} />
-        </div>
-      </div>
-    </section>
+        </>
+      }
+      secondary={<NoteAndSend contentsReady={draft.state.kind === 'ready'} onSent={last.refresh} />}
+    />
   )
 }

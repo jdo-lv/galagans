@@ -41,18 +41,24 @@ afterEach(() => {
 })
 
 describe('Reaction test on Home', () => {
-  it('AC9: a Reaction test card after Latest readings, ending the column, with a secondary start button', async () => {
-    setup().renderApp()
+  it('AC9: a Reaction test card after Today\'s routine and before Body systems (#52), with a secondary start button', async () => {
+    // A check-in today and a fresh PVT: Home's Nominal variant, the one with the card.
+    const seed = [
+      { id: 'c', recordedAt: '2026-11-14T07:30:00Z', symptoms: [] },
+      { id: 'p', recordedAt: '2026-11-14T07:40:00Z', pvtMedianMs: 268, pvtLapses: 0, pvtFalseStarts: 0, symptoms: [] },
+    ]
+    setup({ seed }).renderApp()
     await flush()
 
     const card = region()
     expect(card).toHaveTextContent('3 minutes. Every 4th day.')
     expect(within(card).getByRole('button', { name: 'Start reaction test' })).toHaveClass('button-secondary')
-    const column = card.parentElement as HTMLElement
-    const order = [...column.children]
-    expect(order.indexOf(card)).toBe(order.indexOf(screen.getByRole('region', { name: 'Latest readings' })) + 1)
-    expect(order.at(-1)).toBe(card)
-    // The check-in's "Save check-in" moved to #/check-in (#29), so Home has no primary button.
+    expect([...(card.parentElement as HTMLElement).children]).toEqual([
+      screen.getByRole('region', { name: "Today's routine" }),
+      card,
+      screen.getByRole('region', { name: 'Body systems' }),
+    ])
+    // The check-in's "Save check-in" moved to #/check-in (#29), so Nominal Home has no primary button.
     expect(document.querySelectorAll('.button-primary')).toHaveLength(0)
   })
 

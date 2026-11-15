@@ -310,23 +310,12 @@ describe('LatestReadings', () => {
     expect(s.gateway.sent).toHaveLength(0)
   })
 
-  it('AC19: the right column stacks Today\'s routine, Latest readings and the Reaction test card (#16); the Check-in card is gone (#29)', async () => {
-    const { container } = setup().renderApp()
+  it('AC19: the readings sit last in the side panel, after the pills (#52); the Check-in card is gone (#29)', async () => {
+    // A check-in today and a fresh PVT: Home's Nominal variant, whose readings card is "Latest readings".
+    setupApp({ seed: [{ id: 'c', recordedAt: '2026-11-14T07:30:00Z', symptoms: [] }, pvt('p', '2026-11-14T07:40:00Z', 268)] }).renderApp()
     await tiles()
 
-    const layout = container.querySelector('main.layout')
-    // Hazard lens (#14) sits between Body systems and the right column.
-    const [systems, hazardLens, column, ...rest] = [...(layout?.children ?? [])]
-    expect(rest).toHaveLength(0)
-    expect(systems).toBe(screen.getByRole('region', { name: 'Body systems' }))
-    expect(hazardLens).toBe(screen.getByRole('region', { name: 'Hazard lens · NASA HRP five hazards' }))
-    expect(column).toHaveClass('stack')
-    expect(column.tagName).toBe('DIV')
-    expect([...column.children]).toEqual([
-      screen.getByRole('region', { name: "Today's routine" }),
-      panel(),
-      screen.getByRole('region', { name: 'Reaction test' }),
-    ])
+    expect(document.querySelector('.shell-side')?.lastElementChild).toBe(panel())
     expect(screen.queryByRole('region', { name: 'Check-in' })).toBeNull()
   })
 })

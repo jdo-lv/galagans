@@ -11,7 +11,7 @@ export const PACKET_HREF = '#/packet'
 
 export const CHECK_IN_HASH = '#/check-in'
 
-export const STATISTICS_HASH = '#/statistics'
+export const STATS_HASH = '#/stats'
 
 export const ADD_HASH = '#/add'
 
@@ -39,20 +39,20 @@ export type Route =
   | { kind: 'pvt' }
   | { kind: 'packet' }
   | { kind: 'check-in' }
-  | { kind: 'statistics' }
+  | { kind: 'stats' }
   | { kind: 'add' }
   | { kind: 'symptoms' }
   | { kind: 'ground' }
   | { kind: 'unknown' }
 
-const LEAVES_TO_HOME: Route['kind'][] = ['system', 'pvt', 'packet', 'check-in', 'statistics', 'add', 'symptoms', 'ground']
+const LEAVES_TO_HOME: Route['kind'][] = ['system', 'pvt', 'packet', 'check-in', 'stats', 'add', 'symptoms', 'ground']
 
 export function parseHash(hash: string): Route {
   if (hash === '' || hash === '#' || hash === '#/') return { kind: 'home' }
   if (hash === PVT_HASH) return { kind: 'pvt' }
   if (hash === PACKET_HREF) return { kind: 'packet' }
   if (hash === CHECK_IN_HASH) return { kind: 'check-in' }
-  if (hash === STATISTICS_HASH) return { kind: 'statistics' }
+  if (hash === STATS_HASH) return { kind: 'stats' }
   if (hash === ADD_HASH) return { kind: 'add' }
   if (hash === SYMPTOMS_HASH) return { kind: 'symptoms' }
   if (hash === GROUND_HASH) return { kind: 'ground' }
@@ -67,7 +67,7 @@ export function parseHash(hash: string): Route {
 
 /**
  * The screen from `location.hash`. `returnedHome` is true when the user came back from a detail, the PVT, the packet, the
- * check-in, Statistics, Add entry, Log symptoms or Ground, so Home can move focus; a redirect from an unknown route doesn't count.
+ * check-in, Stats, Add entry, Log symptoms or Ground, so Home can move focus; a redirect from an unknown route doesn't count.
  */
 export function useHashRoute(): { route: Route; returnedHome: boolean; goHome: (options?: { returned?: boolean }) => void } {
   const [state, setState] = useState(() => ({ route: parseHash(window.location.hash), returnedHome: false }))

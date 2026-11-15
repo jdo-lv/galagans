@@ -74,19 +74,16 @@ describe('Home and navigation', () => {
     expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Add entry' })).toBeInTheDocument()
   })
 
-  it('AC6: home has no Check-in card, no input and no primary button', async () => {
-    const { container } = setupAt().renderApp()
+  it('AC6: Nominal home has no Check-in card, no input and no primary button (#52 shows the check-in only while it is owed)', async () => {
+    const seed: CheckIn[] = [
+      { id: 'c', recordedAt: at(7, 30).toISOString(), symptoms: [] },
+      { id: 'p', recordedAt: at(7, 40).toISOString(), pvtMedianMs: 268, pvtLapses: 0, pvtFalseStarts: 0, symptoms: [] },
+    ]
+    const { container } = setup({ now: at(8).toISOString(), routinePlaceholders: mockRoutine, seed }).renderApp()
     await screen.findByRole('region', { name: "Today's routine" })
     expect(screen.queryByRole('region', { name: 'Check-in' })).toBeNull()
     expect(container.querySelector('main input')).toBeNull()
     expect(document.querySelectorAll('.button-primary')).toHaveLength(0)
-    const column = screen.getByRole('region', { name: "Today's routine" }).parentElement as HTMLElement
-    expect(column).toHaveClass('stack')
-    expect([...column.children]).toEqual([
-      screen.getByRole('region', { name: "Today's routine" }),
-      screen.getByRole('region', { name: 'Latest readings' }),
-      screen.getByRole('region', { name: 'Reaction test' }),
-    ])
   })
 })
 

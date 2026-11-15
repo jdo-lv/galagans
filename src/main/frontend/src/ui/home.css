@@ -1,0 +1,88 @@
+/* Home (#52, ideas/home-variants.md "iPad layout"). Colours and sizes: ideas/ui-guidelines.md tokens. */
+/* Body figure: the drawing is decoration; the labels carry the meaning (level badge) */
+.body-figure {
+  position: relative;
+}
+
+.body-figure > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.body-figure .silhouette {
+  fill: var(--color-inset);
+  stroke: var(--color-edge);
+  stroke-width: 1.6;
+}
+
+.body-figure .organ {
+  fill: none;
+  stroke: var(--color-text-muted);
+  stroke-width: 1.4;
+}
+
+.body-figure .leader {
+  stroke: var(--color-edge);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.hotspots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hotspot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.hotspot--flagged {
+  color: var(--color-text);
+}
+
+@media (min-width: 600px) {
+  .hotspot {
+    position: absolute;
+    top: var(--y);
+    left: var(--x);
+    transform: translateY(-50%);
+  }
+
+  .hotspot--left {
+    right: calc(100% - var(--x));
+    left: auto;
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+
+@media (max-width: 599px) {
+  .body-figure > svg {
+    max-width: 220px;
+    margin: 0 auto;
+  }
+
+  .body-figure .leader {
+    display: none;
+  }
+
+  .hotspots {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-4);
+    margin-top: var(--space-3);
+  }
+
+  .hotspot {
+    justify-content: center;
+    min-height: 44px;
+    padding-left: var(--space-3);
+  }
+}
