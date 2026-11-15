@@ -173,7 +173,7 @@
   margin: 0;
 }
 
-.sim-scenario input {
+.sim-scenario input[type='checkbox'] {
   flex: none;
   width: 28px;
   height: 28px;
@@ -182,15 +182,19 @@
   cursor: pointer;
 }
 
-.sim-scenario input:focus-visible {
+.sim-scenario input[type='checkbox']:focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
 }
 
-.sim-scenario label {
+.sim-scenario__name {
   display: block;
   font-weight: 700;
   cursor: pointer;
+}
+
+.sim-scenario .sim-every {
+  margin: var(--space-2) 0;
 }
 
 /* Dot display card (mock docs/features/img/dot-display-status-mock.png): the panel and status line beside the metric table. */

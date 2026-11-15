@@ -447,7 +447,7 @@ describe('SimulatorApp Dot display card (#45)', () => {
 })
 
 describe('SimulatorApp Scenarios card (#53)', () => {
-  const CAPTION = 'CO₂ rises, then after 20 s SpO₂ drops and heart rate rises · synthetic demo timeline, not a physiological model'
+  const CAPTION = 'CO₂ rises, then SpO₂ drops and heart rate rises · synthetic demo timeline, not a physiological model'
   const DRIVEN = ['Pulse oximeter', 'Wrist bracelet', 'BP cuff', 'Environment node']
   const AVAILABLE: Record<string, string[]> = {
     'Pulse oximeter': ['Nominal', 'Check', 'Emergency'],
@@ -460,6 +460,7 @@ describe('SimulatorApp Scenarios card (#53)', () => {
   const fault = () => within(card()).getByRole('checkbox', { name: 'Cabin atmosphere fault' })
   const toggle = () => fireEvent.click(fault())
   const stepLine = () => within(card()).queryByText(/^Step/)
+  const delay = () => within(card()).getByLabelText(/Next step after/)
   const legend = (device: string) => section(device).querySelector('legend')?.textContent
   const nominal = (value: unknown, n: number) => between(value, n * 0.97, n * 1.03)
   const int = (value: unknown, min: number, max: number) => Number.isInteger(value) && between(value, min, max)
@@ -511,20 +512,20 @@ describe('SimulatorApp Scenarios card (#53)', () => {
     expect(fault()).toHaveAccessibleDescription(CAPTION)
   })
 
-  it('AC2, AC3: before 20 s CO₂ is 3.2–3.8 and everything else Nominal', () => {
+  it('AC2, AC3: before 10 s CO₂ is 3.2–3.8 and everything else Nominal', () => {
     const { publisher } = renderSimulator()
     toggle()
     publisher.clear()
 
-    advance(19_000)
+    advance(9_000)
 
-    expectStep1(publisher, 19)
+    expectStep1(publisher, 9)
   })
 
-  it('AC4, AC5: from exactly 20 s SpO₂ 91–93 and heart rate 105–115, held at 120 s', () => {
+  it('AC4, AC5: from exactly 10 s SpO₂ 91–93 and heart rate 105–115, held at 110 s', () => {
     const { publisher } = renderSimulator()
     toggle()
-    advance(19_000)
+    advance(9_000)
     publisher.clear()
 
     advance(1_000)
@@ -541,7 +542,7 @@ describe('SimulatorApp Scenarios card (#53)', () => {
 
     toggle()
     expect(stepLine()).toHaveTextContent('Step 1 / 2 · CO₂ rising')
-    advance(19_999)
+    advance(9_999)
     expect(stepLine()).toHaveTextContent('Step 1 / 2 · CO₂ rising')
     advance(1)
     expect(stepLine()).toHaveTextContent('Step 2 / 2 · SpO₂ and heart rate')
@@ -609,10 +610,10 @@ describe('SimulatorApp Scenarios card (#53)', () => {
     }
   })
 
-  it('AC10: unchecked at 10 s, step 2 never fires', () => {
+  it('AC10: unchecked at 5 s, step 2 never fires', () => {
     const { publisher } = renderSimulator()
     toggle()
-    advance(10_000)
+    advance(5_000)
     toggle()
     publisher.clear()
 
@@ -648,8 +649,8 @@ describe('SimulatorApp Scenarios card (#53)', () => {
     expect(stepLine()).toHaveTextContent('Step 1 / 2 · CO₂ rising')
     publisher.clear()
 
-    advance(19_000)
-    expectStep1(publisher, 19)
+    advance(9_000)
+    expectStep1(publisher, 9)
 
     publisher.clear()
     advance(1_000)
@@ -661,10 +662,43 @@ describe('SimulatorApp Scenarios card (#53)', () => {
     renderSimulator(new FakePublisher('disconnected'))
     toggle()
 
-    advance(20_000)
+    advance(10_000)
 
     expect(stepLine()).toHaveTextContent('Step 2 / 2 · SpO₂ and heart rate')
-    for (const device of DEVICES) expect(statusLine(device)).toHaveTextContent('Not sent · device link disconnected 09:30:20')
+    for (const device of DEVICES) expect(statusLine(device)).toHaveTextContent('Not sent · device link disconnected 09:30:10')
+  })
+
+  it('the delay defaults to 10 s; a delay of 3 s moves step 2 to 3 s', () => {
+    const { publisher } = renderSimulator()
+    expect(delay()).toHaveValue('10')
+    type(delay(), '3')
+    toggle()
+    publisher.clear()
+
+    advance(2_000)
+    expectStep1(publisher, 2)
+    expect(stepLine()).toHaveTextContent('Step 1 / 2 · CO₂ rising')
+
+    publisher.clear()
+    advance(1_000)
+    expectStep2(publisher, 1)
+    expect(stepLine()).toHaveTextContent('Step 2 / 2 · SpO₂ and heart rate')
+  })
+
+  it('the delay is fixed while the scenario runs and editable again when unchecked', () => {
+    renderSimulator()
+    toggle()
+    expect(delay()).toBeDisabled()
+    toggle()
+    expect(delay()).toBeEnabled()
+  })
+
+  it.each(['0', '3601', '1.5', '', 'x'])('a delay of %j disables the scenario checkbox', (value) => {
+    renderSimulator()
+    type(delay(), value)
+    expect(fault()).toBeDisabled()
+    type(delay(), '10')
+    expect(fault()).toBeEnabled()
   })
 
   it('the step timers stop on unmount', () => {

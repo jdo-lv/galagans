@@ -47,11 +47,14 @@ const everyOk = (input: string) => /^\d+$/.test(input) && Number(input) >= EVERY
 
 const clock = (at: Date) => at.toISOString().slice(11, 19)
 
-/** A checked scenario and when it was checked (ms). */
+/** A checked scenario, when it was checked (ms) and its step delay (s). */
 interface Running {
   scenario: Scenario
   checkedAt: number
+  delayS: number
 }
+
+const elapsedS = (running: Running, at: Date) => (at.getTime() - running.checkedAt) / 1000
 
 const drives = (scenario: Scenario, sim: SimDevice) => {
   const indicators = drivenIndicators(scenario)
@@ -84,7 +87,7 @@ export function SimulatorApp({ publisher, rules, display, now =() => new Date(),
   function send(sim: SimDevice): Sent {
     const at = now()
     const scenario = runningRef.current
-    const ranges = scenario ? activeRanges(scenario.scenario, (at.getTime() - scenario.checkedAt) / 1000) : undefined
+    const ranges = scenario ? activeRanges(scenario.scenario, elapsedS(scenario, at), scenario.delayS) : undefined
     const values = randomValues(sim.device, indicatorLevels(levelsRef.current, rules), rules, random, ranges)
     const sent = publisher.publish(sim.device.topic, deviceMessage(sim.device, values, at, newId))
     return sent ? { status: `Last sent ${clock(at)}`, values } : { status: `Not sent · device link ${linkStateRef.current} ${clock(at)}` }
@@ -104,9 +107,9 @@ export function SimulatorApp({ publisher, rules, display, now =() => new Date(),
   useEffect(() => clearStepTimers, [])
 
   /** Checking or unchecking puts the driven devices back at their SIM_CONFIG level. */
-  function toggleScenario(scenario: Scenario) {
+  function toggleScenario(scenario: Scenario, delayS: number) {
     clearStepTimers()
-    const next = runningRef.current ? null : { scenario, checkedAt: now().getTime() }
+    const next = runningRef.current ? null : { scenario, checkedAt: now().getTime(), delayS }
     runningRef.current = next
     setRunning(next)
     const reset = { ...levelsRef.current }
@@ -115,9 +118,7 @@ export function SimulatorApp({ publisher, rules, display, now =() => new Date(),
     setLevels(reset)
     // The timers only re-render the step line; send() reads the elapsed time itself.
     if (next)
-      stepTimers.current = scenario.steps
-        .filter((step) => step.afterS > 0)
-        .map((step) => setTimeout(() => setTick((n) => n + 1), step.afterS * 1000))
+      stepTimers.current = scenario.steps.slice(1).map((_, i) => setTimeout(() => setTick((n) => n + 1), (i + 1) * delayS * 1000))
   }
 
   return (
@@ -267,12 +268,13 @@ function DeviceSection({ sim, level, locked, available, onLevel, send }: DeviceS
 interface ScenariosSectionProps {
   running: Running | null
   now: () => Date
-  onToggle: (scenario: Scenario) => void
+  onToggle: (scenario: Scenario, delayS: number) => void
 }
 
 /** One checkbox per scenario; one runs at a time. */
 function ScenariosSection({ running, now, onToggle }: ScenariosSectionProps) {
   const id = useId()
+  const [delays, setDelays] = useState(() => Object.fromEntries(SCENARIOS.map((s) => [s.id, String(s.delayS)])))
   return (
     <section className="card sim-scenarios" aria-labelledby={id}>
       <h2 id={id} className="card-heading">
@@ -280,22 +282,34 @@ function ScenariosSection({ running, now, onToggle }: ScenariosSectionProps) {
       </h2>
       {SCENARIOS.map((scenario) => {
         const on = running?.scenario.id === scenario.id
-        const step = on ? stepAt(scenario, (now().getTime() - running.checkedAt) / 1000) : 0
+        const step = on ? stepAt(scenario, elapsedS(running, now()), running.delayS) : 0
+        const delay = delays[scenario.id]
         return (
           <div key={scenario.id} className="sim-scenario">
             <input
               type="checkbox"
               id={`${id}-${scenario.id}`}
               checked={on}
-              disabled={running !== null && !on}
+              disabled={running !== null ? !on : !everyOk(delay)}
               aria-describedby={`${id}-${scenario.id}-caption`}
-              onChange={() => onToggle(scenario)}
+              onChange={() => onToggle(scenario, Number(delay))}
             />
             <div>
-              <label htmlFor={`${id}-${scenario.id}`}>{scenario.name}</label>
+              <label className="sim-scenario__name" htmlFor={`${id}-${scenario.id}`}>{scenario.name}</label>
               <p id={`${id}-${scenario.id}-caption`} className="muted">
                 {scenario.caption}
               </p>
+              <label className="sim-every">
+                Next step after
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={delay}
+                  disabled={on}
+                  onChange={(event) => setDelays({ ...delays, [scenario.id]: event.target.value })}
+                />
+                s
+              </label>
               {on && <p>{`Step ${step} / ${scenario.steps.length} · ${scenario.steps[step - 1].label}`}</p>}
             </div>
           </div>
