@@ -1,25 +1,13 @@
-/* Device screen (/device/simulation, /device/websocket): the dot display's panel alone, scaled to fill the browser.
-   Always dark like the board's LCD: device.html sets data-theme="dark", so these tokens resolve to the firmware's
-   palette (src/main/hardware/dot-display/lib/dotcore/palette.h). Colour only on the dots: they are alert levels. */
-html,
-body,
-#root {
-  height: 100%;
-}
-
-body {
-  overflow: hidden;
-}
-
+/* The dot display's panel (/device/* and the Device Simulator's Dot display card); page.css sizes it on /device/*.
+   Always dark like the board's LCD: device.html sets data-theme="dark" and the simulator's panel color-scheme: dark,
+   so these tokens resolve to the firmware's palette (src/main/hardware/dot-display/lib/dotcore/palette.h).
+   Colour only on the dots: they are alert levels. */
 .device-routes {
   padding: var(--space-4) var(--gutter);
 }
 
 .dot-display {
   display: block;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
   background: var(--color-bg);
   font-family: var(--font-ui);
 }
