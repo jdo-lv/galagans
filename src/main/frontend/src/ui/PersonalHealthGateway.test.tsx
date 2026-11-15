@@ -1,7 +1,7 @@
 import { act, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Observation } from '../domain/observation'
-import { reading, setup } from '../test/renderApp'
+import { reading, readingsPanel, setup } from '../test/renderApp'
 
 const NOW = '2026-11-14T10:00:00Z'
 const DEVICE = 'oximeter · synthetic'
@@ -26,7 +26,7 @@ const respiratory = () => {
   return found
 }
 const tile = (label: string) => {
-  const panel = screen.getByRole('region', { name: 'Latest readings' })
+  const panel = readingsPanel()
   const found = within(panel)
     .getAllByRole('listitem')
     .find((li) => li.querySelector('.tile-label')?.textContent?.startsWith(label))

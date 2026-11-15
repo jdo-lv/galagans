@@ -563,6 +563,11 @@ ul.tile-grid {
   white-space: nowrap;
 }
 
+/* A reading the open to-do item asks for: the level 1 outline, never a fill (#52) */
+.metric-tile--todo {
+  box-shadow: inset 0 0 0 1.5px var(--color-todo);
+}
+
 .metric-tile--stale :is(.value, .metric-tile__unit) {
   color: var(--color-text-muted-on-inset);
 }
@@ -714,6 +719,16 @@ a.button-secondary:hover {
   padding-inline: 0;
   font-weight: 500;
   color: var(--color-text-muted);
+}
+
+/* Level 1: an outline and icon in --color-todo, the word in the text colour (ideas/alert-levels.md "Colours") */
+.badge--todo {
+  color: var(--color-text);
+  box-shadow: inset 0 0 0 1.5px var(--color-todo);
+}
+
+.badge--todo .tabler-icon {
+  color: var(--color-todo);
 }
 
 /* Level 2: outline only, no colour (ideas/alert-levels.md). */

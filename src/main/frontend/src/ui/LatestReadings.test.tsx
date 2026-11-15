@@ -12,13 +12,15 @@ import type { Observation } from '../domain/observation'
 import { RULES } from '../test/rules'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
 import { mockStatuses } from '../infrastructure/mockStatuses'
-import { observationFakes, packetFakes, pvt, saveCheckIn, setup as setupApp, voiceFakes } from '../test/renderApp'
+import { observationFakes, packetFakes, pvt, readingsPanel, saveCheckIn, setup as setupApp, voiceFakes } from '../test/renderApp'
 import { App } from './App'
 import { ServicesProvider } from './ServicesContext'
 
 const LABELS = ['SpO₂', 'Heart rate', 'Sleep', 'Mood', 'Blood pressure', 'Temperature', 'Cabin CO₂', 'Cabin temp', 'Cabin humidity', 'Dose rate', '30-day dose', 'Reaction time']
 
 const stored = (id: string, recordedAt: string, fields: Partial<CheckIn>): CheckIn => ({ id, recordedAt, symptoms: [], ...fields })
+/** An empty check-in today: no tile changes, but the check-in is no longer owed, so its tiles carry no To do (#52). */
+const CHECKED_IN = stored('today', '2026-11-14T07:30:00Z', {})
 
 function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = true, observationSeed = [] as Observation[] } = {}) {
   const clock = { now: new Date(now) }
@@ -66,7 +68,7 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
 
 const submit = saveCheckIn
 
-const panel = () => screen.getByRole('region', { name: 'Latest readings' })
+const panel = readingsPanel
 const tiles = () => within(panel()).findAllByRole('listitem')
 const tile = (label: string) => {
   const found = within(panel())
@@ -79,8 +81,9 @@ const tile = (label: string) => {
 describe('LatestReadings', () => {
   afterEach(() => vi.useRealTimers())
 
-  it('AC1: lists the tiles in READINGS order (twelve with the 30-day dose), Cabin CO₂ as a 1-h average', async () => {
-    setup().renderApp()
+  it('AC1: with nothing owed, lists the tiles in READINGS order (twelve with the 30-day dose), Cabin CO₂ as a 1-h average', async () => {
+    // An owed input's readings come first (#52), so the check-in and a PVT are done.
+    setup({ seed: [CHECKED_IN, pvt('p', '2026-11-14T07:40:00Z', 268)] }).renderApp()
 
     const items = await tiles()
     expect(items).toHaveLength(LABELS.length)
@@ -89,7 +92,7 @@ describe('LatestReadings', () => {
   })
 
   it.each(['SpO₂', 'Heart rate', 'Sleep', 'Mood'])('AC2: %s shows "—" read as "No reading", with no unit, age, tag or badge', async (label) => {
-    setup().renderApp()
+    setup({ seed: [CHECKED_IN] }).renderApp()
     await tiles()
 
     const t = tile(label)
@@ -121,11 +124,19 @@ describe('LatestReadings', () => {
     expect(t.querySelector('.badge')).toBeNull()
   })
 
-  it.each(LABELS)('AC4: %s has an icon with no data', async (label) => {
-    setup().renderApp()
+  it.each(LABELS.filter((l) => l !== 'Reaction time'))('AC4: %s has an icon with no data', async (label) => {
+    setup({ seed: [CHECKED_IN] }).renderApp()
     await tiles()
 
     expect(tile(label).querySelector('.metric-tile__icon')).not.toBeNull()
+  })
+
+  it('AC4 with #52: Reaction time with no result is the owed PVT, so To do takes the icon\'s place', async () => {
+    setup({ seed: [CHECKED_IN] }).renderApp()
+    await tiles()
+
+    expect(tile('Reaction time').querySelector('.metric-tile__icon')).toBeNull()
+    expect(within(tile('Reaction time')).getByText('To do')).toHaveClass('badge--todo')
   })
 
   it('AC5 and AC6: a check-in shows each value with its unit, "just now" and the manual tag', async () => {
@@ -205,7 +216,7 @@ describe('LatestReadings', () => {
   })
 
   it('AC11: a value older than 24 h looks stale: muted, "1 d old", icon and no badge', async () => {
-    setup({ now: '2026-11-14T08:01:00Z', seed: [stored('a', '2026-11-13T08:00:00Z', { spo2Percent: 88 })] }).renderApp()
+    setup({ now: '2026-11-14T08:01:00Z', seed: [stored('a', '2026-11-13T08:00:00Z', { spo2Percent: 88 }), CHECKED_IN] }).renderApp()
     await tiles()
 
     const t = tile('SpO₂')
@@ -365,7 +376,7 @@ describe('Reaction time tile (#16)', () => {
 describe('Reaction time tile with COG-01 (#17)', () => {
   const NOW = '2026-11-14T09:30:00Z'
   const tileOf = () =>
-    within(screen.getByRole('region', { name: 'Latest readings' }))
+    within(readingsPanel())
       .getAllByRole('listitem')
       .find((li) => li.textContent?.includes('Reaction time')) as HTMLElement
 

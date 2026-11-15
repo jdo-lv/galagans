@@ -40,6 +40,7 @@ import {
   IconMoodSmile,
   IconMicrophone,
   IconMoon,
+  IconPencil,
   IconPill,
   IconPlayerPause,
   IconPlus,
@@ -113,6 +114,7 @@ function IconSpo2({ size = 24, stroke = 2, className, ...props }: IconProps) {
 
 /* Status (never the only cue: always with the status word) */
 export const NominalIcon = /* @__PURE__ */ decorative(IconCircleCheck)
+export const TodoIcon = /* @__PURE__ */ decorative(IconPencil)
 /** Level icons (ideas/alert-levels.md "Icon" column). Watch's arrow follows its rule's direction. */
 export const LevelWatchUpIcon = /* @__PURE__ */ decorative(IconTrendingUp)
 export const LevelWatchDownIcon = /* @__PURE__ */ decorative(IconTrendingDown)

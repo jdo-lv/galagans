@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
 import type { Observation } from '../domain/observation'
 import { mockStatuses } from '../infrastructure/mockStatuses'
-import { reading, setup } from '../test/renderApp'
+import { reading, readingsPanel, setup } from '../test/renderApp'
 
 const NOW = '2026-11-14T09:30:00Z'
 const go = (hash: string) => window.history.replaceState(null, '', hash)
@@ -28,7 +28,7 @@ const rowOf = (system: string) =>
     .getAllByRole('listitem')
     .find((li) => li.querySelector('.status-system')?.textContent === system)!
 const tileOf = (label: string) =>
-  within(screen.getByRole('region', { name: 'Latest readings' }))
+  within(readingsPanel())
     .getAllByRole('listitem')
     .find((li) => li.textContent?.includes(label))!
 
@@ -65,7 +65,7 @@ describe('#33 AC2: the level badge everywhere Badge renders', () => {
 
   it('Latest readings: Blood pressure tile with systolic 145, diastolic 70', async () => {
     show({ observationSeed: [bp('systolicMmHg', 145), bp('diastolicMmHg', 70)] })
-    await screen.findByRole('region', { name: 'Latest readings' })
+    await waitFor(() => readingsPanel())
 
     await expectBadge(() => tileOf('Blood pressure'), 'badge badge--treat', 'Treat', 'tabler-icon-first-aid-kit')
   })

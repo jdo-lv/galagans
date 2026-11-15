@@ -87,7 +87,15 @@ export function App() {
       case "system":
         return <SystemDetail key={route.system} system={route.system} onUnknown={goHome} />;
       default:
-        return <HomeScreen statuses={statuses.state} readings={readings.state} routine={routine.state} returnedHome={returnedHome} />;
+        return (
+          <HomeScreen
+            statuses={statuses.state}
+            readings={readings.state}
+            routine={routine.state}
+            returnedHome={returnedHome}
+            onCheckInSaved={refreshAll}
+          />
+        );
     }
   }
 

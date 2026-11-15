@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { setup } from '../test/renderApp'
+import { readingsPanel, setup } from '../test/renderApp'
 
 const FAKE = ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'performance'] as const
 
@@ -63,7 +63,12 @@ describe('Reaction test on Home', () => {
   })
 
   it('AC10: Start reaction test opens #/pvt in place of Home', async () => {
-    setup().renderApp()
+    // A check-in today and a fresh PVT: Home's Nominal variant, the one with the card (#52).
+    const seed = [
+      { id: 'c', recordedAt: '2026-11-14T07:30:00Z', symptoms: [] },
+      { id: 'p', recordedAt: '2026-11-14T07:40:00Z', pvtMedianMs: 268, pvtLapses: 0, pvtFalseStarts: 0, symptoms: [] },
+    ]
+    setup({ seed }).renderApp()
     await flush()
 
     fireEvent.click(screen.getByRole('button', { name: 'Start reaction test' }))
@@ -72,7 +77,7 @@ describe('Reaction test on Home', () => {
     await flush()
 
     expect(window.location.hash).toBe('#/pvt')
-    for (const name of ['Body systems', 'Latest readings', 'Check-in']) expect(screen.queryByRole('region', { name })).toBeNull()
+    for (const name of ['Body systems', 'Latest readings', 'Relevant readings', 'Check-in']) expect(screen.queryByRole('region', { name })).toBeNull()
   })
 
   it('AC11: the start screen explains the test and offers Start test and Home', async () => {
@@ -326,7 +331,7 @@ describe('Reaction test result', () => {
     })
     await flush()
 
-    const tile = within(screen.getByRole('region', { name: 'Latest readings' }))
+    const tile = within(readingsPanel())
       .getAllByRole('listitem')
       .find((li) => li.textContent?.includes('Reaction time')) as HTMLElement
     expect(tile).toHaveTextContent('350 ms')

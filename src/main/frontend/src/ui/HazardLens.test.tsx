@@ -38,6 +38,8 @@ const ALL_ROWS = ['Respiratory', 'Cognition', 'Cabin air', 'Radiation', 'Cardiov
 const figure = () => document.querySelector<HTMLElement>('.body-card div.body-figure')!
 const items = () => within(screen.getByRole('list', { name: 'Body figure' })).getAllByRole('listitem')
 const itemOf = (system: string) => figure().querySelector<HTMLElement>(`li[data-system="${system}"]`)!
+// A label's level badge (2–5); an owed input adds the To do badge (level 1, #52), which these tests don't cover.
+const LEVEL_BADGE = '.badge:not(.badge--todo)'
 const LENS_CLASSES = ['lens-affected', 'lens-dimmed']
 const sidePanel = () => document.querySelector<HTMLElement>('.shell-side')!
 const panes = () => [...document.querySelectorAll<HTMLElement>('.shell-pane')]
@@ -271,7 +273,7 @@ describe('Body figure on Home (#14, moved by #52)', () => {
     setup({ now: NOW, placeholders: mockStatuses, seed }).renderApp()
     await within(list()).findByText('Respiratory')
 
-    expect(itemOf('Respiratory').querySelector('.badge')?.textContent ?? 'none').toBe(badge)
+    expect(itemOf('Respiratory').querySelector(LEVEL_BADGE)?.textContent ?? 'none').toBe(badge)
   })
 
   it.each([
@@ -289,7 +291,7 @@ describe('Body figure on Home (#14, moved by #52)', () => {
     await within(list()).findByText('Respiratory')
     await within(list()).findByText(`Systolic`, { exact: false })
 
-    expect(itemOf('Cardiovascular').querySelector('.badge')?.textContent ?? 'none').toBe(badge)
+    expect(itemOf('Cardiovascular').querySelector(LEVEL_BADGE)?.textContent ?? 'none').toBe(badge)
     expect(itemOf('Cardiovascular').classList.contains('hotspot--flagged')).toBe(badge !== 'none')
   })
 
@@ -301,7 +303,7 @@ describe('Body figure on Home (#14, moved by #52)', () => {
     if (kind === 'failed') await within(list()).findByText('Status unavailable')
 
     expect(items().map((li) => li.dataset.system)).toEqual(['Cognition', 'Vision (SANS)', 'Respiratory', 'Cardiovascular', 'Kidney & hydration', 'Bone & muscle'])
-    expect(items().map((li) => li.querySelector('.badge'))).toEqual([null, null, null, null, null, null])
+    expect(items().map((li) => li.querySelector(LEVEL_BADGE))).toEqual([null, null, null, null, null, null])
   })
 
   it('AC21: the figure is display-only', () => {
@@ -319,7 +321,7 @@ describe('Body figure with COG-01 (#17)', () => {
     setup({ now: NOW, placeholders: mockStatuses, seed: [pvt('p', NOW, ms)] }).renderApp()
     await within(screen.getByRole('region', { name: 'Body systems' })).findAllByRole('listitem')
 
-    await vi.waitFor(() => expect(itemOf('Cognition').querySelector('.badge')?.textContent).toBe(badge))
+    await vi.waitFor(() => expect(itemOf('Cognition').querySelector(LEVEL_BADGE)?.textContent).toBe(badge))
   })
 
   it.each([
@@ -331,7 +333,7 @@ describe('Body figure with COG-01 (#17)', () => {
     setup({ now: NOW, placeholders: mockStatuses, seed }).renderApp()
     await within(list()).findByText(badge === 'none' ? 'Heart rate' : 'Resting HR', { exact: false })
 
-    const element = itemOf('Cardiovascular').querySelector('.badge')
+    const element = itemOf('Cardiovascular').querySelector(LEVEL_BADGE)
     expect(element?.textContent ?? 'none').toBe(badge)
     if (element) {
       expect(element).toHaveClass('badge', 'badge--watch')

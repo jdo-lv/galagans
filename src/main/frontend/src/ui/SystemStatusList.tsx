@@ -9,13 +9,14 @@ import {
   LevelTreatIcon,
   LevelWatchDownIcon,
   LevelWatchUpIcon,
+  TodoIcon,
   type AppIcon,
 } from './icons'
 import { systemHref } from './useHashRoute'
 import './status.css'
 import type { StatusListState } from './useSystemStatuses'
 
-const LEVEL_WORDS: Record<Rule['status'], string> = { watch: 'Watch', check: 'Check', treat: 'Treat', emergency: 'Emergency' }
+export const LEVEL_WORDS: Record<Rule['status'], string> = { watch: 'Watch', check: 'Check', treat: 'Treat', emergency: 'Emergency' }
 
 /** The icon of a level (ideas/alert-levels.md "Icon" column); Watch has one only when its rule gives a direction. */
 export function levelIcon(level: SystemStatus['state'], rule?: Rule): AppIcon | undefined {
@@ -46,6 +47,16 @@ export function Badge({ state, rule }: { state: SystemStatus['state']; rule?: Ru
     <span className={`badge badge--${state}`}>
       {Icon && <Icon size={18} />}
       {LEVEL_WORDS[state]}
+    </span>
+  )
+}
+
+/** Level 1 (alert-levels.md): an input the astronaut owes. Not a health status, so no Badge state maps to it. */
+export function TodoBadge() {
+  return (
+    <span className="badge badge--todo">
+      <TodoIcon size={18} />
+      To do
     </span>
   )
 }
