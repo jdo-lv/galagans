@@ -3,7 +3,8 @@ import type { CheckIn } from '../domain/checkIn'
 import type { Rule } from '../domain/rules'
 import { fromCheckIn, type Observation } from '../domain/observation'
 import { RULES } from '../test/rules'
-import { evaluate as evaluateObservations } from './evaluate'
+import { CHART_WINDOW_MS } from '../domain/rules'
+import { chartPoints, evaluate as evaluateObservations } from './evaluate'
 
 const now = new Date('2026-11-14T12:00:00Z')
 
@@ -215,5 +216,114 @@ describe('evaluate with the shipped rules (#43)', () => {
     ['Radiation', 'doseRateMsvDay', 0.91, 'check', 'RAD-03'],
   ] as const)('AC6: %s %s %s → %s %s', (name, indicator, value, state, rule) => {
     expect(system(name, [obs(indicator, value)])).toEqual([state, rule])
+  })
+})
+
+describe('resting HR drift CV-03 (#35)', () => {
+  const NOW = new Date('2026-11-14T09:30:00Z')
+  const CV03 = RULES.filter((r) => r.id === 'CV-03')
+  const hr = (day: number, time: string, value: number): CheckIn =>
+    reading(`hr-${day}-${time}`, `2026-11-${String(day).padStart(2, '0')}T${time}:00Z`, { heartRateBpm: value })
+  const daily = (days: number[], value: number) => days.map((day) => hr(day, '07:00', value))
+  const obs = (id: string, indicator: Rule['indicator'], value: number, at: string, display: Observation['device']['display']): Observation => ({
+    resourceType: 'Observation', id, status: 'final', code: { text: indicator }, valueQuantity: { value, unit: '' },
+    effectiveDateTime: at, device: { display },
+  })
+  const BRC = obs('bracelet:m1:heartRateBpm', 'heartRateBpm', 71, '2026-11-14T06:00:00Z', 'bracelet · synthetic')
+  const BPC = [
+    obs('bp-cuff:m2:systolicMmHg', 'systolicMmHg', 125, '2026-11-14T08:00:00Z', 'BP cuff · synthetic'),
+    obs('bp-cuff:m2:diastolicMmHg', 'diastolicMmHg', 70, '2026-11-14T08:00:00Z', 'BP cuff · synthetic'),
+  ]
+  const observations = (seed: CheckIn[], extra: Observation[] = []) => [...seed.flatMap(fromCheckIn), ...extra]
+  const cardio = (seed: CheckIn[], extra: Observation[] = []) =>
+    evaluateObservations(RULES, observations(seed, extra), NOW).find((s) => s.system === 'Cardiovascular')!
+  const points = (seed: CheckIn[], stale = false) =>
+    chartPoints(CV03, observations(seed), NOW, stale, CHART_WINDOW_MS).map((p) => [p.recordedAt.slice(0, 10), p.value, p.status, p.rule?.id])
+
+  it('AC6: resting HR 70 on 12, 13 and 14 Nov → watch, CV-03', () => {
+    const s = cardio(daily([12, 13, 14], 70))
+
+    expect(s).toMatchObject({ state: 'watch', label: 'Resting HR', unit: 'bpm', value: 70, recordedAt: '2026-11-14T07:00:00Z', source: 'manual' })
+    expect(s.rule?.id).toBe('CV-03')
+  })
+
+  it('AC7: 69 bpm counts (≥), 68 does not', () => {
+    expect(cardio(daily([12, 13, 14], 69))).toMatchObject({ state: 'watch', rule: { id: 'CV-03' } })
+    const s = cardio(daily([12, 13, 14], 68))
+    expect(s).toMatchObject({ state: 'nominal', label: 'Heart rate', value: 68 })
+    expect(s.rule).toBeUndefined()
+  })
+
+  it('AC8: a lower reading on the newest day breaks the run', () => {
+    const s = cardio([...daily([12, 13, 14], 70), hr(14, '08:00', 66)])
+
+    expect(s).toMatchObject({ state: 'nominal', label: 'Heart rate', value: 66, recordedAt: '2026-11-14T08:00:00Z' })
+    expect(s.rule).toBeUndefined()
+  })
+
+  it('AC9: a missing day or only 2 days is nominal', () => {
+    expect(cardio(daily([11, 12, 14], 70)).state).toBe('nominal')
+    expect(cardio(daily([13, 14], 70)).state).toBe('nominal')
+  })
+
+  it('AC10: any source counts; a tie keeps the earliest reading', () => {
+    expect(cardio(daily([12, 13], 70), [BRC])).toMatchObject({
+      state: 'watch', value: 71, recordedAt: '2026-11-14T06:00:00Z', source: 'bracelet · synthetic',
+    })
+    expect(cardio([...daily([12, 13], 70), hr(14, '07:00', 71)], [BRC]).recordedAt).toBe('2026-11-14T06:00:00Z')
+  })
+
+  it('AC11: out-of-range readings are ignored, so the newest valid reading is 26.5 h old → stale', () => {
+    const s = cardio([...daily([12, 13], 70), hr(14, '08:00', 300), hr(14, '08:30', 15)])
+
+    expect(s).toMatchObject({ state: 'stale', value: 70 })
+    expect(s.rule).toBeUndefined()
+  })
+
+  it('AC12: no heart rate and no BP → no data', () => {
+    expect(cardio([]).state).toBe('no-data')
+  })
+
+  it('AC13: age from the newest reading, value from the newest day’s lowest', () => {
+    expect(cardio([...daily([11, 12], 70), hr(13, '01:00', 70), hr(13, '23:00', 75)])).toMatchObject({
+      state: 'watch', value: 70, recordedAt: '2026-11-13T01:00:00Z',
+    })
+    expect(cardio(daily([11, 12, 13], 70))).toMatchObject({ state: 'stale', value: 70 })
+  })
+
+  it('AC14: CV-01 check beats the drift watch', () => {
+    const s = cardio([...daily([12, 13], 70), hr(14, '07:00', 105)])
+
+    expect(s).toMatchObject({ state: 'check', label: 'Heart rate', value: 105, rule: { id: 'CV-01' } })
+  })
+
+  it('AC15: BP-01 watch beats the drift watch by table order', () => {
+    expect(cardio(daily([12, 13, 14], 70), BPC)).toMatchObject({ state: 'watch', label: 'Systolic', value: 125, rule: { id: 'BP-01' } })
+  })
+
+  it('AC21: one point per day, the lowest of the day; the 3-day run is watch', () => {
+    const seed = [61, 62, 60, 63, 70, 71, 70].map((v, i) => hr(8 + i, '07:00', v))
+
+    expect(points([...seed, hr(13, '18:00', 90)])).toEqual([
+      ['2026-11-08', 61, 'nominal', undefined],
+      ['2026-11-09', 62, 'nominal', undefined],
+      ['2026-11-10', 60, 'nominal', undefined],
+      ['2026-11-11', 63, 'nominal', undefined],
+      ['2026-11-12', 70, 'watch', 'CV-03'],
+      ['2026-11-13', 71, 'watch', 'CV-03'],
+      ['2026-11-14', 70, 'watch', 'CV-03'],
+    ])
+  })
+
+  it('AC24: a high day outside a 3-day run stays nominal', () => {
+    expect(points([hr(12, '07:00', 70), hr(13, '07:00', 63), hr(14, '07:00', 70)]).map((p) => p[2])).toEqual(['nominal', 'nominal', 'nominal'])
+  })
+
+  it('AC25: the newest point is stale when the status is; runs count days before the window', () => {
+    expect(points(daily([5, 6, 7, 8], 70), true)).toEqual([['2026-11-08', 70, 'stale', undefined]])
+    expect(points([...daily([5, 6, 7, 8], 70), hr(14, '07:00', 61)])).toEqual([
+      ['2026-11-08', 70, 'watch', 'CV-03'],
+      ['2026-11-14', 61, 'nominal', undefined],
+    ])
   })
 })
