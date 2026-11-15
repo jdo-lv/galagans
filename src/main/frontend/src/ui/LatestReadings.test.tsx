@@ -47,7 +47,7 @@ function setup({ now = '2026-11-14T09:30:00Z', seed = [] as CheckIn[], online = 
     routineReader,
     streakReader: new StreakReader(repository, () => clock.now),
     random: () => 0,
-    voiceSession: voiceFakes({ recorder, statusReader, routineReader }).voiceSession,
+    voiceSession: voiceFakes({ statusReader, routineReader }).voiceSession,
     ...packetFakes(readingsReader, connectivity, () => clock.now).services,
     checkInPrefill: new CheckInPrefill(device.observations),
   }

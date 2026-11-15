@@ -90,19 +90,6 @@ describe('Voice control (F25)', () => {
     expect(screen.queryByText(/^Voice:/)).not.toBeInTheDocument()
   })
 
-  it('a check-in confirmed by voice is stored and Today\'s routine shows the morning check-in done', async () => {
-    // A PVT this morning, so once the check-in is stored nothing is owed and Home shows Today's routine (#52).
-    const { voice, repository, renderApp } = setup({ seed: [pvt('p', '2026-11-14T07:40:00Z', 268)] })
-    voice.input.said = ['I slept six hours', 'yes']
-    voice.interpreter.commands['I slept six hours'] = { kind: 'checkin', values: { sleepHours: 6 } }
-    renderApp()
-
-    await userEvent.click(screen.getByRole('button', { name: 'Voice control' }))
-
-    await waitFor(() => expect([...repository.items.values()].map((i) => i.checkIn.sleepHours)).toEqual([undefined, 6]))
-    await waitFor(() => expect(screen.getByText('Morning check-in').closest('li')).toHaveClass('routine-item--done'))
-  })
-
   it('says "Voice: audio not available" when the microphone is blocked', async () => {
     const { voice, renderApp } = setup()
     voice.input.audioBlocked = true

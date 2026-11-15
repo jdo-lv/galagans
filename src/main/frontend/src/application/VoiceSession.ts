@@ -1,75 +1,73 @@
 import type { SpeechInput, SpeechOutput, VoiceInterpreter, VoiceScreen } from '../domain/ports'
-import { speakValues, type SpokenValues, type VoiceCommand, type VoiceTarget } from '../domain/voice'
-import type { CheckInRecording } from './CheckInRecorder'
+import type { VoiceCommand, VoiceTarget } from '../domain/voice'
+import { VoiceCheckIn } from './VoiceCheckIn'
 
 const STOP = /\b(stop|exit|goodbye|voice off)\b/i
-const CONFIRM = /\b(confirm|yes|correct|save)\b/i
-const DECLINE = /\b(no|not|don't|wrong|cancel|discard)\b/i
 const PVT_OPENING = 'Opening the reaction test. Voice is off during the test.'
+const SAY_AGAIN = 'Say it again.'
+
+type OpenedTarget = Exclude<VoiceTarget, { screen: 'check-in' }>
 
 /**
  * Hands-free use of the app (F25): gives the health briefing, then listens and acts until "stop", the PVT or abort.
- * The LLM only picks a command; a check-in is saved only after the astronaut confirms.
+ * While a check-in question shows, voice asks and fills that step instead (#64). The LLM only picks a command or
+ * reads an answer; the screen validates and saves.
  */
 export class VoiceSession {
+  private readonly checkIn: VoiceCheckIn
+
   constructor(
     private readonly input: SpeechInput,
     private readonly output: SpeechOutput,
     private readonly interpreter: VoiceInterpreter,
-    private readonly recorder: CheckInRecording,
-    private readonly briefing: { brief(system?: string): Promise<string>; alerts(): Promise<string> },
-  ) {}
+    private readonly briefing: { brief(system?: string): Promise<string> },
+  ) {
+    this.checkIn = new VoiceCheckIn(interpreter)
+  }
 
   async run(screen: VoiceScreen, signal: AbortSignal): Promise<void> {
     const say = async (text: string) => {
-      if (signal.aborted) return
+      if (!text || signal.aborted) return
       screen.show('speaking')
       await this.output.speak(text, signal)
     }
-    let heardValues: SpokenValues | undefined
+    // The check-in step voice last asked; undefined outside a check-in.
+    let asked: number | undefined
 
     screen.show('thinking')
-    await say(await this.briefing.brief())
+    if (!screen.checkIn()) await say(await this.briefing.brief())
     while (!signal.aborted) {
+      const form = screen.checkIn()
+      if (!form) asked = undefined
+      else if (asked !== form.current().index) {
+        // The question depends on the device value the screen is still reading.
+        await form.prefillSettled
+        if (signal.aborted) return
+        asked = form.current().index
+        await say(this.checkIn.question(form))
+        if (signal.aborted) return
+      }
+
       screen.show('listening')
       const heard = (await this.input.listen(signal)).trim()
       if (!heard || signal.aborted) continue
       screen.show('thinking')
       if (STOP.test(heard)) return say('Voice off.')
+      // Touch wins: a step change or a left check-in while listening drops what was heard.
+      if (screen.checkIn()?.current().index !== asked) continue
 
-      // A decline word wins over a confirm word in the same answer: nothing is saved by mistake.
-      if (heardValues && DECLINE.test(heard)) {
-        heardValues = undefined
-        await say('Not saved.')
+      if (form) {
+        const current = () => !signal.aborted && screen.checkIn() === form && form.current().index === asked
+        const turn = await this.checkIn.apply(form, heard, current)
+        if (signal.aborted) return
+        if (turn.ask) asked = undefined
+        await say(turn.say ?? '')
+        if (turn.end) return
         continue
       }
+
       const command = await this.interpreter.interpret(heard)
       if (signal.aborted) return
-      // A confirm word saves only when the answer brings no new values: "Yes, but my mood is three." is a correction.
-      const bringsValues = command.kind === 'checkin' && Object.keys({ ...command.values, ...command.outOfRange }).length > 0
-      if (heardValues && CONFIRM.test(heard) && !bringsValues) {
-        try {
-          await this.recorder.record({ symptoms: [], ...heardValues })
-        } catch {
-          // The values stay, so "yes" again retries.
-          await say('Check-in not saved. Say confirm to try again, or no.')
-          continue
-        }
-        heardValues = undefined
-        screen.saved()
-        // A new flag must be heard, not only seen.
-        await say(`Check-in saved. ${await this.briefing.alerts()}`.trim())
-        continue
-      }
-
-      if (command.kind === 'checkin') {
-        // Answers add up until confirmed; a repeated field takes the newer value.
-        const values = { ...heardValues, ...command.values }
-        heardValues = Object.keys(values).length ? values : undefined
-        await say(checkinAnswer(command.values, values, command.outOfRange ?? {}))
-        continue
-      }
-      heardValues = undefined
       // Voice must never talk during the timed reaction test: say so, then open it and end.
       if (command.kind === 'open' && command.target.screen === 'pvt') {
         await say(PVT_OPENING)
@@ -80,19 +78,23 @@ export class VoiceSession {
     }
   }
 
-  private async answer(command: Exclude<VoiceCommand, { kind: 'checkin' }>, screen: VoiceScreen): Promise<string> {
+  private async answer(command: VoiceCommand, screen: VoiceScreen): Promise<string> {
     switch (command.kind) {
-      case 'open':
-        screen.open(command.target)
-        return this.opened(command.target)
+      case 'open': {
+        const target = command.target
+        // The check-in's first question is spoken by the loop once it shows; from the completion screen there is nothing to open.
+        if (target.screen === 'check-in') return (await screen.openCheckIn()) ? '' : SAY_AGAIN
+        screen.open(target)
+        return this.opened(target)
+      }
       case 'briefing':
         return this.briefing.brief()
       case 'none':
-        return 'I can give your health briefing, open a screen, or take check-in answers.'
+        return 'I can give your health briefing or open a screen.'
     }
   }
 
-  private async opened(target: VoiceTarget): Promise<string> {
+  private async opened(target: OpenedTarget): Promise<string> {
     switch (target.screen) {
       case 'system':
         return this.briefing.brief(target.system)
@@ -104,14 +106,4 @@ export class VoiceSession {
         return 'Opening the surgeon packet. Sending it needs a tap.'
     }
   }
-}
-
-/** Out-of-range values are named first; then what is waiting to be confirmed, if this answer added to it. */
-function checkinAnswer(added: SpokenValues, waiting: SpokenValues, outOfRange: SpokenValues): string {
-  const rejected = Object.keys(outOfRange).length
-  const lines = [
-    rejected && `${speakValues(outOfRange)} ${rejected > 1 ? 'are' : 'is'} outside what the check-in takes. Please say it again or type it.`,
-    Object.keys(added).length && `${speakValues(waiting)}. Say confirm to save, or no.`,
-  ].filter(Boolean)
-  return lines.length ? lines.join(' ') : "I didn't hear a value."
 }

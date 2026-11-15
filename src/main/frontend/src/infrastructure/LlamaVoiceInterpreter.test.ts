@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { CHECK_IN_STEPS, SYMPTOMS } from '../domain/checkInSteps'
 import { LlamaVoiceInterpreter } from './LlamaVoiceInterpreter'
 
 function replyWith(content: string) {
@@ -10,8 +11,7 @@ function replyWith(content: string) {
   return { requests, interpreter: new LlamaVoiceInterpreter('/voice/llm', ['Respiratory', 'Vision (SANS)'], fetchFn) }
 }
 
-const reply = (fields: Record<string, unknown>) =>
-  JSON.stringify({ action: 'none', system: null, sleepHours: null, heartRateBpm: null, spo2Percent: null, mood: null, ...fields })
+const reply = (fields: Record<string, unknown>) => JSON.stringify({ action: 'none', system: null, ...fields })
 
 describe('LlamaVoiceInterpreter', () => {
   it('asks llama-server for JSON that fits the command schema', async () => {
@@ -23,18 +23,22 @@ describe('LlamaVoiceInterpreter', () => {
     expect(requests[0].body).toMatchObject({ temperature: 0, response_format: { type: 'json_schema' } })
   })
 
-  it('offers exactly the given systems, and whole numbers for heart rate, SpO₂ and mood, without limits', async () => {
+  it('#64 AC58: offers exactly the given systems and these actions, and nothing else', async () => {
     const { requests, interpreter } = replyWith(reply({}))
 
     await interpreter.interpret('go back')
 
-    const schema = (requests[0].body as { response_format: { json_schema: { schema: { properties: Record<string, object> } } } }).response_format.json_schema.schema
+    const schema = (requests[0].body as { response_format: { json_schema: { schema: { required: string[]; properties: Record<string, object> } } } }).response_format.json_schema.schema
+    expect(schema.required).toEqual(['action', 'system'])
+    expect(Object.keys(schema.properties)).toEqual(['action', 'system'])
     expect(schema.properties.system).toEqual({ enum: ['Respiratory', 'Vision (SANS)', null] })
-    // No minimum/maximum: llama.cpp would rewrite an out-of-range number into a different in-range one.
-    expect(schema.properties.heartRateBpm).toEqual({ type: ['integer', 'null'] })
-    expect(schema.properties.spo2Percent).toEqual({ type: ['integer', 'null'] })
-    expect(schema.properties.mood).toEqual({ type: ['integer', 'null'] })
-    expect(schema.properties.sleepHours).toEqual({ type: ['number', 'null'] })
+    expect(schema.properties.action).toEqual({ enum: ['open_home', 'open_pvt', 'open_packet', 'open_checkin', 'open_system', 'briefing', 'none'] })
+  })
+
+  it('#64 AC58: open_checkin → open the check-in', async () => {
+    const { interpreter } = replyWith(reply({ action: 'open_checkin', system: null }))
+
+    expect(await interpreter.interpret('start my check-in')).toEqual({ kind: 'open', target: { screen: 'check-in' } })
   })
 
   it('open_system with Vision (SANS) → open that system', async () => {
@@ -47,28 +51,6 @@ describe('LlamaVoiceInterpreter', () => {
     const { interpreter } = replyWith(reply({ action: 'open_pvt', system: 'Sleep' }))
 
     expect(await interpreter.interpret("let's do the reaction test")).toEqual({ kind: 'open', target: { screen: 'pvt' } })
-  })
-
-  it('checkin keeps only the values that were said', async () => {
-    const { interpreter } = replyWith(reply({ action: 'checkin', system: 'Cardiovascular', heartRateBpm: 72, spo2Percent: 98 }))
-
-    expect(await interpreter.interpret('heart rate 72, oxygen 98')).toEqual({ kind: 'checkin', values: { heartRateBpm: 72, spo2Percent: 98 }, outOfRange: {} })
-  })
-
-  it('values outside the check-in limits (sleep 30 h, SpO₂ 45 %) move to outOfRange', async () => {
-    const { interpreter } = replyWith(reply({ action: 'checkin', sleepHours: 30, spo2Percent: 45, mood: 4 }))
-
-    expect(await interpreter.interpret('I slept thirty hours, oxygen forty five, mood four')).toEqual({
-      kind: 'checkin',
-      values: { mood: 4 },
-      outOfRange: { sleepHours: 30, spo2Percent: 45 },
-    })
-  })
-
-  it('a value missing from the reply is not heard', async () => {
-    const { interpreter } = replyWith(JSON.stringify({ action: 'checkin', mood: 4 }))
-
-    expect(await interpreter.interpret('mood four')).toStrictEqual({ kind: 'checkin', values: { mood: 4 }, outOfRange: {} })
   })
 
   it('a garbled reply is not a command', async () => {
@@ -93,5 +75,75 @@ describe('LlamaVoiceInterpreter', () => {
     const interpreter = new LlamaVoiceInterpreter('', [], async () => new Response('', { status: 503 }))
 
     await expect(interpreter.interpret('x')).rejects.toThrow('503')
+  })
+
+  describe('answer', () => {
+    const number = CHECK_IN_STEPS[0]
+    const scale = CHECK_IN_STEPS[3]
+    const symptoms = CHECK_IN_STEPS[5]
+    const schemaOf = (body: Record<string, unknown>) => (body as { response_format: { json_schema: { schema: object } } }).response_format.json_schema.schema
+    const systemOf = (body: Record<string, unknown>) => (body as { messages: { content: string }[] }).messages[0].content
+
+    it('#64 AC60: a number step is asked at temperature 0 with its prompt and a number-or-null schema without limits', async () => {
+      const { requests, interpreter } = replyWith(JSON.stringify({ value: 63 }))
+
+      await interpreter.answer(number, 'sixty three')
+
+      expect(requests[0].url).toBe('/voice/llm/v1/chat/completions')
+      expect(requests[0].body).toMatchObject({ temperature: 0 })
+      expect(systemOf(requests[0].body)).toContain(number.prompt)
+      expect(schemaOf(requests[0].body)).toEqual({ type: 'object', additionalProperties: false, required: ['value'], properties: { value: { type: ['number', 'null'] } } })
+    })
+
+    it('#64 AC60: a scale step takes an integer or null', async () => {
+      const { requests, interpreter } = replyWith(JSON.stringify({ value: 4 }))
+
+      await interpreter.answer(scale, 'four')
+
+      expect(systemOf(requests[0].body)).toContain(scale.prompt)
+      expect(schemaOf(requests[0].body)).toEqual({ type: 'object', additionalProperties: false, required: ['value'], properties: { value: { type: ['integer', 'null'] } } })
+    })
+
+    it('#64 AC61: the symptom step lists the ids with their labels in the schema and the prompt', async () => {
+      const { requests, interpreter } = replyWith(JSON.stringify({ symptoms: [], none: true }))
+
+      await interpreter.answer(symptoms, 'none')
+
+      expect(schemaOf(requests[0].body)).toEqual({
+        type: 'object',
+        additionalProperties: false,
+        required: ['symptoms', 'none'],
+        properties: {
+          symptoms: { type: 'array', items: { enum: ['headache', 'congestion', 'rash', 'neck-face-swelling', 'back-pain'] } },
+          none: { type: 'boolean' },
+        },
+      })
+      for (const s of SYMPTOMS) expect(systemOf(requests[0].body)).toContain(`${s.id}: ${s.label}`)
+    })
+
+    it.each([
+      [{ value: 63 }, number, { kind: 'value', value: 63 }],
+      [{ value: null }, number, { kind: 'none' }],
+      [{ symptoms: ['headache'], none: false }, symptoms, { kind: 'symptoms', symptoms: ['headache'] }],
+      [{ symptoms: [], none: true }, symptoms, { kind: 'symptoms', symptoms: 'none' }],
+      [{ symptoms: ['rash'], none: true }, symptoms, { kind: 'symptoms', symptoms: ['rash'] }],
+      [{ symptoms: [], none: false }, symptoms, { kind: 'none' }],
+    ])('#64 AC62: reply %j → %j', async (content, step, expected) => {
+      const { interpreter } = replyWith(JSON.stringify(content))
+
+      expect(await interpreter.answer(step, 'x')).toEqual(expected)
+    })
+
+    it('#64 AC62: content that is not JSON is no answer', async () => {
+      const { interpreter } = replyWith('{"value": 6')
+
+      expect(await interpreter.answer(number, 'x')).toEqual({ kind: 'none' })
+    })
+
+    it('#64 AC62: HTTP 503 rejects', async () => {
+      const interpreter = new LlamaVoiceInterpreter('', [], async () => new Response('', { status: 503 }))
+
+      await expect(interpreter.answer(number, 'x')).rejects.toThrow('503')
+    })
   })
 })

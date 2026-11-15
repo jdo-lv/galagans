@@ -1,4 +1,4 @@
-import { useCallback, useEffect, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { AddEntryScreen } from "./AddEntryScreen";
 import { AppHeader } from "./AppHeader";
 import { CheckInScreen } from "./CheckInScreen";
@@ -15,14 +15,15 @@ import { SymptomLogScreen } from "./SymptomLogScreen";
 import { SystemDetail } from "./SystemDetail";
 import { VoicePill, VoiceToggle } from "./VoiceToggle";
 import { useServices } from "./ServicesContext";
-import { useHashRoute, voiceHref, type Route } from "./useHashRoute";
+import { CHECK_IN_HASH, useHashRoute, voiceHref, type Route } from "./useHashRoute";
 import { useHazardLens } from "./useHazardLens";
 import { useLatestReadings } from "./useLatestReadings";
 import { useOnlineStatus } from "./useOnlineStatus";
 import { usePendingCount } from "./usePendingCount";
 import { usePeriodicRead } from "./usePeriodicRead";
 import { useSystemStatuses } from "./useSystemStatuses";
-import { useVoice } from "./useVoice";
+import { useVoice, type CheckInAccess } from "./useVoice";
+import type { CheckInForm } from "../domain/ports";
 import type { VoiceTarget } from "../domain/voice";
 import type { StatusListState } from "./useSystemStatuses";
 
@@ -57,7 +58,27 @@ export function App() {
     },
     [statuses.state],
   );
-  const voice = useVoice(openByVoice, refreshAll);
+  // The check-in screen registers its form while a question shows; voice reads and moves it (#64).
+  const checkInForm = useRef<CheckInForm | undefined>(undefined);
+  const formWaiters = useRef<((form: CheckInForm) => void)[]>([]);
+  const registerForm = useCallback((form: CheckInForm | undefined) => {
+    checkInForm.current = form;
+    if (form) formWaiters.current.splice(0).forEach((resolve) => resolve(form));
+  }, []);
+  const checkInAccess = useMemo<CheckInAccess>(
+    () => ({
+      form: () => checkInForm.current,
+      open: () => {
+        if (window.location.hash === CHECK_IN_HASH) return Promise.resolve(checkInForm.current);
+        return new Promise((resolve) => {
+          formWaiters.current.push(resolve);
+          window.location.hash = voiceHref({ screen: "check-in" });
+        });
+      },
+    }),
+    [],
+  );
+  const voice = useVoice(openByVoice, checkInAccess);
   const stopVoice = voice.stop;
 
   // Voice must never talk during the timed reaction test, however it was opened.
@@ -71,7 +92,14 @@ export function App() {
   function screenFor(route: Route): ReactNode {
     switch (route.kind) {
       case "check-in":
-        return single(<CheckInScreen onSaved={refreshAll} onExit={() => goHome({ returned: true })} />);
+        return single(
+          <CheckInScreen
+            onSaved={refreshAll}
+            onExit={() => goHome({ returned: true })}
+            onTouchSaved={stopVoice}
+            registerForm={registerForm}
+          />,
+        );
       case "packet":
         return <SurgeonPacket />;
       case "stats":

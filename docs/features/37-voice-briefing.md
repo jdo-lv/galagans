@@ -1,6 +1,6 @@
-# #37 Hands-free voice: health briefing, commands and check-in by voice
+# #37 Hands-free voice: health briefing and commands
 
-The astronaut taps the microphone in the header and hears a short health briefing: each check and emergency in its rule's own sourced words, "all your (other) readings are nominal", systems without data, what is still to do today, then "What would you like to do next?". Voice can then open screens, repeat the briefing and take sleep, heart rate, SpO₂ and mood, read back and saved only after a spoken confirm. Speech-to-text (whisper.cpp), the command model (Qwen3.5-4B on llama.cpp) and read-aloud (Piper) run on a local voice host; the model only turns speech into one command and never words a status. Feature F25 in [features.md](../../ideas/features.md); issue [#37](https://github.com/jdo-lv/galagans/issues/37).
+The astronaut taps the microphone in the header and hears a short health briefing: each check and emergency in its rule's own sourced words, "all your (other) readings are nominal", systems without data, what is still to do today, then "What would you like to do next?". Voice can then open screens, repeat the briefing and run the check-in ([#64](64-voice-check-in.md)). Speech-to-text (whisper.cpp), the command model (Qwen3.5-4B on llama.cpp) and read-aloud (Piper) run on a local voice host; the model only turns speech into one command and never words a status. Feature F25 in [features.md](../../ideas/features.md); issue [#37](https://github.com/jdo-lv/galagans/issues/37).
 
 **Try it:** start the voice host with `podman compose -f voice-host/compose.yaml up -d --build` (Podman VM with 8 GB; the first start downloads the 2.7 GB model), then `cd src/main/frontend && npm run dev`, open http://localhost:5173 in Chrome, tap the microphone and allow it. Voice works only through the Vite dev server; the built app on :8080 shows "Voice host unreachable". Use headphones in a shared module: the briefing speaks health values aloud. **Retake the screenshots** with both running: `target/node/node docs/features/37-voice-briefing.shots.mjs` ([script](37-voice-briefing.shots.mjs)). It grants or denies the microphone through CDP and blocks `/voice/*` requests (`Network.setBlockedURLs`) for the unreachable state; the issue named `Fetch.failRequest`, which fails the requests the same way but needs event handling that `tools/cdp.mjs` doesn't have. Playback is ended at once in the script, because headless Chrome sometimes never fires the audio `ended` event; sound doesn't show in a screenshot.
 
@@ -17,10 +17,6 @@ The screen only changes in the header button and the voice pill, so the spoken t
 Piper hears the symbols as words ("S P O 2 is below 94 percent", "…, then tell the CMO now").
 
 **"How is my breathing?"** with SpO₂ 92 % opens the Respiratory detail and says its check with the decision-support line; with no data it stays on the screen and says "There is no Respiratory data yet. What would you like to do next?"
-
-**"I slept six hours, mood four"**: "Sleep 6 hours, mood 4 of 5. Say confirm to save, or no." Nothing is saved until "yes" or "confirm"; "no" says "Not saved."
-
-**"Oxygen forty five"**: "Oxygen 45 percent is outside what the check-in takes. Please say it again or type it." The value is never saved.
 
 ## Screens
 
@@ -39,7 +35,7 @@ Piper hears the symbols as words ("S P O 2 is below 94 percent", "…, then tell
 ### Phone, 390 px, light, voice on
 ![Phone](img/37-listening-390.png)
 
-The issue mock is [37-mock.png](img/37-mock.png) ([script](37-voice-briefing.mock.mjs)), Home while the briefing is spoken. "Check-in not saved. Say confirm to try again, or no." needs a failing IndexedDB and can't be produced from the running app; `VoiceSession.test.ts` covers it.
+The issue mock is [37-mock.png](img/37-mock.png) ([script](37-voice-briefing.mock.mjs)), Home while the briefing is spoken.
 
 ## Mockup and deviations
 

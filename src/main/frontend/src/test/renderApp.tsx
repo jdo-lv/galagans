@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CheckInPrefill } from '../application/CheckInPrefill'
-import { CheckInRecorder, type CheckInRecording } from '../application/CheckInRecorder'
+import { CheckInRecorder } from '../application/CheckInRecorder'
 import { LastPacketReader } from '../application/LastPacketReader'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
 import { PacketDraftReader } from '../application/PacketDraftReader'
@@ -75,10 +75,10 @@ export function packetFakes(readingsReader: LatestReadingsReader, connectivity: 
 }
 
 /** The voice session (F25) on fakes: what it hears, says and interprets. */
-export function voiceFakes({ recorder, statusReader, routineReader }: { recorder: CheckInRecording; statusReader: SystemStatusReader; routineReader: RoutineReading }) {
+export function voiceFakes({ statusReader, routineReader }: { statusReader: SystemStatusReader; routineReader: RoutineReading }) {
   const voice = { input: new FakeSpeechInput(), output: new FakeSpeechOutput(), interpreter: new FakeVoiceInterpreter() }
   const briefing = new HealthBriefing(statusReader, routineReader)
-  return { voice, voiceSession: new VoiceSession(voice.input, voice.output, voice.interpreter, recorder, briefing) }
+  return { voice, voiceSession: new VoiceSession(voice.input, voice.output, voice.interpreter, briefing) }
 }
 
 /** The device-reading services (#22) on fakes: the gateway is started, the test emits through `readings`. */
@@ -119,7 +119,7 @@ export function setup({
   const recorder = new CheckInRecorder(repository, synchronizer, undefined, () => clock.now)
   const statusReader = new SystemStatusReader(ruleSource, device.history, () => clock.now, placeholders, chartWindowMs)
   const routineReader = new RoutineReader(repository, () => clock.now, routinePlaceholders)
-  const { voice, voiceSession } = voiceFakes({ recorder, statusReader, routineReader })
+  const { voice, voiceSession } = voiceFakes({ statusReader, routineReader })
   const streakReader = new StreakReader(repository, () => clock.now, streakSeed, counters)
   const checkInPrefill = new CheckInPrefill(device.observations)
   const services = {

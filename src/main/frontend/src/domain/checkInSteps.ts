@@ -5,7 +5,8 @@ import type { Indicator } from './rules'
 // The morning check-in, one question per screen (mockup 06; crew-health-companion.md "Rendering rules").
 // A new question is a new row here; the screen renders rows by kind.
 
-type Base = { tab: string; prompt: string; hint: string; seconds: number }
+/** `spoken` is what voice asks in place of `prompt` (#64). */
+type Base = { tab: string; prompt: string; hint: string; spoken: string; seconds: number }
 
 export type NumberStep = Base & {
   kind: 'number'
@@ -17,6 +18,8 @@ export type NumberStep = Base & {
   min: number
   max: number
   step: number
+  /** Asked instead of `spoken` while the field shows a device value. */
+  spokenPrefilled: string
 }
 
 export type ScaleStep = Base & {
@@ -63,14 +66,14 @@ function reading(field: Indicator) {
   return { name: row.key, label: row.label, unit: row.unit, min: row.validMin, max: row.validMax }
 }
 
-function numberStep(field: NumberStep['field'], tab: string, prompt: string, hint: string, step: number): NumberStep {
-  return { kind: 'number', field, tab, prompt, hint, step, seconds: SECONDS, ...reading(field) }
+function numberStep(field: NumberStep['field'], tab: string, prompt: string, hint: string, step: number, spoken: [ask: string, confirm: string]): NumberStep {
+  return { kind: 'number', field, tab, prompt, hint, step, spoken: spoken[0], spokenPrefilled: spoken[1], seconds: SECONDS, ...reading(field) }
 }
 
 export const CHECK_IN_STEPS: CheckInStep[] = [
-  numberStep('heartRateBpm', 'Heart rate', 'What is your heart rate?', DEVICE_HINT, 1),
-  numberStep('spo2Percent', 'SpO₂', 'What is your SpO₂?', DEVICE_HINT, 1),
-  numberStep('sleepHours', 'Sleep', 'How long did you sleep last night?', 'Type the hours, or skip.', 0.5),
+  numberStep('heartRateBpm', 'Heart rate', 'What is your heart rate?', DEVICE_HINT, 1, ['Heart rate value?', 'Confirm or update heart rate value.']),
+  numberStep('spo2Percent', 'SpO₂', 'What is your SpO₂?', DEVICE_HINT, 1, ['SpO₂ value?', 'Confirm or update SpO₂ value.']),
+  numberStep('sleepHours', 'Sleep', 'How long did you sleep last night?', 'Type the hours, or skip.', 0.5, ['Sleep hours?', 'Confirm or update sleep hours.']),
   {
     kind: 'scale',
     field: 'kss',
@@ -78,6 +81,7 @@ export const CHECK_IN_STEPS: CheckInStep[] = [
     instrument: 'Karolinska Sleepiness Scale (KSS)',
     prompt: 'How sleepy do you feel right now?',
     hint: 'Tap one number. Think about the last 5 minutes.',
+    spoken: 'Sleepiness, 1 to 9?',
     min: 1,
     max: 9,
     // S56 (research/health-indicators.md): words on the odd numbers only, typo and punctuation fixed.
@@ -96,6 +100,7 @@ export const CHECK_IN_STEPS: CheckInStep[] = [
     tab: 'Mood',
     prompt: 'How is your mood today?',
     hint: 'Tap one number.',
+    spoken: 'Mood, 1 to 5?',
     min: reading('mood').min,
     max: reading('mood').max,
     words: { 1: 'Very low', 5: 'Very good' },
@@ -108,6 +113,7 @@ export const CHECK_IN_STEPS: CheckInStep[] = [
     prompt: 'Any of these symptoms today?',
     hint: 'Tap all that apply. Logging a symptom always counts as a completed check-in.',
     noneLabel: 'None of these',
+    spoken: 'Symptoms, or none? Then say save.',
     seconds: SECONDS,
   },
 ]
