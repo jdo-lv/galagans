@@ -2,6 +2,7 @@ import { useCallback, useEffect } from "react";
 import { AddEntryScreen } from "./AddEntryScreen";
 import { AppHeader } from "./AppHeader";
 import { CheckInScreen } from "./CheckInScreen";
+import { GroundHistory } from "./GroundHistory";
 import { GroundLinkPill } from "./GroundLinkPill";
 import { HazardLens } from "./HazardLens";
 import { LatestReadings } from "./LatestReadings";
@@ -97,6 +98,10 @@ export function App() {
       ) : route.kind === "symptoms" ? (
         <main>
           <SymptomLogScreen />
+        </main>
+      ) : route.kind === "ground" ? (
+        <main>
+          <GroundHistory />
         </main>
       ) : route.kind === "pvt" ? (
         <main>

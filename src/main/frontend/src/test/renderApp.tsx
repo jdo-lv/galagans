@@ -4,6 +4,7 @@ import { CheckInRecorder, type CheckInRecording } from '../application/CheckInRe
 import { LastPacketReader } from '../application/LastPacketReader'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
 import { PacketDraftReader } from '../application/PacketDraftReader'
+import { PacketHistoryReader } from '../application/PacketHistoryReader'
 import { PacketSender } from '../application/PacketSender'
 import { PacketUplink } from '../application/PacketUplink'
 import { PersonalHealthGateway } from '../application/PersonalHealthGateway'
@@ -65,6 +66,7 @@ export function packetFakes(readingsReader: LatestReadingsReader, connectivity: 
     services: {
       packetDraftReader: new PacketDraftReader(readingsReader),
       lastPacketReader: new LastPacketReader(packets, now),
+      packetHistoryReader: new PacketHistoryReader(packets, now),
       packetSender: new PacketSender(readingsReader, packets, packetUplink, undefined, now),
       packetUplink,
     },

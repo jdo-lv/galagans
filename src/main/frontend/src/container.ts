@@ -4,6 +4,7 @@ import { CombinedObservationHistory } from './application/CombinedObservationHis
 import { LastPacketReader } from './application/LastPacketReader'
 import { LatestReadingsReader } from './application/LatestReadingsReader'
 import { PacketDraftReader } from './application/PacketDraftReader'
+import { PacketHistoryReader } from './application/PacketHistoryReader'
 import { PacketSender } from './application/PacketSender'
 import { PacketUplink } from './application/PacketUplink'
 import { PersonalHealthGateway } from './application/PersonalHealthGateway'
@@ -54,6 +55,8 @@ export interface Services {
   random: () => number
   packetDraftReader: PacketDraftReader
   lastPacketReader: LastPacketReader
+  /** Every stored packet for the Ground history (#57). */
+  packetHistoryReader: PacketHistoryReader
   packetSender: PacketSender
   packetUplink: Synchronizer
   voiceSession: VoiceSession
@@ -113,6 +116,7 @@ export function createServices(): Services & { startSync: () => () => void; star
     random: Math.random,
     packetDraftReader: new PacketDraftReader(readingsReader),
     lastPacketReader: new LastPacketReader(packets),
+    packetHistoryReader: new PacketHistoryReader(packets),
     packetSender: new PacketSender(readingsReader, packets, packetUplink),
     packetUplink,
     // The voice host (voice-host/compose.yaml) is reached through the /voice proxy in vite.config.ts.
