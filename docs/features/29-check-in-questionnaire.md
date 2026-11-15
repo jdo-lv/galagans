@@ -2,7 +2,7 @@
 
 The morning check-in is its own screen at `#/check-in`, one question per step as in mockup 06: heart rate, SpO₂, sleep hours, the Karolinska Sleepiness Scale (KSS), mood and a symptom checklist. The crewmember opens it from Today's routine "Start" (when due) or the header "+" (any time), sees progress and time left, can always skip, and saves once at the end. Nothing is stored until "Save check-in", and everything works offline. Features F1 and F15 in [features.md](../../ideas/features.md); issue [#29](https://github.com/jdo-lv/galagans/issues/29).
 
-**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080 and click "+" in the header (or "Start · ~90 s" between 07:00 and 09:00). Type 300 on the heart rate step to see the error, skip a step, go back, and finish with "Save check-in". **Retake the screenshots** with the app running: `target/node/node docs/features/29-check-in-questionnaire.shots.mjs` ([script](29-check-in-questionnaire.shots.mjs)); set `APP_URL` for another port. Other shot scripts save through the steps with `tools/checkin-shots.mjs`.
+**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080 and click Check-in in the navigation bar (or "Start · ~90 s" between 07:00 and 09:00). Type 300 on the heart rate step to see the error, skip a step, go back, and finish with "Save check-in". **Retake the screenshots** with the app running: `target/node/node docs/features/29-check-in-questionnaire.shots.mjs` ([script](29-check-in-questionnaire.shots.mjs)); set `APP_URL` for another port. Other shot scripts save through the steps with `tools/checkin-shots.mjs`.
 
 ## Screens
 

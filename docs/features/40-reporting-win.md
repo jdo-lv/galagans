@@ -2,7 +2,7 @@
 
 After "Save check-in" the morning check-in shows its completion on the same screen. A logged symptom gets a neutral "Thanks for reporting" and one line per symptom on what to do next. A routine streak counts check-ins, never values; symptom days count as done, and paused days never reset it. "Done" returns home. Feature F13 in [features.md](../../ideas/features.md); issue [#40](https://github.com/jdo-lv/galagans/issues/40).
 
-**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080 and click "+" (Add entry). Pass the steps with "Next →", tap Headache on the last one and click "Save check-in". On a fresh browser profile the first day reads "12 check-ins in a row": the 13 days before it are a synthetic demo history. **Retake the screenshots** with the app running: `target/node/node docs/features/40-reporting-win.shots.mjs` ([script](40-reporting-win.shots.mjs)); set `APP_URL` for another port. The page clock is pinned to 14 Nov 2026 08:05.
+**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080 and click Check-in in the navigation bar. Pass the steps with "Next →", tap Headache on the last one and click "Save check-in". On a fresh browser profile the first day reads "12 check-ins in a row": the 13 days before it are a synthetic demo history. **Retake the screenshots** with the app running: `target/node/node docs/features/40-reporting-win.shots.mjs` ([script](40-reporting-win.shots.mjs)); set `APP_URL` for another port. The page clock is pinned to 14 Nov 2026 08:05.
 
 ## Screens
 

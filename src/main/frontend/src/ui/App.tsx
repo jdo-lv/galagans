@@ -4,8 +4,10 @@ import { CheckInScreen } from "./CheckInScreen";
 import { GroundLinkPill } from "./GroundLinkPill";
 import { HazardLens } from "./HazardLens";
 import { LatestReadings } from "./LatestReadings";
+import { NavBar } from "./NavBar";
 import { PvtCard } from "./PvtCard";
 import { PvtTest } from "./PvtTest";
+import { StatisticsScreen } from "./StatisticsScreen";
 import { StatusBar } from "./StatusBar";
 import { SurgeonPacket } from "./SurgeonPacket";
 import { SystemDetail } from "./SystemDetail";
@@ -65,10 +67,7 @@ export function App() {
 
   return (
     <div className="app">
-      <AppHeader
-        showAdd={route.kind === "home"}
-        actions={<VoiceToggle status={voice.status} onToggle={voice.toggle} disabled={route.kind === "pvt"} />}
-      />
+      <AppHeader actions={<VoiceToggle status={voice.status} onToggle={voice.toggle} disabled={route.kind === "pvt"} />} />
       <div className="pill-row">
         <StatusBar online={online} pending={pending} />
         <GroundLinkPill current={route.kind === "packet"} />
@@ -84,6 +83,10 @@ export function App() {
       ) : route.kind === "packet" ? (
         <main>
           <SurgeonPacket />
+        </main>
+      ) : route.kind === "statistics" ? (
+        <main>
+          <StatisticsScreen />
         </main>
       ) : route.kind === "pvt" ? (
         <main>
@@ -121,6 +124,8 @@ export function App() {
           </div>
         </main>
       )}
+      {/* Like voice, the bar stays off the timed reaction test: a stray tap would end it. */}
+      {route.kind !== "pvt" && <NavBar current={route.kind} />}
     </div>
   );
 }

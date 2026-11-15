@@ -11,12 +11,12 @@ import {
   IconBrain,
   IconCalendarEvent,
   IconCamera,
+  IconChartBar,
   IconChartLine,
   IconChevronRight,
   IconCircleCheck,
   IconCircleDashed,
   IconCircleFilled,
-  IconCirclePlus,
   IconClipboardList,
   IconClock,
   IconCloudOff,
@@ -29,6 +29,7 @@ import {
   IconGauge,
   IconHeart,
   IconHeartbeat,
+  IconHome,
   IconMist,
   IconInfoCircle,
   IconLock,
@@ -172,7 +173,6 @@ export const TrendIcon = /* @__PURE__ */ decorative(IconChartLine)
 export const PrivateIcon = /* @__PURE__ */ decorative(IconLock)
 export const OfflineIcon = /* @__PURE__ */ decorative(IconCloudOff)
 export const SyncIcon = /* @__PURE__ */ decorative(IconRefresh)
-export const AddIcon = /* @__PURE__ */ decorative(IconCirclePlus)
 /** "Opens the detail" on a list row. */
 export const ChevronIcon = /* @__PURE__ */ decorative(IconChevronRight)
 /** Timeline steps (surgeon packet). Done is a filled dot, not a check, so it can't be read as the ✓ of Nominal. */
@@ -184,3 +184,6 @@ export const PausedIcon = /* @__PURE__ */ decorative(IconPlayerPause)
 export const LightThemeIcon = /* @__PURE__ */ decorative(IconSun)
 export const DarkThemeIcon = /* @__PURE__ */ decorative(IconMoon)
 export const VoiceIcon = /* @__PURE__ */ decorative(IconMicrophone)
+/** Navigation bar (#46): Home and Statistics; Check-in and Messages reuse QuestionnaireIcon and GroundLinkIcon. */
+export const HomeIcon = /* @__PURE__ */ decorative(IconHome)
+export const StatisticsIcon = /* @__PURE__ */ decorative(IconChartBar)

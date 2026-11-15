@@ -124,12 +124,12 @@ a:hover {
   color: var(--color-text-muted);
 }
 
-/* App shell */
+/* App shell. The bottom padding is the navigation bar's strip plus a gap, so the last card scrolls clear of it. */
 .app {
   max-width: var(--content-max);
   min-height: 100dvh;
   margin: 0 auto;
-  padding: var(--space-4) var(--gutter) var(--space-7);
+  padding: var(--space-4) var(--gutter) calc(var(--target-min) + 2 * var(--space-2) + 2px + 2 * var(--space-3) + var(--space-4));
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -143,11 +143,46 @@ a:hover {
   min-height: var(--target-min);
 }
 
-/* On a phone, three header buttons don't fit beside a page-centred wordmark: centre it in the space between */
-@media (max-width: 599px) {
-  .app-header {
-    grid-template-columns: auto 1fr auto;
-  }
+/* Navigation bar (mockups 14 and 15): a pill centred on a full-width strip in the page background, so scrolled
+   cards never show around it. No side padding: the 328 px pill fits any screen from 328 px. */
+.nav-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3) 0;
+  background: var(--color-bg);
+  transition: var(--transition-theme);
+}
+
+.nav-bar__items {
+  display: flex;
+  gap: var(--gap-targets);
+  margin: 0;
+  padding: var(--space-2);
+  list-style: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-edge);
+  border-radius: var(--radius-pill);
+}
+
+.nav-bar a,
+.nav-bar a:hover {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: var(--target-min);
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+}
+
+/* After the hover rule, so the current link keeps the inverse fill under the pointer */
+.nav-bar a[aria-current='page'],
+.nav-bar a[aria-current='page']:hover {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
 }
 
 .brand-mark {
@@ -159,11 +194,6 @@ a:hover {
   display: flex;
   gap: var(--gap-targets);
   justify-self: end;
-}
-
-.header-add,
-.header-add:hover {
-  color: var(--color-text);
 }
 
 .wordmark {
