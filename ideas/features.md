@@ -41,7 +41,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **How:** one question per screen, big buttons (fingers are clumsy in weightlessness), skip always allowed. A value can be typed or come from a (simulated) device.
 - **Example:** "Sleep last night: 5.5 h", "Mood: 3", "Symptoms: headache".
 - **Needs:** nothing.
-- **Status:** the morning check-in is six steps at `#/check-in`, one question per screen (issue #29): heart rate, SpO₂, sleep hours, Karolinska Sleepiness Scale (KSS 1–9), mood 1–5 and a symptom checklist (headache, congestion, rash, neck or face swelling, back pain, or none). It opens from Today's routine "Start" or Check-in in the navigation bar (#46), shows progress and time left, and always allows Skip, saved as "not answered". Missing: BP, temperature, the full sleep diary.
+- **Status:** the morning check-in is six steps at `#/check-in`, one question per screen (issue #29): heart rate, SpO₂, sleep hours, Karolinska Sleepiness Scale (KSS 1–9), mood 1–5 and a symptom checklist (headache, congestion, rash, neck or face swelling, back pain, or none). It opens from Today's routine "Start" or Check-in in the navigation bar (#46), shows progress and time left, and always allows Skip, saved as "not answered". Heart rate and SpO₂ are prefilled from the newest device reading (≤ 15 min), which the astronaut confirms or corrects; a confirmed value is saved as "manual" (#55). Missing: BP, temperature, the full sleep diary.
 - **More:** idea file "Questionnaires and how they're triggered".
 
 #### F2. Works offline, sends later · Must · done

@@ -6,6 +6,7 @@
 //   await page.evaluate(`location.hash = '#/check-in'`); await page.fill('input[name=heartRate]', '63')
 //   await page.click('.check-in button[type=submit]')  // or saveCheckIn(page, { spo2: 88 }) from tools/checkin-shots.mjs
 //   await page.shot('docs/features/img/1-emergency.png'); await page.close()
+// Shot scripts assume no device publishes on the relay while they run: each openPage starts a fresh Chrome profile with an empty IndexedDB, so only a live publisher can prefill a check-in (#55).
 import { spawn } from 'node:child_process'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
