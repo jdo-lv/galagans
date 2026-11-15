@@ -1,7 +1,7 @@
 // Retakes the screenshots in 53-sim-scenarios.md. Run from the repo root with Node 22 after `mvn clean verify`:
 //   java -jar target/crew-health-companion-0.0.1-SNAPSHOT.jar          (APP_URL, default http://localhost:8080)
 //   target/node/node docs/features/53-sim-scenarios.shots.mjs
-// Takes about 30 s: step 2 starts 20 s after the check.
+// Takes about 20 s: step 2 starts 10 s (the default delay) after the check.
 import { openPage } from '../../tools/cdp.mjs'
 
 const APP = process.env.APP_URL ?? 'http://localhost:8080'
@@ -28,11 +28,11 @@ await page.shot(img('unchecked'))
 await page.click(FAULT, 3000)
 await page.shot(img('step-1'))
 
-await page.sleep(19_000)
+await page.sleep(9_000)
 await page.shot(img('step-2'))
 await page.close()
 
 page = await open('dark')
-await page.click(FAULT, 21_000)
+await page.click(FAULT, 11_000)
 await page.shot(img('step-2-dark'))
 await page.close()
