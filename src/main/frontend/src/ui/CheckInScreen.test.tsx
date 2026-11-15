@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
 import { mockRoutine } from '../infrastructure/mockRoutine'
 import { mockCounters, mockStreakSeed } from '../infrastructure/mockStreak'
-import { saveCheckIn, setup } from '../test/renderApp'
+import { clickBarLink, saveCheckIn, setup } from '../test/renderApp'
 
 // Local times, so the tests pass in any TZ.
 const at = (h: number, m = 0, day = 14) => new Date(2026, 10, day, h, m)
@@ -20,7 +20,7 @@ const saved = (s: ReturnType<typeof setup>) => [...s.repository.items.values()].
 
 async function open(s: ReturnType<typeof setup>) {
   s.renderApp()
-  await userEvent.click(await screen.findByRole('link', { name: 'Add entry' }))
+  await clickBarLink('Check-in')
   await screen.findByRole('region', { name: 'Morning check-in' })
 }
 
@@ -58,20 +58,7 @@ describe('Home and navigation', () => {
     expect(s.repository.items.size).toBe(0)
   })
 
-  it('AC3: the header holds Voice control (#37), Add entry, then the theme toggle', async () => {
-    setupAt().renderApp()
-    const link = await screen.findByRole('link', { name: 'Add entry' })
-    expect(link).toHaveAttribute('href', '#/check-in')
-    const actions = link.parentElement as HTMLElement
-    expect(actions).toHaveClass('header-actions')
-    expect([...actions.children]).toEqual([
-      screen.getByRole('button', { name: 'Voice control' }),
-      link,
-      screen.getByRole('button', { name: /switch to (light|dark) mode/i }),
-    ])
-  })
-
-  it('AC4: Add entry opens the check-in outside the window', async () => {
+  it('AC4: Check-in in the bar opens the check-in outside the window', async () => {
     const s = setupAt(at(10))
     await open(s)
     await expectStep(1, 'What is your heart rate?')
@@ -459,7 +446,7 @@ describe('Save and leave', () => {
     await next()
     window.location.hash = '#/'
     await screen.findByRole('region', { name: 'Body systems' })
-    await userEvent.click(screen.getByRole('link', { name: 'Add entry' }))
+    await clickBarLink('Check-in')
     await screen.findByRole('region', { name: 'Morning check-in' })
     await expectStep(1, 'What is your heart rate?')
     expect(input()).toHaveValue(null)
@@ -640,7 +627,7 @@ describe('Reporting is a win (#40)', () => {
       expect(completeCard()).not.toHaveTextContent('Reporting a symptom')
       expect(completeCard()).not.toHaveTextContent('What happens next')
       await userEvent.click(screen.getByRole('button', { name: 'Done' }))
-      await userEvent.click(await screen.findByRole('link', { name: 'Add entry' }))
+      await clickBarLink('Check-in')
       await screen.findByRole('region', { name: 'Morning check-in' })
       await goTo(6)
       await userEvent.click(button('Headache'))
@@ -700,13 +687,13 @@ describe('Reporting is a win (#40)', () => {
       await waitFor(() => expect(within(card).getAllByRole('listitem')[0]).toHaveTextContent('done 08:05'))
     })
 
-    it('AC19: browser back from the completion goes home, and Add entry starts empty', async () => {
+    it('AC19: browser back from the completion goes home, and Check-in in the bar starts empty', async () => {
       await open(setup40())
       await save()
       window.location.hash = '#/'
       await screen.findByRole('region', { name: 'Body systems' })
       await waitFor(() => expect(document.activeElement).toBe(bodySystemsHeading()))
-      await userEvent.click(screen.getByRole('link', { name: 'Add entry' }))
+      await clickBarLink('Check-in')
       await screen.findByRole('region', { name: 'Morning check-in' })
       await expectStep(1, 'What is your heart rate?')
       expect(input()).toHaveValue(null)

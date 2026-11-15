@@ -84,4 +84,22 @@ describe('Navigation bar (#46)', () => {
     await findBar()
     expect(barLink('Home')).toHaveAttribute('aria-current', 'page')
   })
+
+  it('AC7: the header holds Voice control, then the theme toggle', async () => {
+    setup().renderApp()
+
+    const voice = await screen.findByRole('button', { name: 'Voice control' })
+    const actions = voice.parentElement as HTMLElement
+
+    expect(actions).toHaveClass('header-actions')
+    expect([...actions.children]).toEqual([voice, screen.getByRole('button', { name: /switch to (light|dark) mode/i })])
+  })
+
+  it.each(['#/', '#/check-in', '#/packet', '#/statistics'])('AC8: no Add entry at %s', async (hash) => {
+    at(hash)
+    setup().renderApp()
+    await findBar()
+
+    expect(screen.queryByRole('link', { name: 'Add entry' })).toBeNull()
+  })
 })

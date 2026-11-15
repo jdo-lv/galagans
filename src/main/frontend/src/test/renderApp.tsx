@@ -157,9 +157,14 @@ export function setup({
   }
 }
 
+/** Clicks a link in the navigation bar (#46). */
+export async function clickBarLink(name: 'Home' | 'Check-in' | 'Messages' | 'Statistics') {
+  await userEvent.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('link', { name }))
+}
+
 /** Saves one check-in through the steps (#29): types or taps each given value, "Next →" everywhere else, never "Skip". */
 export async function saveCheckIn(fields: { heartRate?: number; spo2?: number; sleep?: number; kss?: number; mood?: number } = {}) {
-  await userEvent.click(await screen.findByRole('link', { name: 'Add entry' }))
+  await clickBarLink('Check-in')
   const checkIn = await screen.findByRole('region', { name: 'Morning check-in' })
   for (const key of ['heartRate', 'spo2', 'sleep', 'kss', 'mood'] as const) {
     const value = fields[key]

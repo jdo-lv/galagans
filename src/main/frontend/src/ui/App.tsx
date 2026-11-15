@@ -67,10 +67,7 @@ export function App() {
 
   return (
     <div className="app">
-      <AppHeader
-        showAdd={route.kind === "home"}
-        actions={<VoiceToggle status={voice.status} onToggle={voice.toggle} disabled={route.kind === "pvt"} />}
-      />
+      <AppHeader actions={<VoiceToggle status={voice.status} onToggle={voice.toggle} disabled={route.kind === "pvt"} />} />
       <div className="pill-row">
         <StatusBar online={online} pending={pending} />
         <GroundLinkPill current={route.kind === "packet"} />

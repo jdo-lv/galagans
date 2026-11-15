@@ -17,7 +17,6 @@ import {
   IconCircleCheck,
   IconCircleDashed,
   IconCircleFilled,
-  IconCirclePlus,
   IconClipboardList,
   IconClock,
   IconCloudOff,
@@ -167,7 +166,6 @@ export const TrendIcon = /* @__PURE__ */ decorative(IconChartLine)
 export const PrivateIcon = /* @__PURE__ */ decorative(IconLock)
 export const OfflineIcon = /* @__PURE__ */ decorative(IconCloudOff)
 export const SyncIcon = /* @__PURE__ */ decorative(IconRefresh)
-export const AddIcon = /* @__PURE__ */ decorative(IconCirclePlus)
 /** "Opens the detail" on a list row. */
 export const ChevronIcon = /* @__PURE__ */ decorative(IconChevronRight)
 /** Timeline steps (surgeon packet). Done is a filled dot, not a check, so it can't be read as the ✓ of Nominal. */

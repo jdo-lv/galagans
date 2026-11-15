@@ -159,11 +159,6 @@ a:hover {
   justify-self: end;
 }
 
-.header-add,
-.header-add:hover {
-  color: var(--color-text);
-}
-
 .wordmark {
   font-size: var(--text-body);
   font-weight: 500;
