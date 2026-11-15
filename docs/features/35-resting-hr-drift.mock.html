@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Static mock for issue #35 (resting HR drift rule CV-01 on the Cardiovascular detail), built on the app's tokens and classes. The Watch badge and points are inline-styled as #33 AC28 (no colour) until #33 lands. Screenshot: node docs/features/35-resting-hr-drift.mock.mjs -->
+<!-- Static mock for issue #35 (resting HR drift rule CV-03 on the Cardiovascular detail), built on the app's tokens and classes. The Watch badge and points are styled as #33 AC28 (no colour). Screenshot: node docs/features/35-resting-hr-drift.mock.mjs -->
 <html lang="en"><head><meta charset="utf-8">
 <link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/tokens.css">
 <link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/base.css">
@@ -36,7 +36,7 @@ svg text{fill:var(--color-text-muted);font-size:12px;font-family:var(--font-data
       <line x1="48" x2="620" y1="83.5" y2="83.5" stroke="var(--color-text-muted)" stroke-dasharray="6 4"/>
       <line x1="48" x2="620" y1="132.5" y2="132.5" stroke="var(--color-text-muted)" stroke-dasharray="6 4"/>
       <text x="620" y="150" text-anchor="end">your pre-flight normal · 61 bpm · synthetic</text>
-      <text x="54" y="100">CV-01 · ≥ 69 bpm 3 days watch</text>
+      <text x="54" y="100">CV-03 · ≥ 69 bpm 3 days watch</text>
       <polyline fill="none" stroke="var(--color-text)" stroke-width="2" points="100,132.5 182,126.4 262,138.7 344,120.3 426,77.3 508,71.2 590,77.3"/>
       <circle cx="100" cy="132.5" r="4" fill="var(--color-text)"/><circle cx="182" cy="126.4" r="4" fill="var(--color-text)"/><circle cx="262" cy="138.7" r="4" fill="var(--color-text)"/><circle cx="344" cy="120.3" r="4" fill="var(--color-text)"/>
       <circle cx="426" cy="77.3" r="6" fill="var(--color-inset)" stroke="var(--color-text)" stroke-width="1.5"/>
@@ -53,8 +53,8 @@ svg text{fill:var(--color-text-muted);font-size:12px;font-family:var(--font-data
     <dl class="status-explanation">
       <div><dt>What</dt><dd>Your resting heart rate has been 69 bpm or more on 3 days running, 8 bpm or more above your pre-flight baseline (61 bpm).</dd></div>
       <div><dt>Why it matters</dt><dd>Your 24-h average heart rate barely changes in flight (63 → 64 bpm, pre-flight vs flight days 85–192 on the ISS), so a rise that lasts several days stands out against your own baseline.</dd></div>
-      <div><dt>How decided</dt><dd>Rule CV-01: lowest heart rate of the day ≥ 69 bpm (pre-flight baseline 61 bpm + 8) on 3 days running → level 2, watch. The baseline is a synthetic pre-loaded profile; +8 bpm for 3 days is a team heuristic, not a NASA rule.</dd></div>
-      <div><dt>Source</dt><dd>research/health-indicators.md §1 [S26]; research/countermeasures.md [C2][C6]; ideas/crew-health-companion.md check-and-act table <span class="tag tag--rule">rule · CV-01</span></dd></div>
+      <div><dt>How decided</dt><dd>Rule CV-03: lowest heart rate of the day ≥ 69 bpm (pre-flight baseline 61 bpm + 8) on 3 days running → level 2, watch. The baseline is a synthetic pre-loaded profile; +8 bpm for 3 days is a team heuristic, not a NASA rule.</dd></div>
+      <div><dt>Source</dt><dd>research/health-indicators.md §1 [S26]; research/countermeasures.md [C2][C6]; ideas/crew-health-companion.md check-and-act table <span class="tag tag--rule">rule · CV-03</span></dd></div>
     </dl>
   </section>
 </div>
