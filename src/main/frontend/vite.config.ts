@@ -1,9 +1,24 @@
 import { defineConfig } from 'vitest/config'
+import type { Connect, Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+/** The hidden device screen: /device/simulation and /device/websocket serve device.html (Spring Boot does the same). */
+function deviceRoutes(): Plugin {
+  const rewrite: Connect.NextHandleFunction = (req, _res, next) => {
+    if (req.url && /^\/device\/(simulation|websocket)\/?(\?.*)?$/.test(req.url)) req.url = '/device.html'
+    next()
+  }
+  return {
+    name: 'device-routes',
+    configureServer: (server) => void server.middlewares.use(rewrite),
+    configurePreviewServer: (server) => void server.middlewares.use(rewrite),
+  }
+}
+
 export default defineConfig({
   plugins: [
+    deviceRoutes(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -22,10 +37,14 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
-        // The simulator is an operator page: never cached by, or answered with, the crew app.
+        // The simulator and the device screen are operator pages: never cached by, or answered with, the crew app.
         // iOS reads the launch images once, when the app is added to the home screen: no need to precache them.
-        globIgnores: ['simulator.html', 'assets/simulator-*.js', 'assets/simulator-*.css', 'splash/**'],
-        navigateFallbackDenylist: [/^\/api\//, /^\/ws\//, /simulator\.html$/],
+        globIgnores: [
+          'simulator.html', 'assets/simulator-*.js', 'assets/simulator-*.css',
+          'device.html', 'assets/device-*.js', 'assets/device-*.css',
+          'splash/**',
+        ],
+        navigateFallbackDenylist: [/^\/api\//, /^\/ws\//, /simulator\.html$/, /^\/device\//, /device\.html$/],
       },
     }),
   ],
@@ -33,7 +52,7 @@ export default defineConfig({
     outDir: '../resources/static',
     emptyOutDir: true,
     rolldownOptions: {
-      input: { index: 'index.html', simulator: 'simulator.html' },
+      input: { index: 'index.html', simulator: 'simulator.html', device: 'device.html' },
     },
   },
   server: {
