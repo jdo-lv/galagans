@@ -163,3 +163,20 @@ section { counter-increment: page; }
 .qr { display: block; width: 304px; height: 304px; margin-bottom: 8px; }
 .qr-k { font-family: 'DM Mono', 'Courier New', monospace; font-size: 24px; letter-spacing: 3px; text-transform: uppercase; color: var(--olive); }
 .qr-u { font-size: 24px; font-weight: 600; color: var(--ink); }
+
+/* QR inline in the system row */
+.sys-row .qr-card { position: static; flex: none; width: 316px; padding: 24px; }
+.sys-row .qr { width: 268px; height: 268px; }
+.sys-row .qr-u { font-size: 22px; white-space: nowrap; }
+
+/* Opener: cover and problem on one slide */
+.opener .ring { left: 1432px; top: 128px; width: 360px; height: 360px; }
+.opener-text { display: flex; flex-direction: column; gap: 32px; width: 1240px; margin-top: 32px; }
+.opener .lede { font-size: 40px; }
+.facts-row { margin-top: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px; }
+.facts-row .fact { padding: 24px 0px 0px; }
+.facts-row .fact-p, .facts-row .stat-label { font-size: 28px; }
+.delay { display: flex; align-items: flex-end; gap: 12px; }
+.delay-n { font-family: 'DM Mono', 'Courier New', monospace; font-size: 120px; font-weight: 500; line-height: 0.9; letter-spacing: -4px; color: var(--bone); }
+.delay-u { font-family: 'DM Mono', 'Courier New', monospace; font-size: 40px; line-height: 1.2; color: var(--bone); }
+.facts-row .fact-h { text-wrap: balance; }
