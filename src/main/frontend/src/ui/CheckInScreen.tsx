@@ -11,6 +11,8 @@ import {
   type NumberStep,
   type ScaleStep,
 } from '../domain/checkInSteps'
+import type { CheckIn } from '../domain/checkIn'
+import { CheckInComplete } from './CheckInComplete'
 import { InfoIcon } from './icons'
 import { READING_ICONS } from './readingIcons'
 import { useServices } from './ServicesContext'
@@ -56,9 +58,14 @@ function toggled(symptoms: State['symptoms'], id: string | 'none'): State['sympt
   return picked.includes(id) ? picked.filter((s) => s !== id) : [...picked, id]
 }
 
-/** The morning check-in at #/check-in: one question per step (mockup 06). Nothing is stored until save. */
+/**
+ * The morning check-in at #/check-in: one question per step (mockup 06), then its completion (mockup 09, #40).
+ * Nothing is stored until save. `onSaved` refreshes home; Cancel and Done leave through `onExit`.
+ */
 export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit: () => void }) {
-  const { recorder } = useServices()
+  const { recorder, streakReader } = useServices()
+  const [openedAt] = useState(() => streakReader.now())
+  const [saved, setSaved] = useState<CheckIn>()
   const [index, setIndex] = useState(0)
   const [state, setState] = useState<State>(EMPTY)
   const [error, setError] = useState<string>()
@@ -83,12 +90,14 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
 
   async function finish(final: State) {
     setSave('saving')
+    let checkIn: CheckIn
     try {
-      await recorder.record(toDraft(answersOf(final)))
+      checkIn = await recorder.record(toDraft(answersOf(final)))
     } catch {
       setSave('failed')
       return
     }
+    setSaved(checkIn)
     onSaved()
   }
 
@@ -116,6 +125,8 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
     setState(next)
     advance(next)
   }
+
+  if (saved) return <CheckInComplete checkIn={saved} openedAt={openedAt} onDone={onExit} />
 
   return (
     <section className="card check-in" aria-labelledby={headingId}>

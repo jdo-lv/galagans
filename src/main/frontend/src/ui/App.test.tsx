@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { CheckInRecorder } from '../application/CheckInRecorder'
 import { LatestReadingsReader } from '../application/LatestReadingsReader'
 import { RoutineReader } from '../application/RoutineReader'
+import { StreakReader } from '../application/StreakReader'
 import { SyncService } from '../application/SyncService'
 import { SystemStatusReader } from '../application/SystemStatusReader'
 import { FakeConnectivity, FakeGateway, FakeRepository, FakeRuleSource } from '../test/fakes'
@@ -29,6 +30,7 @@ function setup(online: boolean) {
     healthGateway: device.healthGateway,
     readingsReader,
     routineReader,
+    streakReader: new StreakReader(repository),
     random: () => 0,
     voiceSession: voiceFakes({ recorder, statusReader, routineReader }).voiceSession,
     ...packetFakes(readingsReader, connectivity).services,

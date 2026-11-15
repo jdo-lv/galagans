@@ -130,6 +130,7 @@ Each feature has: what it is, why it matters, how it works, an example, what it 
 - **Why:** astronauts are known to hide symptoms because they fear losing flights. Most health apps reward "good numbers"; we reward honesty, and never reward or compare health values.
 - **How:** streaks count only the process (check-ins done, exercise minutes, fluids). Sick days pause streaks, never reset them.
 - **Needs:** F1. See mockup [09-reporting-win.png](mockups/09-reporting-win.png).
+- **Status:** "Save check-in" shows a completion at `#/check-in` (issue #40): "Logged: headache (day 2). Thanks for reporting." or "Thanks for checking in.", a "What happens next" line per symptom (neck or face swelling: CMO only), and a routine streak that counts check-ins, with symptom days as done and paused days that never reset, over 14 day cells. The days before the first real check-in are a 13-day synthetic history, labelled as such; PVT sessions are real, exercise and fluid counters synthetic. Missing: marking a sick or rest day, real exercise and fluid counters (F17), the streak on home.
 
 #### F14. Surgeon packet with comms delay · Must
 - **What:** a summary for the doctor on Earth: flagged items, readings with sources, the astronaut's own notes, in standard FHIR format. A timeline shows when it leaves and when it arrives, e.g. "one-way delay 14 min 05 s".
