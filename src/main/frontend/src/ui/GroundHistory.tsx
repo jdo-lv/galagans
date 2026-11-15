@@ -25,7 +25,7 @@ function contentsText(items: PacketItem[]): string {
 
 function PacketTable({ packets, now }: { packets: StoredPacket[]; now: Date }) {
   return (
-    <table className="packet-table">
+    <table className="packet-table packet-history">
       <thead>
         <tr>
           <th scope="col">Built</th>
