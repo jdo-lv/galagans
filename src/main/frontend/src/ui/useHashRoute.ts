@@ -30,6 +30,8 @@ export function voiceHref(target: VoiceTarget): string {
       return PVT_HASH
     case 'packet':
       return PACKET_HREF
+    case 'check-in':
+      return CHECK_IN_HASH
   }
 }
 

@@ -15,6 +15,8 @@ import {
   type ScaleStep,
 } from '../domain/checkInSteps'
 import type { CheckIn } from '../domain/checkIn'
+import type { CheckInForm } from '../domain/ports'
+import type { StepAnswer } from '../domain/voice'
 import { CheckInComplete } from './CheckInComplete'
 import { InfoIcon } from './icons'
 import { READING_ICONS } from './readingIcons'
@@ -77,6 +79,14 @@ function answersOf(state: State): Answers {
   return answers
 }
 
+/** The ids not yet picked are added; "None of these" gives way to a symptom. */
+function added(symptoms: State['symptoms'], ids: string[]): string[] {
+  const picked = symptoms === 'none' ? [] : symptoms
+  return [...picked, ...ids.filter((id) => !picked.includes(id))]
+}
+
+const LAST = CHECK_IN_STEPS.length - 1
+
 function toggled(symptoms: State['symptoms'], id: string | 'none'): State['symptoms'] {
   if (id === 'none') return symptoms === 'none' ? [] : 'none'
   const picked = symptoms === 'none' ? [] : symptoms
@@ -86,8 +96,19 @@ function toggled(symptoms: State['symptoms'], id: string | 'none'): State['sympt
 /**
  * The morning check-in at #/check-in: one question per step (mockup 06), then its completion (mockup 09, #40).
  * Nothing is stored until save. `onSaved` refreshes home; Cancel and Done leave through `onExit`.
+ * While a question shows, `registerForm` gives voice (#64) the same moves as the buttons; `onTouchSaved` follows a save by tap.
  */
-export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit: () => void }) {
+export function CheckInScreen({
+  onSaved,
+  onExit,
+  onTouchSaved,
+  registerForm,
+}: {
+  onSaved: () => void
+  onExit: () => void
+  onTouchSaved: () => void
+  registerForm: (form: CheckInForm | undefined) => void
+}) {
   const { recorder, streakReader, checkInPrefill } = useServices()
   const [openedAt] = useState(() => streakReader.now())
   const [saved, setSaved] = useState<CheckIn>()
@@ -97,14 +118,18 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
   const [save, setSave] = useState<'idle' | 'saving' | 'failed'>('idle')
   const promptRef = useRef<HTMLHeadingElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  // The step on screen when the prefill resolves, which the mount effect's closure can't see.
-  const shownIndex = useRef(0)
+  // What is on screen right now, which voice reads between renders (and which the prefill effect's closure can't see).
+  const shown = useRef({ index: 0, state: EMPTY, saving: false })
+  const [prefillSettled] = useState(() => {
+    let settle = () => {}
+    return { promise: new Promise<void>((resolve) => (settle = resolve)), settle: () => settle() }
+  })
   const headingId = useId()
   const promptId = useId()
   const errorId = useId()
 
   const step = CHECK_IN_STEPS[index]
-  const last = index === CHECK_IN_STEPS.length - 1
+  const last = index === LAST
   const saving = save === 'saving'
   const prefill = prefillShown(step, state)
 
@@ -115,60 +140,121 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
     let live = true
     checkInPrefill.read(openedAt).then(
       (read) => {
-        if (!live) return
-        const from = shownIndex.current
-        setState((s) => withPrefill(s, read, from))
+        if (live) update(withPrefill(shown.current.state, read, shown.current.index))
+        prefillSettled.settle()
       },
-      () => {},
+      prefillSettled.settle,
     )
     return () => {
       live = false
     }
   }, [checkInPrefill, openedAt])
 
+  function update(next: State) {
+    shown.current.state = next
+    setState(next)
+  }
+
   function go(to: number) {
-    shownIndex.current = to
+    shown.current.index = to
     setError(undefined)
     setSave('idle')
     setIndex(to)
   }
 
-  async function finish(final: State) {
+  async function finish(final: State): Promise<'saved' | 'failed'> {
+    shown.current.saving = true
     setSave('saving')
     let checkIn: CheckIn
     try {
       checkIn = await recorder.record(toDraft(answersOf(final)))
     } catch {
+      shown.current.saving = false
       setSave('failed')
-      return
+      return 'failed'
     }
     setSaved(checkIn)
     onSaved()
+    return 'saved'
   }
 
-  function advance(final: State) {
-    if (last) void finish(final)
-    else go(index + 1)
+  async function advance(final: State): Promise<'moved' | 'saved' | 'failed'> {
+    if (shown.current.index === LAST) return finish(final)
+    go(shown.current.index + 1)
+    return 'moved'
   }
 
-  function onNext(event: FormEvent) {
-    event.preventDefault()
-    if (saving) return
-    if (step.kind === 'number') {
-      const result = checkNumber(step, state.raw[step.field] ?? '', inputRef.current?.validity.badInput ?? false)
+  /** Next →, or "Save check-in" on the last step. */
+  async function submit(): Promise<'moved' | 'refused' | 'saved' | 'failed'> {
+    const { index: at, state: now, saving: busy } = shown.current
+    if (busy) return 'failed'
+    const row = CHECK_IN_STEPS[at]
+    if (row.kind === 'number') {
+      const result = checkNumber(row, now.raw[row.field] ?? '', inputRef.current?.validity.badInput ?? false)
       if ('error' in result) {
         setError(result.error)
         inputRef.current?.focus()
-        return
+        return 'refused'
       }
     }
-    advance(state)
+    return advance(now)
   }
 
-  function onSkip() {
-    const next = without(step, state)
-    setState(next)
-    advance(next)
+  function skip() {
+    const next = without(CHECK_IN_STEPS[shown.current.index], shown.current.state)
+    update(next)
+    return advance(next)
+  }
+
+  function fill(answer: StepAnswer) {
+    const { index: at, state: now } = shown.current
+    const row = CHECK_IN_STEPS[at]
+    if (answer.kind === 'value' && row.kind === 'number') update({ ...now, raw: { ...now.raw, [row.field]: String(answer.value) } })
+    else if (answer.kind === 'value' && row.kind === 'scale') update({ ...now, picks: { ...now.picks, [row.field]: answer.value } })
+    else if (answer.kind === 'symptoms' && row.kind === 'choices') {
+      update({ ...now, symptoms: answer.symptoms === 'none' ? 'none' : added(now.symptoms, answer.symptoms) })
+    }
+  }
+
+  // One stable object for voice: its methods read the latest closures, so a voice session can hold it across renders.
+  const moves = useRef<CheckInForm>(null!)
+  useEffect(() => {
+    moves.current = {
+      current: () => ({ index: shown.current.index, prefilled: prefillShown(CHECK_IN_STEPS[shown.current.index], shown.current.state) !== undefined }),
+      prefillSettled: prefillSettled.promise,
+      fill,
+      next: submit,
+      skip: async () => (await skip()) as 'moved' | 'saved' | 'failed',
+      back: () => shown.current.index > 0 && go(shown.current.index - 1),
+      cancel: () => {
+        // Cleared now, not after the next render, so voice never answers a screen that is gone.
+        registerForm(undefined)
+        onExit()
+      },
+    }
+  })
+  const [form] = useState<CheckInForm>(() => ({
+    current: () => moves.current.current(),
+    prefillSettled: prefillSettled.promise,
+    fill: (answer) => moves.current.fill(answer),
+    next: () => moves.current.next(),
+    skip: () => moves.current.skip(),
+    back: () => moves.current.back(),
+    cancel: () => moves.current.cancel(),
+  }))
+  useEffect(() => {
+    if (saved) return
+    registerForm(form)
+    return () => registerForm(undefined)
+  }, [saved, form, registerForm])
+
+  async function onNext(event: FormEvent) {
+    event.preventDefault()
+    if ((await submit()) === 'saved') onTouchSaved()
+  }
+
+  async function onSkip() {
+    if ((await skip()) === 'saved') onTouchSaved()
   }
 
   if (saved) return <CheckInComplete checkIn={saved} openedAt={openedAt} onDone={onExit} />
@@ -203,7 +289,7 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
               device={prefill && { source: prefill.source, age: formatAge(prefill.recordedAt, openedAt) }}
               inputRef={inputRef}
               errorId={error ? errorId : undefined}
-              onChange={(raw) => setState({ ...state, raw: { ...state.raw, [step.field]: raw } })}
+              onChange={(raw) => update({ ...state, raw: { ...state.raw, [step.field]: raw } })}
             />
           )}
           {step.kind === 'number' && error && (
@@ -218,7 +304,7 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
               picked={state.picks[step.field]}
               disabled={saving}
               labelledBy={promptId}
-              onPick={(n) => setState({ ...state, picks: { ...state.picks, [step.field]: n } })}
+              onPick={(n) => update({ ...state, picks: { ...state.picks, [step.field]: n } })}
             />
           )}
           {step.kind === 'choices' && (
@@ -227,7 +313,7 @@ export function CheckInScreen({ onSaved, onExit }: { onSaved: () => void; onExit
               symptoms={state.symptoms}
               disabled={saving}
               labelledBy={promptId}
-              onToggle={(id) => setState({ ...state, symptoms: toggled(state.symptoms, id) })}
+              onToggle={(id) => update({ ...state, symptoms: toggled(state.symptoms, id) })}
             />
           )}
         </div>

@@ -33,7 +33,7 @@ function setup(online: boolean) {
     routineReader,
     streakReader: new StreakReader(repository),
     random: () => 0,
-    voiceSession: voiceFakes({ recorder, statusReader, routineReader }).voiceSession,
+    voiceSession: voiceFakes({ statusReader, routineReader }).voiceSession,
     ...packetFakes(readingsReader, connectivity).services,
     checkInPrefill: new CheckInPrefill(device.observations),
   }
