@@ -49,6 +49,8 @@ The pending and failed streak reads, the offline save and the skipped-day run ca
 
 The screen follows the right column of [09-reporting-win.png](../../ideas/mockups/09-reporting-win.png); the symptom step on its left is #29's step 6, whose hint now adds "Logging a symptom always counts as a completed check-in." The issue mock is [40-reporting-win.mock.html](40-reporting-win.mock.html).
 
+The mock HTML predates the level tokens of [#33](33-alert-levels.md), so it no longer renders as its committed PNG.
+
 | Deviation | Reason |
 |---|---|
 | No conference date and no "Open agenda →" | No conference agenda (F23) or schedule exists yet. |

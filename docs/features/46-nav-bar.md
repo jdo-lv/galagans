@@ -35,7 +35,7 @@ Under the pointer, Home keeps its inverse pill and icon colour (AC23).
 ![Hover on the current link](img/46-hover.png)
 
 ### Keyboard focus on Messages, Home current (1280 px, light)
-The 2 px accent focus ring around the focused link (AC24).
+The 2 px `--color-focus` ring around the focused link (AC24); since #47 that is the text colour, not the old accent.
 ![Keyboard focus](img/46-focus.png)
 
 ### Reaction test (1280 px, light)

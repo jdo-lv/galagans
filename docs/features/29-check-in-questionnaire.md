@@ -54,6 +54,8 @@ One `CheckIn` per save: `heartRateBpm`, `spo2Percent`, `sleepHours`, `kss` and `
 
 The screen follows [06-questionnaire.png](../../ideas/mockups/06-questionnaire.png): step tabs, instrument line, question, hint, big number buttons with words, and Back · Skip line · Skip · Next. The issue mock is [29-check-in-questionnaire.mock.html](29-check-in-questionnaire.mock.html). Colours and sizes come from [ui-guidelines.md](../../ideas/ui-guidelines.md).
 
+The mock HTML predates the level tokens of [#33](33-alert-levels.md), so it no longer renders as its committed PNG.
+
 | Deviation | Reason |
 |---|---|
 | Six steps: heart rate and SpO₂ come first, and the sleep diary asks hours only | F1 lists heart rate and SpO₂ in the daily check-in, and the inline form that took them is gone. The full RST diary would need five new fields. |

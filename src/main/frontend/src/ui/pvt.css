@@ -1,4 +1,4 @@
-/* PVT test screens (issue #16, mock docs/features/img/16-mock.png). Never a status colour: a slow response isn't a caution. */
+/* PVT test screens (issue #16, mock docs/features/img/16-mock.png). Never a status colour: a slow response isn't a level. */
 .pvt-head {
   display: flex;
   justify-content: space-between;

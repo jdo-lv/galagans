@@ -2,16 +2,34 @@ import { useEffect, useId, useRef } from 'react'
 import { formatAge, formatStaleAge } from '../application/formatAge'
 import { lensMark, type Hazard } from '../domain/hazards'
 import type { Rule, SystemStatus } from '../domain/rules'
-import { ChevronIcon } from './icons'
+import {
+  ChevronIcon,
+  LevelCheckIcon,
+  LevelEmergencyIcon,
+  LevelTreatIcon,
+  LevelWatchDownIcon,
+  LevelWatchUpIcon,
+  type AppIcon,
+} from './icons'
 import { systemHref } from './useHashRoute'
 import './status.css'
 import type { StatusListState } from './useSystemStatuses'
 
-/** Words and glyphs of the level badges (ideas/alert-levels.md "Icon" column). */
-function watchGlyph(rule?: Rule): string {
-  if (rule?.above !== undefined) return '↗ '
-  if (rule?.below !== undefined) return '↘ '
-  return ''
+const LEVEL_WORDS: Record<Rule['status'], string> = { watch: 'Watch', check: 'Check', treat: 'Treat', emergency: 'Emergency' }
+
+/** The icon of a level (ideas/alert-levels.md "Icon" column); Watch has one only when its rule gives a direction. */
+export function levelIcon(level: SystemStatus['state'], rule?: Rule): AppIcon | undefined {
+  switch (level) {
+    case 'watch':
+      if (rule?.above !== undefined) return LevelWatchUpIcon
+      return rule?.below !== undefined ? LevelWatchDownIcon : undefined
+    case 'check':
+      return LevelCheckIcon
+    case 'treat':
+      return LevelTreatIcon
+    case 'emergency':
+      return LevelEmergencyIcon
+  }
 }
 
 export function Badge({ state, rule }: { state: SystemStatus['state']; rule?: Rule }) {
@@ -22,15 +40,14 @@ export function Badge({ state, rule }: { state: SystemStatus['state']; rule?: Ru
       return <span className="badge badge--quiet">No recent data</span>
     case 'nominal':
       return <span className="badge badge--nominal">✓ Nominal</span>
-    case 'watch':
-      return <span className="badge badge--watch">{`${watchGlyph(rule)}WATCH`}</span>
-    case 'check':
-      return <span className="badge badge--check">▲ CHECK</span>
-    case 'treat':
-      return <span className="badge badge--treat">✚ TREAT</span>
-    case 'emergency':
-      return <span className="badge badge--emergency">⬣ EMERGENCY</span>
   }
+  const Icon = levelIcon(state, rule)
+  return (
+    <span className={`badge badge--${state}`}>
+      {Icon && <Icon size={18} />}
+      {LEVEL_WORDS[state]}
+    </span>
+  )
 }
 
 function StatusRow({ status, now, lens }: { status: SystemStatus; now: Date; lens: Hazard | null }) {

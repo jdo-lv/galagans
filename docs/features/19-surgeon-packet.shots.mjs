@@ -75,10 +75,10 @@ async function shotOf(page, selector, path, margin = 16) {
   writeFileSync(path, Buffer.from(data, 'base64'))
 }
 
-// No packet yet: the live contents with the SpO₂ caution row, then the confirm step.
+// No packet yet: the live contents with the SpO₂ check row, then the confirm step.
 let page = await open({ clock: { h: 7, m: 31 } })
 await page.shot(img('no-packet'))
-await shotOf(page, '.packet-table', img('caution-row'))
+await shotOf(page, '.packet-table', img('check-row'))
 await typeNote(page, NOTE)
 await clickButton(page, 'Send packet')
 await page.sleep(300)

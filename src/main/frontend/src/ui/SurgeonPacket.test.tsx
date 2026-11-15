@@ -177,7 +177,7 @@ describe('Next packet contents', () => {
     await openWithContents({ seed: [stored('a', ago(10), { spo2Percent: 92 })] })
 
     const { status, value, source } = cells('SpO₂')
-    expect(within(status).getByText('▲ CHECK')).toHaveClass('badge', 'badge--check')
+    expect(within(status).getByText('Check')).toHaveClass('badge', 'badge--check')
     expect(within(status).getByText('rule · SPO-01')).toHaveClass('tag', 'tag--rule')
     const tier = within(status).getByText('CMO')
     expect(tier).toHaveClass('pill')
@@ -191,7 +191,7 @@ describe('Next packet contents', () => {
     await openWithContents({ seed: [stored('a', ago(10), { spo2Percent: 88 })] })
 
     const { status } = cells('SpO₂')
-    expect(within(status).getByText('⬣ EMERGENCY')).toHaveClass('badge', 'badge--emergency')
+    expect(within(status).getByText('Emergency')).toHaveClass('badge', 'badge--emergency')
     expect(within(status).getByText('rule · SPO-02')).toHaveClass('tag--rule')
     expect(within(status).getByText('Urgent ground')).toHaveClass('pill')
   })
@@ -233,7 +233,7 @@ describe('Next packet contents', () => {
 
   it.each([
     [268, '✓ Nominal', null],
-    [312, '▲ CHECK', 'rule · COG-01'],
+    [312, 'Check', 'rule · COG-01'],
   ])('AC12: with its rule row (COG-01, #17), Reaction time %i ms is rated %s', async (medianMs, badge, ruleTag) => {
     await openWithContents({ seed: [stored('a', ago(10), { pvtMedianMs: medianMs, pvtLapses: 0, pvtFalseStarts: 0 })] })
 
@@ -273,8 +273,8 @@ describe('Next packet contents', () => {
   })
 
   it.each([
-    [125, 'badge badge--watch', '↗ WATCH', 'rule · BP-01', 'Self-care'],
-    [150, 'badge badge--treat', '✚ TREAT', 'rule · BP-04', 'CMO'],
+    [125, 'badge badge--watch', 'Watch', 'rule · BP-01', 'Self-care'],
+    [150, 'badge badge--treat', 'Treat', 'rule · BP-04', 'CMO'],
   ])('#43 AC11: Blood pressure %s/70 → "%s" badge from its rule, rule tag and tier pill', async (systolic, className, text, ruleTag, tier) => {
     await openWithContents({ observationSeed: [bp('systolicMmHg', systolic), bp('diastolicMmHg', 70)] })
 
@@ -322,7 +322,7 @@ describe('Next packet contents', () => {
     s.repository.items.set('b', { checkIn: stored('b', at(7, 32).toISOString(), { spo2Percent: 92 }), pending: false })
     act(() => vi.advanceTimersByTime(60_000))
 
-    expect(await within(contents()).findByText('▲ CHECK')).toBeInTheDocument()
+    expect(await within(contents()).findByText('Check')).toBeInTheDocument()
     expect(cells('SpO₂').value).toHaveTextContent('just now')
   })
 })

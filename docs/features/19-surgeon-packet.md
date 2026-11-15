@@ -23,8 +23,8 @@ Seeded check-ins for every shot: SpO₂ 92 %, heart rate 63 bpm and sleep 5.5 h 
 ### Arrived (packet sent at 07:31, clock 07:46: arrival 07:45:05 has passed, the earliest reply is current)
 ![Arrived](img/19-arrived.png)
 
-### Caution row (SpO₂ 92 %: caution badge, rule tag, tier pill; heart rate and sleep are "—" not rated; mood is stale; reaction time 268 ms is nominal under COG-01)
-![Caution row](img/19-caution-row.png)
+### Check row (SpO₂ 92 %: check badge, rule tag, tier pill; heart rate and sleep are "—" not rated; mood is stale; reaction time 268 ms is nominal under COG-01)
+![Check row](img/19-check-row.png)
 
 ### Light theme (in transit)
 ![Light theme](img/19-in-transit-light.png)
@@ -36,7 +36,7 @@ Seeded check-ins for every shot: SpO₂ 92 %, heart rate 63 bpm and sleep 5.5 h 
 
 ## Mockup and deviations
 
-The screen follows the issue mock [19-mock.png](img/19-mock.png) and [19-mock-390.png](img/19-mock-390.png) ([source](19-surgeon-packet.mock.html)), which adapts [03-surgeon-packet.png](../../ideas/mockups/03-surgeon-packet.png). Styles follow [ui-guidelines.md](../../ideas/ui-guidelines.md) §5 "Surgeon packet", "Pills and tags" and "Level badge". The badges are still today's caution and warning: the 0–5 levels of [alert-levels.md](../../ideas/alert-levels.md) reach the packet through `Badge` when they are built.
+The screen follows the issue mock [19-mock.png](img/19-mock.png) and [19-mock-390.png](img/19-mock-390.png) ([source](19-surgeon-packet.mock.html)), which adapts [03-surgeon-packet.png](../../ideas/mockups/03-surgeon-packet.png). Styles follow [ui-guidelines.md](../../ideas/ui-guidelines.md) §5 "Surgeon packet", "Pills and tags" and "Level badge". The badges are still today's check and emergency: the 0–5 levels of [alert-levels.md](../../ideas/alert-levels.md) reach the packet through `Badge` when they are built.
 
 Deviations from mockup 03, all decided in the issue:
 

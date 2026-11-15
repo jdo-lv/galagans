@@ -65,7 +65,7 @@ describe('SystemStatusList', () => {
     setup().renderApp()
     await submitSpo2(92)
 
-    expect(await within(list()).findByText('▲ CHECK')).toBeInTheDocument()
+    expect(await within(list()).findByText('Check')).toBeInTheDocument()
     expect(row()).toHaveClass('status-check')
     expectNoExplanation(row())
   })
@@ -74,14 +74,14 @@ describe('SystemStatusList', () => {
     setup().renderApp()
     await submitSpo2(90)
 
-    expect(await within(list()).findByText('▲ CHECK')).toBeInTheDocument()
+    expect(await within(list()).findByText('Check')).toBeInTheDocument()
   })
 
-  it('AC6: 88 is an emergency with its ⬣ glyph; the explanation lives on the detail screen (#9)', async () => {
+  it('AC6: 88 is an emergency with its icon; the explanation lives on the detail screen (#9)', async () => {
     setup().renderApp()
     await submitSpo2(88)
 
-    expect(await within(list()).findByText('⬣ EMERGENCY')).toBeInTheDocument()
+    expect(await within(list()).findByText('Emergency')).toBeInTheDocument()
     expect(row()).toHaveClass('status-emergency')
     expectNoExplanation(row())
   })
@@ -92,7 +92,7 @@ describe('SystemStatusList', () => {
       seed: [reading('a', '2026-11-14T08:00:00Z', 88), reading('b', '2026-11-14T10:00:00Z')],
     }).renderApp()
 
-    expect(await within(list()).findByText('⬣ EMERGENCY')).toBeInTheDocument()
+    expect(await within(list()).findByText('Emergency')).toBeInTheDocument()
     expect(row()).toHaveTextContent('SpO₂ 88 %')
     expect(row()).toHaveTextContent('2 h ago · manual')
   })
@@ -118,13 +118,13 @@ describe('SystemStatusList', () => {
   it('AC9: a reading exactly 24 h old still shows its warning', async () => {
     setup({ now: '2026-11-14T08:00:00Z', seed: [reading('a', '2026-11-13T08:00:00Z', 88)] }).renderApp()
 
-    expect(await within(list()).findByText('⬣ EMERGENCY')).toBeInTheDocument()
+    expect(await within(list()).findByText('Emergency')).toBeInTheDocument()
   })
 
   it('AC10: an out-of-range newer value is ignored', async () => {
     setup({ seed: [reading('a', '2026-11-14T09:00:00Z', 0), reading('b', '2026-11-14T08:00:00Z', 92)] }).renderApp()
 
-    expect(await within(list()).findByText('▲ CHECK')).toBeInTheDocument()
+    expect(await within(list()).findByText('Check')).toBeInTheDocument()
     expect(row()).toHaveTextContent('SpO₂ 92 %')
   })
 
@@ -139,7 +139,7 @@ describe('SystemStatusList', () => {
     renderApp()
     await submitSpo2(88)
 
-    expect(await within(list()).findByText('⬣ EMERGENCY')).toBeInTheDocument()
+    expect(await within(list()).findByText('Emergency')).toBeInTheDocument()
     expect(gateway.sent).toHaveLength(0)
   })
 
@@ -218,7 +218,7 @@ describe('Body systems with placeholders (#4)', () => {
     setup({ placeholders: mockStatuses }).renderApp()
     await submitSpo2(88)
 
-    expect(await within(list()).findByText('⬣ EMERGENCY')).toBeInTheDocument()
+    expect(await within(list()).findByText('Emergency')).toBeInTheDocument()
     const [respiratory, ...others] = within(list()).getAllByRole('listitem')
     expectNoExplanation(respiratory)
     expect(others).toHaveLength(9)
@@ -269,8 +269,8 @@ describe('Body systems rows link to the detail (#9)', () => {
   const link = () => within(row()).getByRole('link')
 
   it.each([
-    [92, '▲ CHECK', SPO01],
-    [88, '⬣ EMERGENCY', SPO02],
+    [92, 'Check', SPO01],
+    [88, 'Emergency', SPO02],
   ])('AC1/AC2: SpO₂ %s makes the row a link to the detail, without the explanation', async (value, word, rule) => {
     setup().renderApp()
     await submitSpo2(value)
@@ -319,7 +319,7 @@ describe('Cognition from the PVT (#17)', () => {
   it('AC4: a PVT of 312 is a caution, second row, linked, and the placeholder is gone', async () => {
     await show([pvt('p', ago(10 * 60_000), 312)])
 
-    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CHECK'))
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('Check'))
     expect(cognition()).toHaveTextContent('PVT median 312 ms · 10 min ago · in-app test')
     expect(within(cognition()).getByRole('link')).toHaveAttribute('href', '#/systems/Cognition')
     expect(list()).not.toHaveTextContent('PVT 268 ms · within your baseline')
@@ -328,7 +328,7 @@ describe('Cognition from the PVT (#17)', () => {
   it('AC2 (#28): 305 is a caution against the 265 ms baseline + 15 % (304.75 ms)', async () => {
     await show([pvt('p', NOW, 305)])
 
-    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CHECK'))
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('Check'))
     expect(within(cognition()).getByRole('link')).toHaveAttribute('href', '#/systems/Cognition')
   })
 
@@ -342,7 +342,7 @@ describe('Cognition from the PVT (#17)', () => {
   it('AC6: 306 is a caution', async () => {
     await show([pvt('p', NOW, 306)])
 
-    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CHECK'))
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('Check'))
   })
 
   it('AC7: no PVT is no data; the four placeholders stay (#43 moved Cardiovascular and Immune to rules)', async () => {
@@ -366,7 +366,7 @@ describe('Cognition from the PVT (#17)', () => {
   it('AC9: exactly 4 days old still shows its caution', async () => {
     await show([pvt('p', ago(4 * DAY), 312)])
 
-    await vi.waitFor(() => expect(cognition()).toHaveTextContent('▲ CHECK'))
+    await vi.waitFor(() => expect(cognition()).toHaveTextContent('Check'))
     expect(cognition()).toHaveTextContent('4 d ago')
   })
 
@@ -384,28 +384,37 @@ describe('Cognition from the PVT (#17)', () => {
   })
 })
 
-describe('Badge levels (#43)', () => {
+describe('Badge levels (#43, #33)', () => {
   const rule = (id: string) => RULES.find((r) => r.id === id)!
   const badge = (state: SystemStatus['state'], r?: Rule) => render(<Badge state={state} rule={r} />).container.firstElementChild!
+  const T01: Rule = { ...rule('BP-01'), id: 'T-01', above: undefined, below: 100 }
 
   it.each([
-    ['watch', rule('BP-01'), 'badge badge--watch', '↗ WATCH'],
-    ['watch', { ...rule('BP-01'), above: undefined, below: 40 }, 'badge badge--watch', '↘ WATCH'],
-    ['watch', undefined, 'badge badge--watch', 'WATCH'],
-    ['check', rule('SPO-01'), 'badge badge--check', '▲ CHECK'],
-    ['treat', rule('BP-04'), 'badge badge--treat', '✚ TREAT'],
-    ['emergency', rule('SPO-02'), 'badge badge--emergency', '⬣ EMERGENCY'],
-  ] as const)('AC7: %s → class "%s" text "%s"', (state, r, className, text) => {
+    ['watch', rule('BP-01'), 'badge badge--watch', 'Watch', 'tabler-icon-trending-up'],
+    ['watch', T01, 'badge badge--watch', 'Watch', 'tabler-icon-trending-down'],
+    ['watch', undefined, 'badge badge--watch', 'Watch', undefined],
+    ['check', rule('SPO-01'), 'badge badge--check', 'Check', 'tabler-icon-alert-triangle'],
+    ['treat', rule('BP-04'), 'badge badge--treat', 'Treat', 'tabler-icon-first-aid-kit'],
+    ['emergency', rule('SPO-02'), 'badge badge--emergency', 'Emergency', 'tabler-icon-alert-octagon'],
+  ] as const)('#33 AC1: %s badge, case %#', (state, r, className, text, icon) => {
     const element = badge(state, r)
+    const svg = element.querySelector('svg')
 
     expect([element.className, element.textContent]).toEqual([className, text])
+    if (icon === undefined) {
+      expect(svg).toBeNull()
+      return
+    }
+    expect(svg).toHaveClass(icon)
+    expect(svg).toHaveAttribute('aria-hidden', 'true')
+    expect(svg).toHaveAttribute('width', '18')
   })
 
   it.each([
     ['nominal', 'badge badge--nominal', '✓ Nominal'],
     ['stale', 'badge badge--quiet', 'No recent data'],
     ['no-data', 'badge badge--quiet', 'No data'],
-  ] as const)('AC7: %s is unchanged', (state, className, text) => {
+  ] as const)('#33 AC1: %s is unchanged', (state, className, text) => {
     const element = badge(state)
 
     expect([element.className, element.textContent]).toEqual([className, text])

@@ -5,7 +5,7 @@
 //   const page = await openPage('http://localhost:8080/')
 //   await page.evaluate(`location.hash = '#/check-in'`); await page.fill('input[name=heartRate]', '63')
 //   await page.click('.check-in button[type=submit]')  // or saveCheckIn(page, { spo2: 88 }) from tools/checkin-shots.mjs
-//   await page.shot('docs/features/img/1-warning.png'); await page.close()
+//   await page.shot('docs/features/img/1-emergency.png'); await page.close()
 import { spawn } from 'node:child_process'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -14,7 +14,7 @@ import { join } from 'node:path'
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
-export async function openPage(url, { width = 1280, height = 800, port = 9333, settleMs = 1500 } = {}) {
+export async function openPage(url, { width = 1280, height = 800, port = Number(process.env.CDP_PORT ?? 9333), settleMs = 1500 } = {}) {
   const chrome = spawn(CHROME, [
     '--headless=new', '--hide-scrollbars', '--force-device-scale-factor=1', `--remote-debugging-port=${port}`,
     `--user-data-dir=${mkdtempSync(join(tmpdir(), 'cdp-'))}`, `--window-size=${width},${height}`, 'about:blank',

@@ -8,18 +8,18 @@ The "Body systems" card on home lists all ten systems of mockup 01. Respiratory 
 
 Since [#17](17-cognition-rule.md) Cognition is no longer a placeholder: it comes from the PVT (rule COG-01) and shows "No data" until a test is done.
 
-Since [#9](9-detail-screen.md) the explanation is no longer inline: the Respiratory row links to its detail screen when it is in caution or warning. Since [#29](29-check-in-questionnaire.md) values are entered through the check-in steps, not a form on home. The screenshots below predate both changes.
+Since [#9](9-detail-screen.md) the explanation is no longer inline: the Respiratory row links to its detail screen when it is in check or emergency. Since [#29](29-check-in-questionnaire.md) values are entered through the check-in steps, not a form on home. The screenshots below were retaken in [#33](33-alert-levels.md) and show both.
 
 ### No check-ins yet
 Respiratory shows "No data"; the nine placeholders follow in mockup 01 order.
 ![No data](img/4-no-data.png)
 
-### Caution (SpO₂ 92, rule SPO-01)
+### Check (SpO₂ 92, rule SPO-01)
 Only Respiratory changes; the placeholders stay quiet.
-![Caution](img/4-caution.png)
+![Check](img/4-check.png)
 
-### Warning (SpO₂ 88, rule SPO-02)
-![Warning](img/4-warning.png)
+### Emergency (SpO₂ 88, rule SPO-02)
+![Emergency](img/4-emergency.png)
 
 "Status unavailable" (rules or storage fail to load, so no rows at all, placeholders included) can't be triggered from the running app; it's covered by `SystemStatusList.test.tsx` (AC6).
 
@@ -29,7 +29,7 @@ The list follows the "Body systems" panel of [01-body-map.png](../../ideas/mocku
 
 | Deviation | Reason |
 |---|---|
-| Cognition, Cabin air and Sleep are "✓ Nominal", not CAUTION | A caution must show what / why / how decided / what next, and a placeholder has no rule behind it. The `Placeholder` type only allows nominal. |
-| Values reworded: Cognition "PVT 268 ms · within your baseline", Cabin air "CO₂ 2.3 mmHg (1-h avg)", Sleep "7.1 h last night", Vision "self-test done Wed · no changes" | The mockup's wording describes cautions or missed data, which contradicts a nominal row. CO₂ 2.3 mmHg is the median ISS cabin value ([data-sources.md](../../research/data-sources.md)). |
+| Cognition, Cabin air and Sleep are "✓ Nominal", not Check | A check must show what / why / how decided / what next, and a placeholder has no rule behind it. The `Placeholder` type only allows nominal. |
+| Values reworded: Cognition "PVT 268 ms · within your baseline", Cabin air "CO₂ 2.3 mmHg (1-h avg)", Sleep "7.1 h last night", Vision "self-test done Wed · no changes" | The mockup's wording describes checks or missed data, which contradicts a nominal row. CO₂ 2.3 mmHg is the median ISS cabin value ([data-sources.md](../../research/data-sources.md)). |
 | Respiratory row added at the top; no hazard-lens marks or dimming | Respiratory is the system with rules (#1); the hazard lens is a later feature. |
 | No body figure, hazard lens, routine or readings panels | Out of scope for #4. |

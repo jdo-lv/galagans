@@ -13,7 +13,7 @@ The app connects to `ws(s)://<page host>/ws/devices` and works without it. **Ret
 ## Screens
 
 ### Home, oximeter SpO₂ 91 %, pulse 61 bpm (`src: synthetic`), published while Home was open
-Respiratory, the figure's Lungs and the SpO₂ tile show ▲ CAUTION (rule SPO-01); the row, the SpO₂ tile and the Heart rate tile carry the `oximeter · synthetic` source tag.
+Respiratory, the figure's Lungs and the SpO₂ tile show Check with its alert-triangle icon (rule SPO-01); the row, the SpO₂ tile and the Heart rate tile carry the `oximeter · synthetic` source tag.
 ![Home with an oximeter reading](img/22-home-oximeter.png)
 
 ## Mockup and deviations

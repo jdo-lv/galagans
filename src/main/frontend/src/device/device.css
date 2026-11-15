@@ -33,17 +33,17 @@ body {
   fill: var(--color-text);
 }
 
-/* Level 1 To do: the blue of the due pill */
+/* Level 1 To do: `--color-todo` */
 .dot--blue {
-  fill: var(--color-accent);
+  fill: var(--color-todo);
 }
 
 .dot--yellow {
-  fill: var(--color-caution);
+  fill: var(--color-check);
 }
 
 .dot--red {
-  fill: var(--color-warning);
+  fill: var(--color-alert);
 }
 
 /* Empty slot: olive ring, as on the board */

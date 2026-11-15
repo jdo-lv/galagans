@@ -1,24 +1,24 @@
 # #9 Body system detail screen
 
-A body system in caution or warning on Home is now a link (whole row, with a chevron). It opens a detail screen with the status and latest reading, a 7-day SpO₂ trend chart with the rule thresholds, the explanation (what, why it matters, how decided, source), what to do next and who to involve. It works offline: the detail reads the same rules and local check-ins as Home. The inline explanation that #1 put in the Home row is gone. Feature F5 in [features.md](../../ideas/features.md); issue [#9](https://github.com/jdo-lv/galagans/issues/9).
+A body system in check or emergency on Home is now a link (whole row, with a chevron). It opens a detail screen with the status and latest reading, a 7-day SpO₂ trend chart with the rule thresholds, the explanation (what, why it matters, how decided, source), what to do next and who to involve. It works offline: the detail reads the same rules and local check-ins as Home. The inline explanation that #1 put in the Home row is gone. Feature F5 in [features.md](../../ideas/features.md); issue [#9](https://github.com/jdo-lv/galagans/issues/9).
 
-**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080. Enter SpO₂ 92 through Check-in in the navigation bar and the check-in steps ([#29](29-check-in-questionnaire.md)), then click the Respiratory row. Or open http://localhost:8080/#/systems/Respiratory directly. **Retake the screenshots** with the app running: `target/node/node docs/features/9-detail-screen.shots.mjs` ([script](9-detail-screen.shots.mjs)). The script writes a week of SpO₂ check-ins into IndexedDB so the chart has history.
+**Try it:** `mvn clean verify`, then `mvn spring-boot:run`, open http://localhost:8080. Enter SpO₂ 92 through Check-in in the navigation bar and the check-in steps ([#29](29-check-in-questionnaire.md)), then click the Respiratory row. Or open http://localhost:8080/#/systems/Respiratory directly. **Retake the screenshots** with the app running: `target/node/node docs/features/9-detail-screen.shots.mjs` ([script](9-detail-screen.shots.mjs)). The script writes a week of SpO₂ check-ins into IndexedDB so the chart has history. The 7-day charts need a build with `VITE_DEMO_MODE=false` (DEMO_MODE, on by default since [#43](43-demo-mock-modes.md), shows the last minute).
 
 ## Screens
 
 ### Home: a flagged row links to the detail (SpO₂ 92 now, a week of history)
 ![Home](img/9-home.png)
 
-### Caution (SpO₂ 92, rule SPO-01)
-CMO is the selected tier. Caution points carry "▲".
-![Caution](img/9-caution.png)
+### Check (SpO₂ 92, rule SPO-01)
+CMO is the selected tier. The newest check point carries the alert-triangle marker.
+![Check](img/9-check.png)
 
-### Warning (SpO₂ 88, rule SPO-02)
-"Urgent ground" is selected. The warning point carries "!".
-![Warning](img/9-warning.png)
+### Emergency (SpO₂ 88, rule SPO-02)
+"Urgent ground" is selected. The emergency point carries the alert-octagon marker.
+![Emergency](img/9-emergency.png)
 
-### Nominal (SpO₂ 96 after a caution yesterday)
-The detail stays reachable by its link, shows "No caution or warning now." and only the chart.
+### Nominal (SpO₂ 96 after a check yesterday)
+The detail stays reachable by its link, shows "Nothing to act on now." and only the chart.
 ![Nominal](img/9-nominal.png)
 
 ### Stale (newest reading 93 %, 1 day old)
@@ -28,18 +28,20 @@ The newest point is hollow with no marker. Old data shows its age, never an alar
 ### No data
 ![No data](img/9-no-data.png)
 
-### Light theme (caution)
-![Caution, light](img/9-caution-light.png)
+### Light theme (check)
+![Check, light](img/9-check-light.png)
 
-### Phone, 390 px (caution)
+### Phone, 390 px (check)
 The columns stack. The chart keeps 16 px labels by scrolling sideways, and it opens on the newest readings, so the Y-axis labels are scrolled out of view at first.
-![Caution, phone](img/9-caution-phone.png)
+![Check, phone](img/9-check-phone.png)
 
 "Detail unavailable" (rules or storage fail to load) can't be triggered from the running app; it's covered by `SystemDetail.test.tsx` (AC35, AC36). Unknown routes (`#/systems/Sleep`, `#/foo`) go back to Home (AC8). Cognition has its own detail since #17.
 
 ## Mockup and deviations
 
 Layout follows [02-detail.png](../../ideas/mockups/02-detail.png) and the issue mock [9-mock.png](img/9-mock.png) ([source](9-detail-screen.mock.html)). The header spans both columns. The chart and Explanation cards are on the left; What next and Who to involve are on the right, aligned with the chart card. Styles follow [ui-guidelines.md](../../ideas/ui-guidelines.md) "Detail screen" and "Charts". The screenshots are dark because the machine that took them is in dark mode.
+
+The mock HTML predates the level tokens of [#33](33-alert-levels.md), so it no longer renders as its committed PNG.
 
 | Deviation | Reason |
 |---|---|

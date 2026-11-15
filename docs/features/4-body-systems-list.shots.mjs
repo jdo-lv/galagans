@@ -11,7 +11,7 @@ const page = await openPage(process.env.APP_URL ?? 'http://localhost:8080/', { h
 const save = (spo2) => saveCheckIn(page, { spo2 })
 
 await page.shot(img('no-data'))
-for (const [spo2, state] of [[92, 'caution'], [88, 'warning']]) {
+for (const [spo2, state] of [[92, 'check'], [88, 'emergency']]) {
   await save(spo2)
   await page.shot(img(state))
 }
