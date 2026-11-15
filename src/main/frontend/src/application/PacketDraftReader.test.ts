@@ -36,4 +36,18 @@ describe('PacketDraftReader', () => {
 
     expect((await draft.read()).rules).toEqual([])
   })
+
+  it('#35 AC20: the packet heart-rate item is not rated by the CV-03 drift row', async () => {
+    const history = new FakeRepository()
+    for (const day of [12, 13, 14]) {
+      history.items.set(`hr-${day}`, { checkIn: { id: `hr-${day}`, recordedAt: `2026-11-${day}T07:00:00Z`, heartRateBpm: 70, symptoms: [] }, pending: false })
+    }
+    const draft = new PacketDraftReader(new LatestReadingsReader(new FakeRuleSource(RULES), combinedHistory(history), () => new Date('2026-11-14T09:30:00Z')))
+
+    const item = (await draft.read()).items.find((i) => i.key === 'heartRate')!
+
+    expect(item).toMatchObject({ state: 'nominal' })
+    expect(item).not.toHaveProperty('ruleId')
+    expect(item).not.toHaveProperty('tier')
+  })
 })
