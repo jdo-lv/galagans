@@ -51,6 +51,24 @@ describe('IndexedDbPacketRepository', () => {
     expect((await repository.latest())?.id).toBe('b')
   })
 
+  it('AC19 (#57): listAll() is every packet, newest builtAt first, sent or queued', async () => {
+    const repository = newRepository()
+    await repository.add(A)
+    await repository.add(B)
+    await repository.markSent('a', '2026-11-14T07:35:00.000Z')
+
+    const all = await repository.listAll()
+
+    expect(all.map((p) => [p.id, p.state])).toEqual([
+      ['b', 'queued'],
+      ['a', 'sent'],
+    ])
+  })
+
+  it('AC19 (#57): listAll() is [] when the store is empty', async () => {
+    expect(await newRepository().listAll()).toEqual([])
+  })
+
   it('AC40: packets live in their own database, so the check-in database is untouched', async () => {
     const checkIns = new IndexedDbCheckInRepository('crew-health')
     await checkIns.add(checkIn('c1'))

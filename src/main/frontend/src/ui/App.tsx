@@ -1,6 +1,8 @@
 import { useCallback, useEffect } from "react";
+import { AddEntryScreen } from "./AddEntryScreen";
 import { AppHeader } from "./AppHeader";
 import { CheckInScreen } from "./CheckInScreen";
+import { GroundHistory } from "./GroundHistory";
 import { GroundLinkPill } from "./GroundLinkPill";
 import { HazardLens } from "./HazardLens";
 import { LatestReadings } from "./LatestReadings";
@@ -10,6 +12,7 @@ import { PvtTest } from "./PvtTest";
 import { StatisticsScreen } from "./StatisticsScreen";
 import { StatusBar } from "./StatusBar";
 import { SurgeonPacket } from "./SurgeonPacket";
+import { SymptomLogScreen } from "./SymptomLogScreen";
 import { SystemDetail } from "./SystemDetail";
 import { SystemStatusList } from "./SystemStatusList";
 import { TodaysRoutine } from "./TodaysRoutine";
@@ -87,6 +90,18 @@ export function App() {
       ) : route.kind === "statistics" ? (
         <main>
           <StatisticsScreen />
+        </main>
+      ) : route.kind === "add" ? (
+        <main>
+          <AddEntryScreen />
+        </main>
+      ) : route.kind === "symptoms" ? (
+        <main>
+          <SymptomLogScreen />
+        </main>
+      ) : route.kind === "ground" ? (
+        <main>
+          <GroundHistory />
         </main>
       ) : route.kind === "pvt" ? (
         <main>

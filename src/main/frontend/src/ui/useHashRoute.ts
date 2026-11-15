@@ -13,6 +13,12 @@ export const CHECK_IN_HASH = '#/check-in'
 
 export const STATISTICS_HASH = '#/statistics'
 
+export const ADD_HASH = '#/add'
+
+export const SYMPTOMS_HASH = '#/symptoms'
+
+export const GROUND_HASH = '#/ground'
+
 /** The hash of a screen a voice command opens. */
 export function voiceHref(target: VoiceTarget): string {
   switch (target.screen) {
@@ -34,9 +40,12 @@ export type Route =
   | { kind: 'packet' }
   | { kind: 'check-in' }
   | { kind: 'statistics' }
+  | { kind: 'add' }
+  | { kind: 'symptoms' }
+  | { kind: 'ground' }
   | { kind: 'unknown' }
 
-const LEAVES_TO_HOME: Route['kind'][] = ['system', 'pvt', 'packet', 'check-in', 'statistics']
+const LEAVES_TO_HOME: Route['kind'][] = ['system', 'pvt', 'packet', 'check-in', 'statistics', 'add', 'symptoms', 'ground']
 
 export function parseHash(hash: string): Route {
   if (hash === '' || hash === '#' || hash === '#/') return { kind: 'home' }
@@ -44,6 +53,9 @@ export function parseHash(hash: string): Route {
   if (hash === PACKET_HREF) return { kind: 'packet' }
   if (hash === CHECK_IN_HASH) return { kind: 'check-in' }
   if (hash === STATISTICS_HASH) return { kind: 'statistics' }
+  if (hash === ADD_HASH) return { kind: 'add' }
+  if (hash === SYMPTOMS_HASH) return { kind: 'symptoms' }
+  if (hash === GROUND_HASH) return { kind: 'ground' }
   const rest = hash.startsWith(PREFIX) ? hash.slice(PREFIX.length) : ''
   if (rest === '' || rest.includes('/')) return { kind: 'unknown' }
   try {
@@ -55,7 +67,7 @@ export function parseHash(hash: string): Route {
 
 /**
  * The screen from `location.hash`. `returnedHome` is true when the user came back from a detail, the PVT, the packet, the
- * check-in or Statistics, so Home can move focus; a redirect from an unknown route doesn't count.
+ * check-in, Statistics, Add entry, Log symptoms or Ground, so Home can move focus; a redirect from an unknown route doesn't count.
  */
 export function useHashRoute(): { route: Route; returnedHome: boolean; goHome: (options?: { returned?: boolean }) => void } {
   const [state, setState] = useState(() => ({ route: parseHash(window.location.hash), returnedHome: false }))

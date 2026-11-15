@@ -27,9 +27,10 @@ import {
   IconEye,
   IconFirstAidKit,
   IconGauge,
+  IconGift,
   IconHeart,
   IconHeartbeat,
-  IconHome,
+  IconMan,
   IconMist,
   IconInfoCircle,
   IconLock,
@@ -41,6 +42,7 @@ import {
   IconMoon,
   IconPill,
   IconPlayerPause,
+  IconPlus,
   IconRadioactive,
   IconRefresh,
   IconReportMedical,
@@ -184,6 +186,8 @@ export const PausedIcon = /* @__PURE__ */ decorative(IconPlayerPause)
 export const LightThemeIcon = /* @__PURE__ */ decorative(IconSun)
 export const DarkThemeIcon = /* @__PURE__ */ decorative(IconMoon)
 export const VoiceIcon = /* @__PURE__ */ decorative(IconMicrophone)
-/** Navigation bar (#46): Home and Statistics; Check-in and Messages reuse QuestionnaireIcon and GroundLinkIcon. */
-export const HomeIcon = /* @__PURE__ */ decorative(IconHome)
+/** Navigation bar (#57): Home (the crew member, as on the wireframe), Stats, the centre + and Rewards; Ground reuses GroundLinkIcon. */
+export const HomeIcon = /* @__PURE__ */ decorative(IconMan)
 export const StatisticsIcon = /* @__PURE__ */ decorative(IconChartBar)
+export const AddEntryIcon = /* @__PURE__ */ decorative(IconPlus)
+export const RewardsIcon = /* @__PURE__ */ decorative(IconGift)

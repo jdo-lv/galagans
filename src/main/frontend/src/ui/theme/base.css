@@ -143,8 +143,8 @@ a:hover {
   min-height: var(--target-min);
 }
 
-/* Navigation bar (mockups 14 and 15): a pill centred on a full-width strip in the page background, so scrolled
-   cards never show around it. No side padding: the 328 px pill fits any screen from 328 px. */
+/* Navigation bar (mockups 14 and 15, five items since #57): a pill centred on a full-width strip in the page background,
+   so scrolled cards never show around it. No side padding: the 366 px phone pill fits a 375 px screen. */
 .nav-bar {
   position: fixed;
   left: 0;
@@ -157,9 +157,11 @@ a:hover {
   transition: var(--transition-theme);
 }
 
+/* 16 px between items, below --gap-targets: the team's exception so five items fit a phone (ui-guidelines §5) */
 .nav-bar__items {
   display: flex;
-  gap: var(--gap-targets);
+  align-items: center;
+  gap: var(--space-4);
   margin: 0;
   padding: var(--space-2);
   list-style: none;
@@ -168,21 +170,74 @@ a:hover {
   border-radius: var(--radius-pill);
 }
 
+/* Icon over word. Rewards (not available yet) takes the same box. */
 .nav-bar a,
-.nav-bar a:hover {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: var(--target-min);
+.nav-bar a:hover,
+.nav-bar__soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 76px;
+  min-height: var(--target-min);
   border-radius: var(--radius-pill);
   color: var(--color-text);
+  font-size: var(--text-body);
+  font-weight: 500;
+  text-decoration: none;
 }
 
-/* After the hover rule, so the current link keeps the inverse fill under the pointer */
-.nav-bar a[aria-current='page'],
-.nav-bar a[aria-current='page']:hover {
+.nav-bar__soon {
+  color: var(--color-text-muted-on-surface);
+  cursor: not-allowed;
+}
+
+/* After the hover rule, so the current link keeps the inverse fill under the pointer. `true`: a screen reached from it. */
+.nav-bar a:is([aria-current='page'], [aria-current='true']),
+.nav-bar a:is([aria-current='page'], [aria-current='true']):hover {
   background: var(--color-inverse-bg);
   color: var(--color-inverse-text);
+}
+
+/* The centre +: a raised round button pulled 16 px into the pill's padding above and below, always filled */
+.nav-bar a.nav-bar__add,
+.nav-bar a.nav-bar__add:hover {
+  width: 68px;
+  height: 68px;
+  margin-block: calc(-1 * var(--space-4));
+  border-radius: 50%;
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+}
+
+/* Already filled, so being current shows as a ring; keyboard focus still shows the focus ring */
+.nav-bar a.nav-bar__add:is([aria-current='page'], [aria-current='true']) {
+  outline: 2px solid var(--color-edge-on-surface);
+  outline-offset: 2px;
+}
+
+.nav-bar a.nav-bar__add:focus-visible {
+  outline: var(--focus-ring);
+}
+
+/* Phones: each link as wide as its word, at least 52 px, so five items fit 375 px. The word now reaches the box's
+   sides, so the current fill gets item corners: round ends would leave the word's ends off the fill, unreadable. */
+@media (max-width: 599px) {
+  .nav-bar a,
+  .nav-bar a:hover,
+  .nav-bar__soon {
+    width: auto;
+    min-width: var(--target-min);
+    padding-inline: 0;
+    border-radius: var(--radius-item);
+  }
+
+  .nav-bar a.nav-bar__add,
+  .nav-bar a.nav-bar__add:hover {
+    width: 56px;
+    height: 56px;
+  }
 }
 
 .brand-mark {
@@ -481,6 +536,25 @@ ul.tile-grid {
   background: transparent;
   font-weight: 700;
   cursor: pointer;
+}
+
+/* A link styled as a button (#57), with its icon beside the word */
+a.button-primary,
+a.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  text-decoration: none;
+}
+
+/* Otherwise a:hover would set the text colour on the inverse fill */
+a.button-primary:hover {
+  color: var(--color-inverse-text);
+}
+
+a.button-secondary:hover {
+  color: var(--color-text);
 }
 
 .button-primary:disabled,

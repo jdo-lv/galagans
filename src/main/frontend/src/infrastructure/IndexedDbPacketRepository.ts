@@ -44,4 +44,8 @@ export class IndexedDbPacketRepository implements PacketRepository {
     const cursor = await (await this.db).transaction(STORE).store.index('byBuiltAt').openCursor(null, 'prev')
     return cursor?.value
   }
+
+  async listAll(): Promise<StoredPacket[]> {
+    return (await (await this.db).getAllFromIndex(STORE, 'byBuiltAt')).reverse()
+  }
 }
