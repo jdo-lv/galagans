@@ -127,7 +127,8 @@ export function App() {
           </div>
         </main>
       )}
-      <NavBar current={route.kind} />
+      {/* Like voice, the bar stays off the timed reaction test: a stray tap would end it. */}
+      {route.kind !== "pvt" && <NavBar current={route.kind} />}
     </div>
   );
 }

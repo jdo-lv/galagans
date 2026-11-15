@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { setup } from '../test/renderApp'
+import { reading, setup } from '../test/renderApp'
 
 const at = (hash: string) => window.history.replaceState(null, '', hash)
 const findBar = () => screen.findByRole('navigation', { name: 'Main' })
@@ -54,5 +54,34 @@ describe('Navigation bar (#46)', () => {
       expect(other).not.toHaveAttribute('aria-current')
     }
     expect(window.location.hash).toBe(hash)
+  })
+
+  it('AC4: no link is current on a system detail', async () => {
+    at('#/systems/Respiratory')
+    setup({ seed: [reading('r1', '2026-11-14T09:00:00Z', 92)] }).renderApp()
+
+    await screen.findByRole('region', { name: 'Respiratory detail' })
+
+    for (const link of links()) expect(link).not.toHaveAttribute('aria-current')
+  })
+
+  it('AC5: no bar on the reaction test', async () => {
+    at('#/pvt')
+    setup().renderApp()
+
+    await screen.findByRole('heading', { name: 'Reaction test' })
+
+    expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull()
+  })
+
+  it('AC6: the bar comes back with Home current after the reaction test', async () => {
+    at('#/pvt')
+    setup().renderApp()
+    await screen.findByRole('heading', { name: 'Reaction test' })
+
+    window.location.hash = '#/'
+
+    await findBar()
+    expect(barLink('Home')).toHaveAttribute('aria-current', 'page')
   })
 })
