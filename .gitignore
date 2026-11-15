@@ -11,4 +11,3 @@ src/main/resources/static/
 
 ### Claude Code scratch (issue drafts) ###
 .claude/tmp/
-.claude/skills/canva-deck/scripts/node_modules/

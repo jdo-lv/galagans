@@ -44,7 +44,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Issue workflow
 
-- Skills in `.claude/skills/`: `feature-evaluate` (read-only verdict on a suggested feature: adopt, modify, merge, pitch only or reject), `issue-create` (spec an issue, checked by the `spec-skeptic` agent; two or more requests run in parallel, one `issue-creator` agent per request in its own git worktree, questions relayed by the main session), `issue-implement` (test first, one AC at a time, open a PR), `issue-orchestrate` (several issues in parallel: one `issue-implementer` agent per issue in its own git worktree, in conflict-free waves), `issue-merge` (gates: build green, mergeable, no changes requested), `solid-principles` (project coding rules), `canva-deck` (slide spec → PPTX → import into Canva via the Connect API; setup in its `scripts/README.md`). Tracker and labels: `.claude/skills/issue-create/TRACKER.md`.
+- Skills in `.claude/skills/`: `feature-evaluate` (read-only verdict on a suggested feature: adopt, modify, merge, pitch only or reject), `issue-create` (spec an issue, checked by the `spec-skeptic` agent; two or more requests run in parallel, one `issue-creator` agent per request in its own git worktree, questions relayed by the main session), `issue-implement` (test first, one AC at a time, open a PR), `issue-orchestrate` (several issues in parallel: one `issue-implementer` agent per issue in its own git worktree, in conflict-free waves), `issue-merge` (gates: build green, mergeable, no changes requested), `solid-principles` (project coding rules). Tracker and labels: `.claude/skills/issue-create/TRACKER.md`.
 - No code-review agents yet; the PR review is human.
 
 ## Layout
