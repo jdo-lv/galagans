@@ -29,7 +29,7 @@ export const STALE_AFTER_MS = 24 * 60 * 60 * 1000
 /** The detail chart shows readings from the last 7 days (issue #9). */
 export const CHART_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 
-/** One threshold row. Exactly one of `below` (value < below) or `above` (value > above). */
+/** One threshold row. Exactly one of `below` (value < below), `above` (value > above), or `atLeast` with `days` (daily resting value ≥ atLeast on `days` UTC days running). */
 export interface Rule {
   id: string
   system: string
@@ -40,6 +40,9 @@ export interface Rule {
   validMax: number
   below?: number
   above?: number
+  /** Set with `days`, only from a `riseAboveBaseline` row (baseline + rise). */
+  atLeast?: number
+  days?: number
   status: Exclude<Status, 'nominal'>
   tier: string
   what: string

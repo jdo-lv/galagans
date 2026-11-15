@@ -20,6 +20,7 @@ describe('forSpeech', () => {
     expect(forSpeech('38% of 30-day limit')).toBe('38 percent of 30-day limit')
     expect(forSpeech('self-test done Wed · no changes')).toBe('self-test done Wednesday, no changes')
     expect(forSpeech('CO₂ 2.3 mmHg (1-h avg)')).toBe('CO2 2.3 millimetres of mercury (1-hour average)')
+    expect(forSpeech('(63 → 64 bpm, n = 8)')).toBe('(63, then 64 beats per minute, n equals 8)')
     expect(forSpeech('PVT 268 ms · within your baseline')).toBe('PVT 268 milliseconds, within your baseline')
     expect(forSpeech('NASA\'s range is 18–27 °C and 25–75 % RH')).toBe('NASA\'s range is 18 to 27 degrees Celsius and 25 to 75 percent relative humidity')
   })

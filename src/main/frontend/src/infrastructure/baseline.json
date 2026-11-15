@@ -1,3 +1,4 @@
 {
-  "pvtMedianMs": { "value": 265, "source": "synthetic" }
+  "pvtMedianMs": { "value": 265, "source": "synthetic" },
+  "heartRateBpm": { "value": 61, "source": "synthetic" }
 }

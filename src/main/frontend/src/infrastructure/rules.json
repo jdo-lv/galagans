@@ -372,5 +372,23 @@
     "howDecided": "Rule RAD-03: dose rate > 0.9 mSv/day → level 3, check. NASA-STD-3001 [V1 4033] surface habitat design limit, not a crew exposure limit (health-indicators §19).",
     "next": "Tell the CMO today. The CMO checks the dose trend and shielding with ground.",
     "source": "research/health-indicators.md §19"
+  },
+  {
+    "id": "CV-03",
+    "system": "Cardiovascular",
+    "indicator": "heartRateBpm",
+    "label": "Resting HR",
+    "unit": "bpm",
+    "validMin": 20,
+    "validMax": 250,
+    "riseAboveBaseline": 8,
+    "days": 3,
+    "status": "watch",
+    "tier": "Self-care",
+    "what": "Your resting heart rate has been {limit} bpm or more on {days} days running, {rise} bpm or more above your pre-flight baseline ({baseline} bpm).",
+    "why": "24-h average heart rate barely changed in flight (63 → 64 bpm, n = 8, pre-flight vs flight days 85–192 on the ISS), so a rise that lasts several days stands out against your own baseline.",
+    "howDecided": "Rule CV-03: lowest heart rate of the day ≥ {limit} bpm (pre-flight baseline {baseline} bpm + {rise}) on {days} days running → level 2, watch. The baseline is a synthetic pre-loaded profile; +{rise} bpm for {days} days is a team heuristic, not a NASA rule.",
+    "next": "Re-measure at rest, seated, 5 min after waking. Drink to your fluid target, no caffeine 6–12 h before sleep, and protect your sleep window. A fever or new symptoms → tell the CMO today.",
+    "source": "research/health-indicators.md §1 [S26]; research/countermeasures.md [C6]; ideas/crew-health-companion.md check-and-act table"
   }
 ]

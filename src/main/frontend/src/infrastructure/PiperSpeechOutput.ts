@@ -28,6 +28,7 @@ const SPOKEN: [RegExp, string | ((match: string) => string)][] = [
   [/\s*→\s*/g, ', then '],
   [/\s*%/g, ' percent'],
   [/\s\+\s/g, ' plus '],
+  [/\s=\s/g, ' equals '],
   [/(\d) ?bpm\b/g, '$1 beats per minute'],
   [/(\d) ?mmHg\b/g, '$1 millimetres of mercury'],
   [/(\d) ?mSv\/day\b/g, '$1 millisieverts per day'],
