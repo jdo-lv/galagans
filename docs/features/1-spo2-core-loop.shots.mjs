@@ -10,7 +10,7 @@ const page = await openPage(process.env.APP_URL ?? 'http://localhost:8080/')
 const save = (spo2) => saveCheckIn(page, { spo2 })
 
 await page.shot(img('no-data'))
-for (const [spo2, state] of [[96, 'nominal'], [92, 'caution'], [88, 'warning']]) {
+for (const [spo2, state] of [[96, 'nominal'], [92, 'check'], [88, 'emergency']]) {
   await save(spo2)
   await page.shot(img(state))
 }
@@ -30,11 +30,11 @@ await page.evaluate(`new Promise((resolve, reject) => {
 await page.reload()
 await page.shot(img('stale'))
 
-// Offline: the warning still shows and the check-in waits to sync.
+// Offline: the emergency still shows and the check-in waits to sync.
 await page.send('Network.enable')
 await page.send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: -1, uploadThroughput: -1 })
 await page.sleep(300)
 await save(88)
-await page.shot(img('offline-warning'))
+await page.shot(img('offline-emergency'))
 
 await page.close()

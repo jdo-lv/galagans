@@ -2,10 +2,10 @@
 
 The operator's console for the demo: a second page, `/simulator.html`, that plays the spacecraft's devices while another screen shows the crew app. Each of the six devices (pulse oximeter, wrist bracelet, BP cuff, thermometer, environment node, dosimeter) has one section with an input per metric, an **Every N s** frequency with **Start**/**Stop**, and **Send now** for one reading. A send always uses the values in the inputs at that moment, so editing a value while a device is sending changes its next reading. Readings travel over the **device link**, a WebSocket relay at `/ws/devices` in the Spring Boot app that replaces Mosquitto, so a tablet that opens the app at the machine's LAN IP gets them with no broker or Docker. Issue [#25](https://github.com/jdo-lv/galagans/issues/25); feature F8 in [features.md](../../ideas/features.md).
 
-**Try it:** `mvn clean verify`, then `mvn spring-boot:run`. Open http://localhost:8080/simulator.html on the laptop and http://&lt;machine IP&gt;:8080 on the tablet (or another tab). Click **Start** on each device: every Latest readings tile fills in with its device tag (SpO₂ 97 %, heart rate 63 bpm, BP 108/70, 36.8 °C, cabin CO₂ 2.3 mmHg, 22 °C, 45 % RH, 0.5 mSv/day, 95 mGy-Eq). Then try a caution with **Send now**:
-- Pulse oximeter SpO₂ 91 → Respiratory ▲ CAUTION (SPO-01).
-- Environment node CO₂ 3.4, cabin temp 28 or humidity 80 → Cabin air ▲ CAUTION (CAB-01, CAB-03, CAB-05); the row shows the worst of the three.
-- Dosimeter 30-day BFO dose 130 → Radiation ▲ CAUTION (RAD-01); above 250 → ⬣ WARNING (RAD-02).
+**Try it:** `mvn clean verify`, then `mvn spring-boot:run`. Open http://localhost:8080/simulator.html on the laptop and http://&lt;machine IP&gt;:8080 on the tablet (or another tab). Click **Start** on each device: every Latest readings tile fills in with its device tag (SpO₂ 97 %, heart rate 63 bpm, BP 108/70, 36.8 °C, cabin CO₂ 2.3 mmHg, 22 °C, 45 % RH, 0.5 mSv/day, 95 mGy-Eq). Then try a check with **Send now**:
+- Pulse oximeter SpO₂ 91 → Respiratory Check (SPO-01).
+- Environment node CO₂ 3.4, cabin temp 28 or humidity 80 → Cabin air Check (CAB-01, CAB-03, CAB-05); the row shows the worst of the three.
+- Dosimeter 30-day BFO dose 130 → Radiation Check (RAD-01); above 250 → Emergency (RAD-02).
 
 From a shell: `target/node/node tools/publish-reading.mjs 91 61` (oximeter only).
 

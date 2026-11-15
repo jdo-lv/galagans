@@ -1,4 +1,5 @@
 import type { ChartPoint, Indicator, Rule } from '../domain/rules'
+import { levelIcon } from './SystemStatusList'
 
 // Plot area in viewBox units.
 const LEFT = 72
@@ -11,19 +12,20 @@ const DAY = 24 * 60 * MINUTE
 /** Fixed Y axis per indicator [min, max, step], so threshold lines always show. */
 const Y_RANGE: Partial<Record<Indicator, [number, number, number]>> = { spo2Percent: [80, 100, 5], pvtMedianMs: [200, 400, 50] }
 
-/** Level glyphs from ideas/alert-levels.md "Icon" column; watch points by their rule's direction. */
-function marker({ status, rule }: ChartPoint): string | undefined {
-  switch (status) {
-    case 'watch':
-      return rule?.below !== undefined ? '↘' : '↗'
-    case 'check':
-      return '▲'
-    case 'treat':
-      return '✚'
-    case 'emergency':
-      return '⬣'
-  }
+const MARKER_SIZE = 18
+
+/** Same level from the same rule: consecutive points like this form one run. */
+const sameRun = (a: ChartPoint, b: ChartPoint | undefined) => b !== undefined && a.status === b.status && a.rule?.id === b.rule?.id
+
+/** The level icon of the newest point of each run, so a reading per second doesn't stack markers. A stale point never has one. */
+function marker(points: ChartPoint[], i: number) {
+  const point = points[i]
+  if (point.status === 'stale' || sameRun(point, points[i + 1])) return undefined
+  return levelIcon(point.status, point.rule)
 }
+
+/** Above the point, or below it when above would be clipped by the top of the chart. */
+const markerY = (cy: number) => (cy - 30 >= 0 ? cy - 30 : cy + 12)
 
 /** "last 7 days", "last minute". */
 export function windowLabel(windowMs: number): string {
@@ -73,7 +75,7 @@ export function TrendChart({ rules, points, now, windowMs }: { rules: Rule[]; po
 
   const grid: number[] = []
   for (let v = min; v <= max; v += step) grid.push(v)
-  const drawn = points.map((p) => ({ ...p, cx: x(Date.parse(p.recordedAt)), cy: y(p.value), mark: marker(p) }))
+  const drawn = points.map((p, i) => ({ ...p, cx: x(Date.parse(p.recordedAt)), cy: y(p.value), Marker: marker(points, i) }))
 
   return (
     <svg
@@ -129,11 +131,7 @@ export function TrendChart({ rules, points, now, windowMs }: { rules: Rule[]; po
           >
             <title>{`${p.value} ${unit} · ${p.status} · ${timeLabel.format(Date.parse(p.recordedAt)).replace(',', '')} UTC · ${p.source}`}</title>
           </circle>
-          {p.mark && (
-            <text className="chart-marker" x={p.cx} y={p.cy - 12} textAnchor="middle">
-              {p.mark}
-            </text>
-          )}
+          {p.Marker && <p.Marker className="chart-marker" size={MARKER_SIZE} x={p.cx - MARKER_SIZE / 2} y={markerY(p.cy)} />}
         </g>
       ))}
     </svg>

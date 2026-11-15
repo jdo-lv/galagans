@@ -62,10 +62,6 @@
   outline-offset: 2px;
 }
 
-.card a.status-link {
-  color: inherit;
-}
-
 /* Hazard lens (issue #14): a bar on affected rows, quiet text on the rest. A flagged row outside the hazard gets neither. */
 .status-list > li.lens-affected {
   padding-left: var(--space-4);

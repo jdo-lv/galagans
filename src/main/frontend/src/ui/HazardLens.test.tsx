@@ -162,15 +162,15 @@ describe('Hazard lens', () => {
     expect(lens().ownerDocument.querySelector('.lens-dimmed')).toBeNull()
     rows().forEach((li) => expect(within(li).getByText('Affected by Distance from Earth')).toBeInTheDocument())
     items().forEach((li) => expect(within(li).getByText('Affected by Distance from Earth')).toBeInTheDocument())
-    expect(rowOf('Respiratory')).toHaveTextContent('▲ CHECK')
-    expect(itemOf('Respiratory')).toHaveTextContent('▲ CHECK')
+    expect(rowOf('Respiratory')).toHaveTextContent('Check')
+    expect(itemOf('Respiratory')).toHaveTextContent('Check')
     expect(captionLines()[1]).toBe('Affects: all systems, indirectly')
     expect(list().lastElementChild).toHaveTextContent('Lens on: all systems marked. Status is unchanged by the lens.')
   })
 
   it.each([
-    [92, '▲ CHECK'],
-    [88, '⬣ EMERGENCY'],
+    [92, 'Check'],
+    [88, 'Emergency'],
   ])('AC9: SpO₂ %i % and Gravity fields → Respiratory row and Lungs item keep "%s", unmarked and undimmed', async (spo2, badge) => {
     home({ spo2 }).renderApp()
     await within(list()).findByText('Respiratory')
@@ -252,8 +252,8 @@ describe('Hazard lens', () => {
 
   it.each([
     ['SpO₂ 97 %', 'none', [reading('r1', NOW, 97)]],
-    ['SpO₂ 92 %', '▲ CHECK', [reading('r1', NOW, 92)]],
-    ['SpO₂ 88 %', '⬣ EMERGENCY', [reading('r1', NOW, 88)]],
+    ['SpO₂ 92 %', 'Check', [reading('r1', NOW, 92)]],
+    ['SpO₂ 88 %', 'Emergency', [reading('r1', NOW, 88)]],
     ['no SpO₂ reading', 'none', []],
     ['SpO₂ 92 % recorded 24 h 1 min ago', 'none', [reading('r1', '2026-11-13T09:29:00Z', 92)]],
   ])('AC17: %s → Lungs item badge: %s', async (_, badge, seed) => {
@@ -265,8 +265,8 @@ describe('Hazard lens', () => {
 
   it.each([
     [119, 'none'],
-    [125, '↗ WATCH'],
-    [150, '✚ TREAT'],
+    [125, 'Watch'],
+    [150, 'Treat'],
   ])('#43 AC10: systolic %s → Heart item badge: %s, flagged at levels 2–5', async (systolic, badge) => {
     const observationSeed = [
       {
@@ -343,7 +343,7 @@ describe('Hazard lens', () => {
 
 describe('Body figure with COG-01 (#17)', () => {
   it.each([
-    [312, '▲ CHECK'],
+    [312, 'Check'],
     [268, undefined],
   ])('AC17: a PVT of %s gives the Cognition label badge %s', async (ms, badge) => {
     setup({ now: NOW, placeholders: mockStatuses, seed: [pvt('p', NOW, ms)] }).renderApp()
