@@ -22,7 +22,18 @@ const queryRegion = (name: string) => within(detail()).queryByRole('region', { n
 const chart = () => detail().querySelector('svg[role="img"]') as SVGSVGElement
 const points = () => [...chart().querySelectorAll('circle.chart-point')]
 const titles = () => points().map((p) => p.querySelector('title')?.textContent)
-const markers = () => [...chart().querySelectorAll('text.chart-marker')].map((m) => m.textContent)
+/** The Tabler icon of each `svg.chart-marker`, e.g. "alert-triangle"; a `text.chart-marker` fails it. */
+const iconsOf = (scope: Element) => {
+  expect(scope.querySelectorAll('text.chart-marker')).toHaveLength(0)
+  return [...scope.querySelectorAll('svg.chart-marker')].map((m) => {
+    expect(m).toHaveAttribute('aria-hidden', 'true')
+    expect(m).toHaveAttribute('width', '18')
+    return [...m.classList].find((c) => c.startsWith('tabler-icon-'))?.replace('tabler-icon-', '')
+  })
+}
+const markers = () => iconsOf(chart())
+/** Each marker sits at x = cx − 9: the point it belongs to, by its cx. */
+const markerCx = (scope: Element) => [...scope.querySelectorAll('svg.chart-marker')].map((m) => Number(m.getAttribute('x')) + 9)
 
 async function openWith(seed: CheckIn[], options: Parameters<typeof baseSetup>[0] = {}) {
   go('#/systems/Respiratory')
@@ -238,7 +249,7 @@ describe('Detail chart', () => {
     ])
   })
 
-  it('AC23: caution points carry the class and a ▲ marker; one data line', async () => {
+  it('AC23, #33 AC4: check points carry the class, their run one check marker; one data line', async () => {
     await openWith(week())
 
     expect(points().map((p) => p.getAttribute('class'))).toEqual([
@@ -246,18 +257,93 @@ describe('Detail chart', () => {
       'chart-point chart-point--check',
       'chart-point chart-point--check',
     ])
-    expect(markers()).toEqual(['▲', '▲'])
+    expect(markers()).toEqual(['alert-triangle'])
+    expect(markerCx(chart())).toEqual([Number(points()[2].getAttribute('cx'))])
     expect(chart().querySelectorAll('polyline')).toHaveLength(1)
   })
 
-  it('AC24, #43 AC9: an emergency point carries the class and a ⬣ marker', async () => {
+  it('AC24, #43 AC9: an emergency point carries the class and an emergency marker', async () => {
     await openWith([reading('a', NOW, 88)])
 
     expect(points().map((p) => p.getAttribute('class'))).toEqual(['chart-point chart-point--emergency'])
-    expect(markers()).toEqual(['⬣'])
+    expect(markers()).toEqual(['alert-octagon'])
   })
 
-  it('#43 AC9: watch and treat points on the Cardiovascular chart, with ↗ and ✚ markers and level-word threshold labels', async () => {
+  it('#33 AC3: SpO₂ 97, 93, 88 → a check and an emergency marker', async () => {
+    await openWith([reading('a', '2026-11-08T08:00:00Z', 97), reading('b', '2026-11-13T08:15:00Z', 93), reading('c', '2026-11-14T09:20:00Z', 88)])
+
+    expect(markers()).toEqual(['alert-triangle', 'alert-octagon'])
+  })
+
+  it('#33 AC4: one marker per run of same-level points in the 1-minute window', async () => {
+    const at = (s: number, value: number) => reading(`r${s}`, `2026-11-14T09:20:0${s}Z`, value)
+    await openWith([at(0, 92), at(1, 92), at(2, 92), at(3, 97), at(4, 92)], { now: '2026-11-14T09:20:05Z', chartWindowMs: MIN })
+
+    const classes = points().map((p) => p.getAttribute('class'))
+    expect(classes.filter((c) => c === 'chart-point chart-point--check')).toHaveLength(4)
+    expect(classes.filter((c) => c === 'chart-point')).toHaveLength(1)
+    expect(markers()).toEqual(['alert-triangle', 'alert-triangle'])
+    expect(markerCx(chart())).toEqual([2, 4].map((i) => Number(points()[i].getAttribute('cx'))))
+  })
+
+  it('#33 AC4: a stale newest point ends the run and has no marker', async () => {
+    await openWith([reading('a', '2026-11-12T08:00:00Z', 92), reading('b', '2026-11-12T09:00:00Z', 92), reading('c', '2026-11-13T08:00:00Z', 92)])
+
+    expect(points()[2]).toHaveAttribute('class', 'chart-point chart-point--stale')
+    expect(markers()).toEqual(['alert-triangle'])
+    expect(markerCx(chart())).toEqual([Number(points()[1].getAttribute('cx'))])
+  })
+
+  it('#33 AC4: two watch points of different rules are two runs, each with its arrow', () => {
+    const BP01 = RULES.find((r) => r.id === 'BP-01')!
+    const T01 = { ...BP01, id: 'T-01', above: undefined, below: 100 }
+    const point = (s: number, value: number, rule: typeof BP01) =>
+      ({ recordedAt: `2026-11-14T09:20:0${s}Z`, value, source: 'manual', status: 'watch', rule }) as const
+    const { container } = render(
+      <TrendChart rules={[BP01, T01]} points={[point(0, 125, BP01), point(1, 95, T01)]} now={new Date('2026-11-14T09:20:05Z')} windowMs={MIN} />,
+    )
+
+    expect(iconsOf(container)).toEqual(['trending-up', 'trending-down'])
+  })
+
+  it('#33 AC3: a watch point with no rule has no marker', () => {
+    const BP01 = RULES.find((r) => r.id === 'BP-01')!
+    const { container } = render(
+      <TrendChart rules={[BP01]} points={[{ recordedAt: NOW, value: 125, source: 'manual', status: 'watch' }]} now={new Date(NOW)} windowMs={CHART_WINDOW_MS} />,
+    )
+
+    expect(iconsOf(container)).toEqual([])
+  })
+
+  it.each([
+    [400, 12],
+    [312, -30],
+  ])('#33 AC5: the Cognition marker of PVT %s sits at cy %s', (ms, offset) => {
+    const COG01 = RULES.find((r) => r.id === 'COG-01')!
+    const { container } = render(
+      <TrendChart
+        rules={[COG01]}
+        points={[{ recordedAt: '2026-11-14T09:20:00Z', value: ms, source: 'in-app test', status: 'check', rule: COG01 }]}
+        now={new Date(NOW)}
+        windowMs={CHART_WINDOW_MS}
+      />,
+    )
+    const point = container.querySelector('circle.chart-point')!
+    const marker = container.querySelector('svg.chart-marker')!
+
+    expect(Number(marker.getAttribute('x'))).toBeCloseTo(Number(point.getAttribute('cx')) - 9)
+    expect(Number(marker.getAttribute('y'))).toBeCloseTo(Number(point.getAttribute('cy')) + offset)
+  })
+
+  it('#33 AC6: a stale SpO₂ 92 is hollow with no marker', async () => {
+    await openWith([reading('a', '2026-11-13T08:00:00Z', 92)])
+
+    expect(points().map((p) => p.getAttribute('class'))).toEqual(['chart-point chart-point--stale'])
+    expect(chart().querySelectorAll('svg.chart-marker')).toHaveLength(0)
+    expect(chart().querySelectorAll('text.chart-marker')).toHaveLength(0)
+  })
+
+  it('#43 AC9: watch and treat points on the Cardiovascular chart, with trending-up and first-aid-kit markers and level-word threshold labels', async () => {
     const bp = (id: string, minutesAgo: number, systolic: number): Observation => ({
       resourceType: 'Observation', id: `bp-cuff:${id}:systolicMmHg`, status: 'final', code: { text: 'systolicMmHg' },
       valueQuantity: { value: systolic, unit: 'mmHg' }, effectiveDateTime: new Date(Date.parse(NOW) - minutesAgo * MIN).toISOString(),
@@ -274,18 +360,18 @@ describe('Detail chart', () => {
       'chart-point chart-point--watch',
       'chart-point chart-point--treat',
     ])
-    expect([...bpChart.querySelectorAll('text.chart-marker')].map((m) => m.textContent)).toEqual(['↗', '✚'])
+    expect(iconsOf(bpChart)).toEqual(['trending-up', 'first-aid-kit'])
     expect(bpChart).toHaveTextContent('BP-01 · > 119 mmHg watch')
     expect(bpChart).toHaveTextContent('BP-04 · > 139 mmHg treat')
   })
 
-  it('#43 AC9: a watch point of a "below" row gets ↘', () => {
+  it('#43 AC9: a watch point of a "below" row gets trending-down', () => {
     const rule = { ...RULES.find((r) => r.id === 'CV-02')!, id: 'T-01', status: 'watch' as const }
     const { container } = render(
       <TrendChart rules={[rule]} points={[{ recordedAt: NOW, value: 38, source: 'manual', status: 'watch', rule }]} now={new Date(NOW)} windowMs={CHART_WINDOW_MS} />,
     )
 
-    expect([...container.querySelectorAll('text.chart-marker')].map((m) => m.textContent)).toEqual(['↘'])
+    expect(iconsOf(container)).toEqual(['trending-down'])
   })
 
   it('AC25: threshold labels and the fixed 80–100 % grid', async () => {
