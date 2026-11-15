@@ -1,0 +1,101 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+/* Navigation bar states at real size, light and dark, with the tokens from src/ui/theme/tokens.css. */
+.light{--bg:#CFCFCF;--surface:#DADADA;--text:#1B1B1B;--muted:#52574E;--edge:#726F6C;--inv-bg:#1B1B1B;--inv-text:#DADADA;--accent:#1651B6}
+.dark{--bg:#1B1B1B;--surface:#52574E;--text:#DADADA;--muted:#868375;--edge:#868375;--inv-bg:#DADADA;--inv-text:#1B1B1B;--accent:#7FA6F0}
+.ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;display:block}
+.mono{font-family:'DM Mono',monospace;font-size:12.5px;color:#CFCFCF}
+h1{font-size:20px;font-weight:700}
+.sub{font-size:13px;color:#CFCFCF;margin-top:4px;line-height:1.45}
+.colh{position:absolute;top:92px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#CFCFCF}
+.theme{position:absolute;top:114px;width:450px;height:430px;border-radius:16px;background:var(--bg)}
+.dark.theme{border:1px solid #868375}
+.cell{height:86px;display:grid;place-items:center}
+.lbl{position:absolute;left:20px;width:300px}
+.lbl b{font-size:15px}
+.lbl div{margin-top:3px}
+
+.nav{display:flex;gap:18px;padding:8px;background:var(--surface);border:1px solid var(--edge);border-radius:999px}
+.nav a{width:64px;height:52px;border-radius:999px;display:grid;place-items:center;color:var(--text)}
+.nav a[aria-current]{background:var(--inv-bg);color:var(--inv-text)}
+.nav a.focus{outline:2px solid var(--accent);outline-offset:2px}
+
+.box{position:absolute;top:566px;height:212px;border:1px solid #2E2F2C;border-radius:16px;padding:14px 16px}
+.bh{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#CFCFCF}
+.icons{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.it{background:#3D403B;border-radius:12px;padding:10px 10px 9px}
+.it .ic{width:30px;height:30px}
+.it b{display:block;font-size:14px;margin-top:6px}
+.it .mono{display:block;font-size:11.5px;margin-top:2px;line-height:1.35}
+.alts{display:flex;gap:16px;margin-top:10px;font-size:12px;color:#CFCFCF;align-items:center}
+.alts span{display:flex;align-items:center;gap:6px}
+.alts .ic{width:20px;height:20px}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute">
+<symbol id="home" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></symbol>
+<symbol id="checkin" viewBox="0 0 24 24"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2"/><path d="M9 12l.01 0"/><path d="M13 12l2 0"/><path d="M9 16l.01 0"/><path d="M13 16l2 0"/></symbol>
+<symbol id="msg" viewBox="0 0 24 24"><path d="M8 9h8"/><path d="M8 13h6"/><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12"/></symbol>
+<symbol id="stats" viewBox="0 0 24 24"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6"/><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10"/><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14"/><path d="M4 20h14"/></symbol>
+<symbol id="satellite" viewBox="0 0 24 24"><path d="M3.707 6.293l2.586 -2.586a1 1 0 0 1 1.414 0l5.586 5.586a1 1 0 0 1 0 1.414l-2.586 2.586a1 1 0 0 1 -1.414 0l-5.586 -5.586a1 1 0 0 1 0 -1.414"/><path d="M6 10l-3 3l3 3l3 -3"/><path d="M10 6l3 -3l3 3l-3 3"/><path d="M12 12l1.5 1.5"/><path d="M14.5 17a2.5 2.5 0 0 0 2.5 -2.5"/><path d="M15 21a6 6 0 0 0 6 -6"/></symbol>
+<symbol id="histogram" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M20 18v3"/><path d="M16 16v5"/><path d="M12 13v8"/><path d="M8 16v5"/><path d="M3 11c6 0 5 -5 9 -5s3 5 9 5"/></symbol>
+<symbol id="clipcheck" viewBox="0 0 24 24"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2"/><path d="M9 14l2 2l4 -4"/></symbol>
+</svg>
+
+<div style="position:absolute;left:20px;top:20px;right:20px">
+  <h1>Navigation bar · icon only</h1>
+  <div class="sub">Bottom centre of every screen. Selected: inverse pill and <span class="mono">aria-current="page"</span>. The word is the link's <span class="mono">aria-label</span>. Targets 64 × 52 px, 18 px apart, icons 24 px.</div>
+</div>
+
+<span class="colh" style="left:20px">Screen shown · route</span>
+<span class="colh" style="left:340px">Light</span>
+<span class="colh" style="left:810px">Dark</span>
+
+<!-- Row labels -->
+<div class="lbl" style="top:132px"><b>Home</b><div class="mono">#/ · home page</div></div>
+<div class="lbl" style="top:218px"><b>Check-in</b><div class="mono">#/check-in · check-in screen</div></div>
+<div class="lbl" style="top:304px"><b>Messages</b><div class="mono">#/packet · ground link (surgeon packet)</div></div>
+<div class="lbl" style="top:390px"><b>Statistics</b><div class="mono">#/statistics · new, empty for now</div></div>
+<div class="lbl" style="top:476px"><b>Keyboard focus</b><div class="mono">on Messages, Home selected · 2 px accent ring</div></div>
+
+<!-- Five rows per theme: four selected states, then focus -->
+<div class="theme light" style="left:340px">
+  <div class="cell"><nav class="nav"><a aria-current="page"><svg class="ic"><use href="#home"/></svg></a><a><svg class="ic"><use href="#checkin"/></svg></a><a><svg class="ic"><use href="#satellite"/></svg></a><a><svg class="ic"><use href="#stats"/></svg></a></nav></div>
+  <div class="cell"><nav class="nav"><a><svg class="ic"><use href="#home"/></svg></a><a aria-current="page"><svg class="ic"><use href="#checkin"/></svg></a><a><svg class="ic"><use href="#satellite"/></svg></a><a><svg class="ic"><use href="#stats"/></svg></a></nav></div>
+  <div class="cell"><nav class="nav"><a><svg class="ic"><use href="#home"/></svg></a><a><svg class="ic"><use href="#checkin"/></svg></a><a aria-current="page"><svg class="ic"><use href="#satellite"/></svg></a><a><svg class="ic"><use href="#stats"/></svg></a></nav></div>
+  <div class="cell"><nav class="nav"><a><svg class="ic"><use href="#home"/></svg></a><a><svg class="ic"><use href="#checkin"/></svg></a><a><svg class="ic"><use href="#satellite"/></svg></a><a aria-current="page"><svg class="ic"><use href="#stats"/></svg></a></nav></div>
+  <div class="cell"><nav class="nav"><a aria-current="page"><svg class="ic"><use href="#home"/></svg></a><a><svg class="ic"><use href="#checkin"/></svg></a><a class="focus"><svg class="ic"><use href="#satellite"/></svg></a><a><svg class="ic"><use href="#stats"/></svg></a></nav></div>
+</div>
+<div class="theme dark" style="left:810px">
+  <div class="cell"><nav class="nav"><a aria-current="page"><svg class="ic"><use href="#home"/></svg></a><a><svg class="ic"><use href="#checkin"/></svg></a><a><svg class="ic"><use href="#satellite"/></svg></a><a><svg class="ic"><use href="#stats"/></svg></a></nav></div>
+  <div class="cell"><nav class="nav"><a><svg class="ic"><use href="#home"/></svg></a><a aria-current="page"><svg class="ic"><use href="#checkin"/></svg></a><a><svg class="ic"><use href="#satellite"/></svg></a><a><svg class="ic"><use href="#stats"/></svg></a></nav></div>
+  <div class="cell"><nav class="nav"><a><svg class="ic"><use href="#home"/></svg></a><a><svg class="ic"><use href="#checkin"/></svg></a><a aria-current="page"><svg class="ic"><use href="#satellite"/></svg></a><a><svg class="ic"><use href="#stats"/></svg></a></nav></div>
+  <div class="cell"><nav class="nav"><a><svg class="ic"><use href="#home"/></svg></a><a><svg class="ic"><use href="#checkin"/></svg></a><a><svg class="ic"><use href="#satellite"/></svg></a><a aria-current="page"><svg class="ic"><use href="#stats"/></svg></a></nav></div>
+  <div class="cell"><nav class="nav"><a aria-current="page"><svg class="ic"><use href="#home"/></svg></a><a><svg class="ic"><use href="#checkin"/></svg></a><a class="focus"><svg class="ic"><use href="#satellite"/></svg></a><a><svg class="ic"><use href="#stats"/></svg></a></nav></div>
+</div>
+
+<!-- Icon choices -->
+<div class="box" style="left:20px;width:610px">
+  <div class="bh">Icons · Tabler outline, imported by concept from icons.tsx</div>
+  <div class="icons">
+    <div class="it"><svg class="ic"><use href="#home"/></svg><b>Home</b><span class="mono">home<br>new HomeIcon</span></div>
+    <div class="it"><svg class="ic"><use href="#checkin"/></svg><b>Check-in</b><span class="mono">clipboard-list<br>QuestionnaireIcon (exists)</span></div>
+    <div class="it"><svg class="ic"><use href="#satellite"/></svg><b>Messages</b><span class="mono">satellite<br>GroundLinkIcon (exists)</span></div>
+    <div class="it"><svg class="ic"><use href="#stats"/></svg><b>Statistics</b><span class="mono">chart-bar<br>new StatisticsIcon</span></div>
+  </div>
+  <div class="alts">Alternatives:
+    <span><svg class="ic"><use href="#clipcheck"/></svg>clipboard-check</span>
+    <span><svg class="ic"><use href="#msg"/></svg>message</span>
+    <span><svg class="ic"><use href="#histogram"/></svg>chart-histogram</span>
+  </div>
+</div>
+
+<!-- The same bar on a phone -->
+<div class="box" style="left:650px;width:610px">
+  <div class="bh">Phone · 390 px wide</div>
+  <div class="light" style="margin:12px auto 0;width:390px;height:112px;background:var(--bg);border-radius:0 0 28px 28px;position:relative">
+    <nav class="nav" style="position:absolute;left:50%;transform:translateX(-50%);bottom:12px"><a aria-current="page"><svg class="ic"><use href="#home"/></svg></a><a><svg class="ic"><use href="#checkin"/></svg></a><a><svg class="ic"><use href="#satellite"/></svg></a><a><svg class="ic"><use href="#stats"/></svg></a></nav>
+  </div>
+  <div class="sub" style="margin-top:10px">The same 328 px bar fits a phone with 31 px on each side, so phone and tablet share one layout.</div>
+</div>
+
+<div class="foot">Mockup · token values from src/ui/theme/tokens.css</div>
+</body></html>
