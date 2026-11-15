@@ -37,6 +37,12 @@ export function formatDay(date: string): string {
   return `${Number(date.slice(8, 10))} ${MONTHS[Number(date.slice(5, 7)) - 1]}`
 }
 
+/** An instant as local "14 Nov 07:50". */
+export function formatDayTime(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${formatTime(iso)}`
+}
+
 /** Whole seconds as "48 s", or "1 min 22 s" from a minute on; negative reads 0 s. */
 export function formatDuration(ms: number): string {
   const seconds = Math.max(0, Math.floor(ms / 1000))
