@@ -15,7 +15,7 @@ Requirement tags such as `[S1 V2 10045]` are the source tags of [ux-human-factor
 5. **Missing data shows "—" and stale data looks stale.** Never show old data as current [S2 §10.12.4].
 6. **Text is at least 16 px; key values at least 28 px** (§3).
 7. **Touch targets are at least 52 px, at least 18 px apart** (§4).
-8. **No scores on health values, no praise of values, no inferred stress or emotion.** Gamify the process, not the physiology.
+8. **No scores on health values, no praise of values, no inferred stress or emotion.** Gamify the process, not the physiology. One exception: the dot display's 0–100 % (F26, issue #45), whose dots always equal the worst metric's level; it is shown only on the dot display and its Device Simulator card, never in the crew app.
 9. **Use tokens.** A new colour pairing gets its contrast computed and added to §2.4 before it ships.
 10. **Check both themes** at phone (390 px) and tablet/laptop (1280 px) width.
 
@@ -146,7 +146,7 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" centred on the p
 ### Body-system ring (the canvas "health score" ring)
 - **Segments:** one per body system the rules engine reports on (the list on the [body map](mockups/01-body-map.png)), each identified by its icon, not by colour.
 - **Colour by level:** nominal segments are `--color-ring` with an icon in `--color-text` (quiet). Levels 3–5 colour the segment with the level colour; level 2 keeps the grey segment. Every flagged segment shows its marker (↗/↘, ▲, kit, octagon "!"). Level 1 is not a body-system status.
-- **Centre:** the number of systems at levels 2–5 (`--text-hero`) with "systems to check" and the (i) button that opens what / why / how decided / what next. With none, it shows "All nominal" in muted text and the time of the last update. Never a composite health score.
+- **Centre:** the number of systems at levels 2–5 (`--text-hero`) with "systems to check" and the (i) button that opens what / why / how decided / what next. With none, it shows "All nominal" in muted text and the time of the last update. Never a composite health score (the dot display's percentage, rule 8, stays off the crew app).
 - **Interaction:** each segment is a button to the system's detail. A list view of the same systems is always one tap away, so the ring isn't the only path [S1 V2 10045].
 
 ### Metric tile (built: issue #7)
@@ -280,7 +280,9 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 ### Charts (for the detail screens)
 - **Plot area:** a `--color-inset` well inside the card, so the lines and the band keep contrast.
 - **Lines and bands:** data line in `--color-text`; the adaptation corridor is the only filled band (`--color-text` at about 20 % with a faint edge); the pre-flight baseline is a thin dashed `--color-text-muted` line (`.chart-baseline`) at the baseline median, labelled "your pre-flight normal" with its value and source, bottom right ("your pre-flight normal · 265 ms · synthetic") ([mockup 02](mockups/02-detail.png)). No category colours: categories are told apart by name and icon ([health-categories.md](health-categories.md#how-categories-are-shown)).
-- **Points:** a point at level 2–5 takes its badge's fill and outline (a Watch point is a ring in `--color-text`), with the level icon (18 px, `--color-text`) as the marker. The marker sits above the point, or 12 px below it when above would be clipped by the top of the chart, and appears once per run of same-level points, on the run's newest point; stale or missing points are hollow, and the newest point of a stale level is hollow with no marker. The line itself never takes a level colour. The marker shows icon + colour without the word (§2.3 exception); each point's title gives value, level, UTC time and source.
+- **Line shape:** a 1.75 px line with round joins, smoothed as a monotone cubic Hermite with Fritsch–Butland tangents (as PCHIP): it passes through every reading and never bends above or below its neighbours, so it can't invent a threshold crossing.
+- **Hover readout:** pointing at the plot (plot range ± 8 units) shows a dotted `--color-text-muted` crosshair at the nearest reading by x, a ring on it (filled for nominal, open for the rest), and an inverse box (`--color-inverse-bg` / `--color-inverse-text`, DM Mono 16 px). Line 1: the value; levels 2–5 add the level icon and the lower-case word, stale data adds "stale"; nominal shows the value only (quiet when nominal). Line 2: data age ("data 6 d old" for stale), UTC time, source. The box sits 14 units right of the reading, else left, else clamped inside the chart. Touch: a tap pins the readout, a drag scrubs while pinned (the page still scrolls vertically), a tap outside clears it. Neutral tokens only; the point's `title` keeps the same text for assistive tech and the readout is `aria-hidden`.
+- **Points:** nominal readings on a line draw no dot (the hover readout shows them); a lone nominal reading keeps its dot. A point at level 2–5 takes its badge's fill and outline (a Watch point is a ring in `--color-text`), with the level icon (18 px, `--color-text`) as the marker. The marker sits above the point, or 12 px below it when above would be clipped by the top of the chart, and appears once per run of same-level points, on the run's newest point; stale or missing points are hollow, and the newest point of a stale level is hollow with no marker. The line itself never takes a level colour. The marker shows icon + colour without the word (§2.3 exception); each point's title gives value, level, UTC time and source.
 - **Thresholds:** one dashed `--color-text-muted` line per rule row, labelled with the rule and its level ("SPO-01 · < 94 % check"). Never a level colour.
 - **Range:** a fixed Y range per indicator (SpO₂ 80–100 %, grid every 5) so the threshold lines always show; values outside it sit on the edge.
 - **Axes:** units on the axes, faint optional grid lines, no dual axes [S1 V2 10046][S2 §10.6.18].
@@ -316,7 +318,7 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 |---|---|---|
 | Red arc in the logo and loading ring | `--color-text` arc (blue until 2026-11-14) | Red is reserved for level 5 [S1 V2 10118/10119]; blue for level 1 |
 | Ring segments coloured red, blue, khaki and olive by category | Ring grey when nominal and at level 2; level colour only at levels 3–5; icon names the system | One meaning per colour; quiet when nominal [S2 §10.11.5.5][S3] |
-| "8.8 your health score" | Count of systems to check, or "All nominal" | No scores on health values; thresholds must be sourced; scoring feeds under-reporting ([crew-health-companion.md](crew-health-companion.md), "Reporting is a win") |
+| "8.8 your health score" | Count of systems to check, or "All nominal" | No scores on health values; thresholds must be sourced; scoring feeds under-reporting ([crew-health-companion.md](crew-health-companion.md), "Reporting is a win"). Exception: the dot display's 0–100 % (issue #45), a team heuristic whose dots equal the worst level, never shown in the crew app |
 | "Stress 82" tile | "Mood" tile, self-reported 1–5 | No inferred emotion ([ux-human-factors.md](../research/ux-human-factors.md) checklist item 14) |
 | "Genetics" segment | Removed | No in-flight genetic monitoring; segments follow the rules engine |
 | NASA logotype on the splash | Removed; factual text only | Needs NASA's explicit permission [N1] |

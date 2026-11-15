@@ -259,7 +259,7 @@ describe('Detail chart', () => {
     ])
     expect(markers()).toEqual(['alert-triangle'])
     expect(markerCx(chart())).toEqual([Number(points()[2].getAttribute('cx'))])
-    expect(chart().querySelectorAll('polyline')).toHaveLength(1)
+    expect(chart().querySelectorAll('path.chart-line')).toHaveLength(1)
   })
 
   it('AC24, #43 AC9: an emergency point carries the class and an emergency marker', async () => {
@@ -397,7 +397,7 @@ describe('Detail chart', () => {
 
     expect(titles()).toEqual(['95 % · stale · 7 Nov 09:30 UTC · manual'])
     expect(chart()).toHaveAttribute('aria-label', 'SpO₂, last 7 days, 1 reading')
-    expect(chart().querySelector('polyline')).toBeNull()
+    expect(chart().querySelector('path.chart-line')).toBeNull()
   })
 
   it('AC28: a value below 80 sits on the 80 % line', async () => {
@@ -612,3 +612,76 @@ describe('Cognition detail (#17)', () => {
     expect(cogPoints()[0].querySelector('title')).toHaveTextContent('450 ms')
   })
 })
+
+describe('Cardiovascular detail with the CV-03 resting HR drift (#35)', () => {
+  const hr = (day: number, time: string, value: number): CheckIn => ({
+    id: `hr-${day}-${time}`, recordedAt: `2026-11-${String(day).padStart(2, '0')}T${time}:00Z`, heartRateBpm: value, symptoms: [],
+  })
+  const WEEK = [...[61, 62, 60, 63, 70, 71, 70].map((v, i) => hr(8 + i, '07:00', v)), hr(13, '18:00', 90)]
+  const DRIFT = [12, 13, 14].map((day) => hr(day, '07:00', 70))
+  const CV03 = RULES.find((r) => r.id === 'CV-03')!
+  const cv = (name: string) => within(detail('Cardiovascular')).getByRole('region', { name })
+  const cvChart = () => detail('Cardiovascular').querySelector('svg[role="img"]') as SVGSVGElement
+  const grid = () => [...cvChart().querySelectorAll('line.chart-grid')].map((l) => l.getAttribute('data-value'))
+  async function openCardio(seed: CheckIn[]) {
+    go('#/systems/Cardiovascular')
+    setup({ seed, chartWindowMs: CHART_WINDOW_MS }).renderApp()
+    await within(await findDetail('Cardiovascular')).findByRole('heading', { level: 2, name: 'Cardiovascular' })
+  }
+
+  it('AC21b: one point per day, the 12–14 Nov run watch with one trending-up marker on 14 Nov', async () => {
+    await openCardio(WEEK)
+
+    expect(cv('Resting HR · last 7 days').querySelector('svg[role="img"]')).toBe(cvChart())
+    expect(cvChart()).toHaveAttribute('aria-label', 'Resting HR, last 7 days, 7 readings')
+    const circles = [...cvChart().querySelectorAll('circle.chart-point')]
+    expect(circles.map((p) => p.getAttribute('class'))).toEqual([
+      'chart-point',
+      'chart-point',
+      'chart-point',
+      'chart-point',
+      'chart-point chart-point--watch',
+      'chart-point chart-point--watch',
+      'chart-point chart-point--watch',
+    ])
+    expect(iconsOf(cvChart())).toEqual(['trending-up'])
+    expect(markerCx(cvChart())).toEqual([Number(circles[6].getAttribute('cx'))])
+    expect(circles[6].querySelector('title')).toHaveTextContent('70 bpm · watch · 14 Nov 07:00 UTC · manual')
+  })
+
+  it('AC22: the 50–80 bpm axis, the CV-03 limit and the baseline labels', async () => {
+    await openCardio(WEEK)
+
+    expect(grid()).toEqual(['50', '60', '70', '80'])
+    expect(cvChart()).toHaveTextContent('CV-03 · ≥ 69 bpm 3 days watch')
+    expect(cvChart()).toHaveTextContent('your pre-flight normal · 61 bpm · synthetic')
+  })
+
+  it('AC23: CV-01 check shows the Heart rate chart on its 20–250 axis', async () => {
+    await openCardio([hr(12, '07:00', 70), hr(13, '07:00', 70), hr(14, '07:00', 105)])
+
+    expect(cv('Heart rate · last 7 days').querySelector('svg[role="img"]')).toBe(cvChart())
+    expect(grid()).toEqual(['20', '77.5', '135', '192.5', '250'])
+  })
+
+  it('AC26: header, explanation, next step and the Self-care tier of CV-03', async () => {
+    await openCardio(DRIFT)
+
+    const badge = detail('Cardiovascular').querySelector('.detail-title .badge')!
+    expect([badge.className, badge.textContent]).toEqual(['badge badge--watch', 'Watch'])
+    expect(badge.querySelector('svg')).toHaveClass('tabler-icon-trending-up')
+    expect(detail('Cardiovascular')).toHaveTextContent('Resting HR 70 bpm · 2 h ago · manual')
+    const values = [...cv('Explanation').querySelectorAll('dd')]
+    expect(values[0].textContent).toBe(
+      'Your resting heart rate has been 69 bpm or more on 3 days running, 8 bpm or more above your pre-flight baseline (61 bpm).',
+    )
+    expect(values[3].querySelector('.tag.tag--rule')).toHaveTextContent('rule · CV-03')
+    expect(cv('What next')).toHaveTextContent(CV03.next)
+    const current = within(cv('Who to involve'))
+      .getAllByRole('listitem')
+      .filter((li) => li.getAttribute('aria-current') === 'true')
+      .map((li) => li.textContent)
+    expect(current).toEqual(['Self-care'])
+  })
+})
+

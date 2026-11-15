@@ -3,5 +3,6 @@
 #pragma once
 
 constexpr char kDeviceLinkPath[] = "/ws/devices";
-// Placeholder until the backend publishes the value: payload {id, t, pct, src}, pct from 0 to 100.
+// Published once a second by the backend's health engine (src "backend-rules"): payload
+// {id, t, pct, level, src, metrics}, pct from 0 to 100; only pct is read.
 constexpr char kTopic[] = "crew/a1/dot-display";

@@ -4,6 +4,7 @@ import '@fontsource/inter/latin-700.css'
 import '../ui/theme/tokens.css'
 import '../ui/theme/base.css'
 import './device.css'
+import './page.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { DeviceLink } from '../infrastructure/DeviceLink'
@@ -14,7 +15,7 @@ import { LinkFeed } from './LinkFeed'
 import { ScenarioFeed } from './ScenarioFeed'
 import { deviceRoute } from './deviceRoute'
 
-// The firmware's topic (src/main/hardware/dot-display/src/Protocol.h), a placeholder until the backend publishes it.
+// The firmware's topic (src/main/hardware/dot-display/src/Protocol.h); the backend's health engine publishes it as backend-rules.
 const TOPIC = 'crew/a1/dot-display'
 
 // One feed per page load, outside React, so StrictMode can't open two sockets.

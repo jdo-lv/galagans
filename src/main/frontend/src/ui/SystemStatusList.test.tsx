@@ -420,3 +420,50 @@ describe('Badge levels (#43, #33)', () => {
     expect([element.className, element.textContent]).toEqual([className, text])
   })
 })
+
+describe('Cardiovascular with the CV-03 resting HR drift (#35)', () => {
+  const hr = (day: number, time: string, value: number) => ({
+    id: `hr-${day}-${time}`, recordedAt: `2026-11-${day}T${time}:00Z`, heartRateBpm: value, symptoms: [],
+  })
+  const DRIFT = [12, 13, 14].map((day) => hr(day, '07:00', 70))
+  const systemNames = (rows: HTMLElement[]) => rows.map((r) => r.querySelector('.status-system')?.textContent)
+  const cardio = () =>
+    within(list())
+      .getAllByRole('listitem')
+      .find((li) => li.querySelector('.status-system')?.textContent === 'Cardiovascular')!
+
+  it('AC17: 70 bpm resting on 3 days → Cardiovascular Watch with the up arrow, home order unchanged', async () => {
+    setup({ seed: DRIFT, placeholders: mockStatuses }).renderApp()
+
+    await vi.waitFor(() => expect(cardio()).toHaveTextContent('Resting HR 70 bpm · 2 h ago · manual'))
+    expect(systemNames(within(list()).getAllByRole('listitem'))).toEqual([
+      'Respiratory',
+      'Cognition',
+      'Cabin air',
+      'Radiation',
+      'Cardiovascular',
+      'Immune',
+      'Sleep',
+      'Bone & muscle',
+      'Vision (SANS)',
+      'Kidney & hydration',
+    ])
+    const badge = cardio().querySelector('.badge')!
+    expect([badge.className, badge.textContent]).toEqual(['badge badge--watch', 'Watch'])
+    expect(badge.querySelector('svg')).toHaveClass('tabler-icon-trending-up')
+  })
+
+  it('AC18: a lower reading on the newest day → Heart rate 66 bpm, nominal', async () => {
+    setup({ seed: [...DRIFT, hr(14, '08:00', 66)], placeholders: mockStatuses }).renderApp()
+
+    await vi.waitFor(() => expect(cardio()).toHaveTextContent('Heart rate 66 bpm'))
+    expect(cardio().querySelector('.badge')).toHaveClass('badge', 'badge--nominal')
+  })
+
+  it('AC18: no heart rate and no BP → No data', async () => {
+    setup({ placeholders: mockStatuses }).renderApp()
+
+    await vi.waitFor(() => expect(cardio()).toHaveTextContent('No data'))
+  })
+})
+

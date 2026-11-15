@@ -143,4 +143,23 @@ describe('LatestReadingsReader', () => {
 
     expect(reading?.state).toBe('check')
   })
+
+  it('#35 AC20: the CV-03 drift row never rates the Heart rate reading', async () => {
+    const repository = new FakeRepository()
+    for (const day of [12, 13, 14]) {
+      repository.items.set(`hr-${day}`, { checkIn: { id: `hr-${day}`, recordedAt: `2026-11-${day}T07:00:00Z`, heartRateBpm: 70, symptoms: [] }, pending: false })
+    }
+    const readings = await new LatestReadingsReader(new FakeRuleSource(RULES), combinedHistory(repository), () => new Date('2026-11-14T09:30:00Z')).read()
+    const heartRate = readings.find((r) => r.spec.key === 'heartRate')!
+
+    expect(heartRate).toMatchObject({ state: 'nominal', value: 70 })
+    expect(heartRate).not.toHaveProperty('rule')
+    expect(heartRate).not.toHaveProperty('unrated')
+  })
+
+  it('#35 AC20: a rule set with only a drift row on an indicator leaves its reading unrated', async () => {
+    const reading = await byKey('heartRate', [checkIn({ heartRateBpm: 70 }, '2026-11-14T11:00:00Z')], { ruleRows: RULES.filter((r) => r.id === 'CV-03') })
+
+    expect(reading).toMatchObject({ state: 'nominal', unrated: true })
+  })
 })
