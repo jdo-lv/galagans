@@ -33,15 +33,16 @@ ok() { [ "$(curl -s -o /dev/null --max-time 2 -w '%{http_code}' "$1")" = 200 ]; 
 
 row() { printf '%-18s%s\n' "$1" "$2"; }
 
-# The processes at the bottom of a job (the JVM, node, docker-compose): parents like mvn and npm exit after them.
-leaves() {
-  local kids child
-  kids=$(pgrep -P "$1")
-  [ -n "$kids" ] || { echo "$1"; return; }
-  for child in $kids; do leaves "$child"; done
+descendants() {
+  local child
+  for child in $(pgrep -P "$1"); do
+    echo "$child"
+    descendants "$child"
+  done
 }
 
-halt() { [ -n "$1" ] && kill -TERM $(leaves "$1") 2>/dev/null; }
+# Signals everything under a job but not the job's own subshell, so `wait` on it still covers the backend's graceful stop.
+halt() { [ -n "$1" ] && kill -TERM $(descendants "$1") 2>/dev/null; }
 
 vm_running() { [ "$(uname)" != Darwin ] || [ "$(podman machine inspect --format '{{.State}}' 2>/dev/null)" = running ]; }
 
@@ -49,10 +50,11 @@ stop() {
   trap '' INT TERM HUP
   local voice_state down=''
   voice_state=$(cat "$STATE/voice" 2>/dev/null)
+  # The voice subshell goes too, so it can't move on to its next step.
   if [ -n "$VOICE" ]; then
-    local voice_leaves
-    voice_leaves=$(leaves "$VOICE")
-    kill -TERM "$VOICE" $voice_leaves 2>/dev/null
+    local voice_tree
+    voice_tree=$(descendants "$VOICE")
+    kill -TERM "$VOICE" $voice_tree 2>/dev/null
   fi
   halt "$SETUP"
   halt "$BACKEND"
