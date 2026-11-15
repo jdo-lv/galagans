@@ -1,5 +1,6 @@
 import type { StoredPacket } from '../domain/packet'
 import { formatTime } from './formatAge'
+import { packetDelivery } from './packetDelivery'
 
 export type TimelineStep = { name: string; detail: string; state: 'done' | 'current' | 'pending' }
 
@@ -11,7 +12,8 @@ export function packetTimeline(last: StoredPacket | undefined, now: Date): { ste
 
   const built = formatTime(last.builtAt)
   const roundTripMs = 2 * last.oneWayDelayMs
-  if (last.state === 'queued' || !last.sentAt) {
+  const delivery = packetDelivery(last, now)
+  if (delivery.kind === 'queued') {
     return {
       steps: [
         { name: 'Packet built', detail: built, state: 'done' },
@@ -23,9 +25,9 @@ export function packetTimeline(last: StoredPacket | undefined, now: Date): { ste
     }
   }
 
-  const arrival = shift(last.sentAt, last.oneWayDelayMs)
-  const reply = `~${formatTime(shift(last.sentAt, roundTripMs))} + surgeon time`
-  const arrived = now.getTime() >= Date.parse(arrival)
+  const arrival = delivery.arrivesAt
+  const reply = `~${formatTime(shift(delivery.sentAt, roundTripMs))} + surgeon time`
+  const arrived = delivery.kind === 'arrived'
   return {
     steps: [
       { name: 'Packet built', detail: built, state: 'done' },
