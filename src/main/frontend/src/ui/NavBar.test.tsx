@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { reading, setup } from '../test/renderApp'
+import { clickBarLink, openCheckIn, reading, setup } from '../test/renderApp'
 
 const load = (hash: string) => window.history.replaceState(null, '', hash)
 const findBar = () => screen.findByRole('navigation', { name: 'Main' })
@@ -109,6 +110,93 @@ describe('Navigation bar (#57)', () => {
     await waitFor(() => expect(barLink(name)).toHaveAttribute('aria-current', value))
     expect(links().filter((a) => a.hasAttribute('aria-current'))).toEqual([barLink(name)])
     expect(window.location.hash).toBe(hash)
+  })
+
+  const chooser = () => screen.getByRole('region', { name: 'Add entry' })
+  const checkIn = () => screen.getByRole('region', { name: 'Morning check-in' })
+  const findCheckIn = () => screen.findByRole('region', { name: 'Morning check-in' })
+  const prompt = () => within(checkIn()).getByRole('heading', { level: 3 })
+  const bodySystemsHeading = () => screen.getByRole('heading', { name: 'Body systems' })
+
+  it('AC6: Add entry opens the chooser: a focused heading, Morning check-in and Log symptoms', async () => {
+    setup().renderApp()
+
+    await clickBarLink('Add entry')
+
+    const region = await screen.findByRole('region', { name: 'Add entry' })
+    expect(window.location.hash).toBe('#/add')
+    expect(region.tagName).toBe('SECTION')
+    const heading = within(region).getByRole('heading', { level: 2 })
+    expect(heading).toHaveTextContent(/^Add entry$/)
+    expect(region).toHaveAttribute('aria-labelledby', heading.id)
+    await waitFor(() => expect(document.activeElement).toBe(heading))
+    const [checkInLink, symptomsLink] = within(region).getAllByRole('link')
+    expect(within(region).getAllByRole('link')).toHaveLength(2)
+    expect(checkInLink).toHaveAccessibleName('Morning check-in')
+    expect(checkInLink).toHaveAttribute('href', '#/check-in')
+    expect(checkInLink).toHaveClass('button-primary')
+    expect(checkInLink.querySelector('svg')).toHaveClass('tabler-icon-clipboard-list')
+    expect(symptomsLink).toHaveAccessibleName('Log symptoms')
+    expect(symptomsLink).toHaveAttribute('href', '#/symptoms')
+    expect(symptomsLink).toHaveClass('button-secondary')
+    expect(symptomsLink.querySelector('svg')).toHaveClass('tabler-icon-report-medical')
+    expect(screen.queryByRole('link', { name: '← Home' })).toBeNull()
+  })
+
+  it('AC7: Morning check-in opens step 1, and Add entry stays current', async () => {
+    load('#/add')
+    setup().renderApp()
+
+    await userEvent.click(within(await screen.findByRole('region', { name: 'Add entry' })).getByRole('link', { name: 'Morning check-in' }))
+
+    await findCheckIn()
+    expect(prompt()).toHaveTextContent('What is your heart rate?')
+    expect(barLink('Add entry')).toHaveAttribute('aria-current', 'true')
+  })
+
+  /** Opens the check-in through the +, types 63 on step 1 and moves to step 2. */
+  async function toStep2(s: ReturnType<typeof setup>) {
+    s.renderApp()
+    await openCheckIn()
+    await findCheckIn()
+    await userEvent.type(within(checkIn()).getByRole('spinbutton'), '63')
+    await userEvent.click(within(checkIn()).getByRole('button', { name: 'Next →' }))
+    await waitFor(() => expect(prompt()).toHaveTextContent('SpO₂'))
+  }
+
+  it('AC8: Add entry mid-check-in drops the draft and shows the chooser', async () => {
+    const s = setup()
+    await toStep2(s)
+
+    await clickBarLink('Add entry')
+
+    await screen.findByRole('region', { name: 'Add entry' })
+    expect(window.location.hash).toBe('#/add')
+    expect(s.repository.items.size).toBe(0)
+  })
+
+  it('AC9: Morning check-in after leaving starts empty at step 1', async () => {
+    await toStep2(setup())
+    await clickBarLink('Add entry')
+    await screen.findByRole('region', { name: 'Add entry' })
+
+    await userEvent.click(within(chooser()).getByRole('link', { name: 'Morning check-in' }))
+
+    await findCheckIn()
+    expect(prompt()).toHaveTextContent('What is your heart rate?')
+    expect(within(checkIn()).getByRole('spinbutton')).toHaveValue(null)
+  })
+
+  it.each(['#/add', '#/symptoms', '#/ground'])('AC22: Home from %s focuses Body systems', async (hash) => {
+    load(hash)
+    setup().renderApp()
+    await findBar()
+    await waitFor(() => expect(window.location.hash).toBe(hash))
+
+    await clickBarLink('Home')
+
+    await screen.findByRole('region', { name: 'Body systems' })
+    await waitFor(() => expect(document.activeElement).toBe(bodySystemsHeading()))
   })
 })
 

@@ -157,14 +157,21 @@ export function setup({
   }
 }
 
-/** Clicks a link in the navigation bar (#46). */
-export async function clickBarLink(name: 'Home' | 'Check-in' | 'Messages' | 'Statistics') {
+/** Clicks a link in the navigation bar (#57). */
+export async function clickBarLink(name: 'Home' | 'Stats' | 'Add entry' | 'Ground') {
   await userEvent.click(within(await screen.findByRole('navigation', { name: 'Main' })).getByRole('link', { name }))
+}
+
+/** Opens the morning check-in the way the crew does from the bar: the + (Add entry), then "Morning check-in" (#57). */
+export async function openCheckIn() {
+  await clickBarLink('Add entry')
+  const chooser = await screen.findByRole('region', { name: 'Add entry' })
+  await userEvent.click(within(chooser).getByRole('link', { name: 'Morning check-in' }))
 }
 
 /** Saves one check-in through the steps (#29): types or taps each given value, "Next →" everywhere else, never "Skip". */
 export async function saveCheckIn(fields: { heartRate?: number; spo2?: number; sleep?: number; kss?: number; mood?: number } = {}) {
-  await clickBarLink('Check-in')
+  await openCheckIn()
   const checkIn = await screen.findByRole('region', { name: 'Morning check-in' })
   for (const key of ['heartRate', 'spo2', 'sleep', 'kss', 'mood'] as const) {
     const value = fields[key]

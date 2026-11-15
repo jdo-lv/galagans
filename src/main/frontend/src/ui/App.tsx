@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from "react";
+import { AddEntryScreen } from "./AddEntryScreen";
 import { AppHeader } from "./AppHeader";
 import { CheckInScreen } from "./CheckInScreen";
 import { GroundLinkPill } from "./GroundLinkPill";
@@ -87,6 +88,10 @@ export function App() {
       ) : route.kind === "statistics" ? (
         <main>
           <StatisticsScreen />
+        </main>
+      ) : route.kind === "add" ? (
+        <main>
+          <AddEntryScreen />
         </main>
       ) : route.kind === "pvt" ? (
         <main>
