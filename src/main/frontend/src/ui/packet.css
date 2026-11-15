@@ -1,5 +1,18 @@
-/* Surgeon packet screen (issue #19, mock docs/features/img/19-mock.png). Colours and sizes: ideas/ui-guidelines.md.
+/* Surgeon packet screen (issue #19, mock docs/features/img/19-mock.png) and the Add entry chooser and Ground history
+   (#57, mocks docs/features/img/57-mock-*.png). Colours and sizes: ideas/ui-guidelines.md.
    The timeline is not a health status: neutral tokens only, never a level colour. */
+
+/* Add entry chooser: the two entries stacked, icon then word from the start, as in the mock */
+.add-choices {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 420px;
+}
+
+.add-choices > a {
+  justify-content: flex-start;
+  gap: var(--space-3);
+}
 .packet-home {
   align-self: flex-start;
   display: inline-flex;
@@ -235,5 +248,18 @@ ol.packet-steps {
 
   .packet-status {
     align-items: flex-end;
+  }
+
+  /* Ground history: built time and contents on the left, kept on one line; delivery and note right-aligned */
+  .packet-history tbody tr {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .packet-history tbody th {
+    white-space: nowrap;
+  }
+
+  .packet-history tbody tr > :nth-child(even) {
+    text-align: right;
   }
 }

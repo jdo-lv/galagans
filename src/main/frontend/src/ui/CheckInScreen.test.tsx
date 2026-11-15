@@ -6,7 +6,7 @@ import type { CheckIn } from '../domain/checkIn'
 import type { Observation, ObservationSource } from '../domain/observation'
 import { mockRoutine } from '../infrastructure/mockRoutine'
 import { mockCounters, mockStreakSeed } from '../infrastructure/mockStreak'
-import { clickBarLink, saveCheckIn, setup } from '../test/renderApp'
+import { openCheckIn, saveCheckIn, setup } from '../test/renderApp'
 
 // Local times, so the tests pass in any TZ.
 const at = (h: number, m = 0, day = 14) => new Date(2026, 10, day, h, m)
@@ -22,7 +22,7 @@ const saved = (s: ReturnType<typeof setup>) => [...s.repository.items.values()].
 
 async function open(s: ReturnType<typeof setup>) {
   s.renderApp()
-  await clickBarLink('Check-in')
+  await openCheckIn()
   await screen.findByRole('region', { name: 'Morning check-in' })
 }
 
@@ -60,18 +60,18 @@ describe('Home and navigation', () => {
     expect(s.repository.items.size).toBe(0)
   })
 
-  it('AC4: Check-in in the bar opens the check-in outside the window', async () => {
+  it('AC4: the + then Morning check-in opens the check-in outside the window', async () => {
     const s = setupAt(at(10))
     await open(s)
     await expectStep(1, 'What is your heart rate?')
   })
 
-  it('AC5: #/check-in at load shows step 1 and no Add entry', async () => {
+  it("AC5: #/check-in at load shows step 1 and the bar's Add entry", async () => {
     window.history.replaceState(null, '', '#/check-in')
     setupAt().renderApp()
     await screen.findByRole('region', { name: 'Morning check-in' })
     await expectStep(1, 'What is your heart rate?')
-    expect(screen.queryByRole('link', { name: 'Add entry' })).toBeNull()
+    expect(within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', { name: 'Add entry' })).toBeInTheDocument()
   })
 
   it('AC6: home has no Check-in card, no input and no primary button', async () => {
@@ -448,7 +448,7 @@ describe('Save and leave', () => {
     await next()
     window.location.hash = '#/'
     await screen.findByRole('region', { name: 'Body systems' })
-    await clickBarLink('Check-in')
+    await openCheckIn()
     await screen.findByRole('region', { name: 'Morning check-in' })
     await expectStep(1, 'What is your heart rate?')
     expect(input()).toHaveValue(null)
@@ -629,7 +629,7 @@ describe('Reporting is a win (#40)', () => {
       expect(completeCard()).not.toHaveTextContent('Reporting a symptom')
       expect(completeCard()).not.toHaveTextContent('What happens next')
       await userEvent.click(screen.getByRole('button', { name: 'Done' }))
-      await clickBarLink('Check-in')
+      await openCheckIn()
       await screen.findByRole('region', { name: 'Morning check-in' })
       await goTo(6)
       await userEvent.click(button('Headache'))
@@ -689,13 +689,13 @@ describe('Reporting is a win (#40)', () => {
       await waitFor(() => expect(within(card).getAllByRole('listitem')[0]).toHaveTextContent('done 08:05'))
     })
 
-    it('AC19: browser back from the completion goes home, and Check-in in the bar starts empty', async () => {
+    it('AC19: browser back from the completion goes home, and the + then Morning check-in starts empty', async () => {
       await open(setup40())
       await save()
       window.location.hash = '#/'
       await screen.findByRole('region', { name: 'Body systems' })
       await waitFor(() => expect(document.activeElement).toBe(bodySystemsHeading()))
-      await clickBarLink('Check-in')
+      await openCheckIn()
       await screen.findByRole('region', { name: 'Morning check-in' })
       await expectStep(1, 'What is your heart rate?')
       expect(input()).toHaveValue(null)

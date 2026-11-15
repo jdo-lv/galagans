@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatAge, formatDelay, formatOldAge, formatStaleAge, formatTime } from './formatAge'
+import { formatAge, formatDayTime, formatDelay, formatOldAge, formatStaleAge, formatTime } from './formatAge'
 
 const now = new Date('2026-11-14T12:00:00Z')
 const before = (seconds: number) => new Date(now.getTime() - seconds * 1000).toISOString()
@@ -43,5 +43,15 @@ describe('formatDelay', () => {
     [120_000, '2 min 00 s'],
   ])('AC2: %i ms → %s', (ms, expected) => {
     expect(formatDelay(ms)).toBe(expected)
+  })
+})
+
+describe('formatDayTime', () => {
+  // Local times, so the test passes in any TZ.
+  const at = (h: number, m: number, s = 0, day = 14) => new Date(2026, 10, day, h, m, s)
+
+  it('AC23 (#57): local "D Mon HH:MM", the day not zero-padded', () => {
+    expect(formatDayTime(at(7, 5, 0, 4).toISOString())).toBe('4 Nov 07:05')
+    expect(formatDayTime(at(7, 50).toISOString())).toBe('14 Nov 07:50')
   })
 })
