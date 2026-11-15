@@ -133,7 +133,45 @@
 .chart-line {
   fill: none;
   stroke: var(--color-text);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Hover readout (Datadog-style crosshair); neutral tokens only */
+.chart-crosshair {
+  stroke: var(--color-text-muted);
+  stroke-dasharray: 2 3;
+}
+
+.chart-hover {
+  fill: none;
+  stroke: var(--color-text);
   stroke-width: 2;
+}
+
+.chart-hover--nominal {
+  fill: var(--color-text);
+  stroke: var(--color-inset);
+}
+
+.chart-readout-box {
+  fill: var(--color-inverse-bg);
+}
+
+.chart-readout-value,
+.chart-readout-meta {
+  fill: var(--color-inverse-text);
+  font-family: var(--font-data);
+  font-size: 16px;
+}
+
+.chart-readout-value {
+  font-weight: 500;
+}
+
+.chart-readout-icon {
+  color: var(--color-inverse-text);
 }
 
 .chart-point {
