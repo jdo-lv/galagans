@@ -11,6 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build and run
 
+- One command: `./app.sh` starts the voice host (podman), the backend and the Vite dev server in the foreground; open :5173. Ctrl+C stops all three (voice containers removed, model volume kept). Voice is optional: without podman or an 8 GB Podman VM the banner says why and the app runs without it. Fails fast if :8080 or :5173 is busy.
 - Backend tests: `mvn test -DskipFrontend=true`. Full build with frontend: `mvn clean verify` (installs Node 22.13.0 under `target/`, runs `npm ci`, `npm run build` into `src/main/resources/static`, `npm run check-build`, then `npm run test`).
 - Run: `mvn spring-boot:run` serves the built PWA and `/api` on :8080. Frontend dev: `cd src/main/frontend && npm run dev` (:5173, proxies `/api` and `/ws` to :8080).
 - Frontend only: `cd src/main/frontend && npm run test` / `npm run build`.
