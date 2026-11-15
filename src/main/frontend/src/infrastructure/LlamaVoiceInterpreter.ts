@@ -1,19 +1,12 @@
 import type { VoiceInterpreter } from '../domain/ports'
-import { READINGS } from '../domain/readings'
-import type { SpokenValues, VoiceCommand, VoiceTarget } from '../domain/voice'
+import { SYMPTOMS, type CheckInStep } from '../domain/checkInSteps'
+import type { StepAnswer, VoiceCommand, VoiceTarget } from '../domain/voice'
 
 const SCREENS: Record<string, VoiceTarget> = {
   open_home: { screen: 'home' },
   open_pvt: { screen: 'pvt' },
   open_packet: { screen: 'packet' },
-}
-
-/** Whole numbers, as the check-in form and the sync API take them; sleep may have decimals. */
-const VALUES: Record<keyof SpokenValues, 'integer' | 'number'> = {
-  sleepHours: 'number',
-  heartRateBpm: 'integer',
-  spo2Percent: 'integer',
-  mood: 'integer',
+  open_checkin: { screen: 'check-in' },
 }
 
 const COMMAND_PROMPT = `You turn an astronaut's spoken words into one action for a health app. Return only JSON.
@@ -23,40 +16,50 @@ Actions:
 - open_pvt: the 3-minute reaction-time test.
 - open_packet: the surgeon packet (never sends it).
 - briefing: a health briefing or report ("how am I doing", "give me my report", "read it again").
-- checkin: the astronaut gives check-in values with numbers. Fill only the values said: sleepHours, heartRateBpm, spo2Percent (oxygen), mood (1 to 5).
+- open_checkin: the astronaut wants to do the morning check-in, or gives check-in values ("start my check-in", "I slept six hours, mood four").
 - none: anything else, including questions the app cannot answer.
 Fields that don't apply are null.`
 
-function limits(indicator: string) {
-  const spec = READINGS.find((r) => r.indicator === indicator)
-  return spec && spec.indicator !== null ? { minimum: spec.validMin, maximum: spec.validMax } : {}
-}
-
-/** Within the check-in form's limits (`READINGS` validMin–validMax). */
-function withinLimits(indicator: string, value: number): boolean {
-  const { minimum, maximum } = limits(indicator)
-  return (minimum === undefined || value >= minimum) && (maximum === undefined || value <= maximum)
-}
-
-/** The command schema: the systems of the Body systems list, and each value as a number or null. */
+/** The command schema: the systems of the Body systems list. */
 function commandSchema(systems: string[]) {
   return {
     type: 'object',
     additionalProperties: false,
-    required: ['action', 'system', ...Object.keys(VALUES)],
+    required: ['action', 'system'],
     properties: {
-      action: { enum: [...Object.keys(SCREENS), 'open_system', 'briefing', 'checkin', 'none'] },
+      action: { enum: [...Object.keys(SCREENS), 'open_system', 'briefing', 'none'] },
       system: { enum: [...systems, null] },
-      ...Object.fromEntries(
-        // No minimum/maximum: llama.cpp would rewrite an out-of-range number into a different in-range one
-        // (SpO₂ 45 → 95, measured 2026-11-14), so the limits are checked after parsing instead.
-        Object.entries(VALUES).map(([key, type]) => [key, { type: [type, 'null'] }]),
-      ),
     },
   }
 }
 
-type Reply = { action: string; system: string | null } & Record<keyof SpokenValues, number | null>
+const SYMPTOM_IDS = SYMPTOMS.map((s) => s.id)
+
+/**
+ * The answer schema of one check-in step. No minimum/maximum: llama.cpp would rewrite an out-of-range number into a
+ * different in-range one (SpO₂ 45 → 95, measured 2026-11-14), so the screen checks the limits instead.
+ */
+function answerSchema(step: CheckInStep) {
+  if (step.kind === 'choices') {
+    return {
+      type: 'object',
+      additionalProperties: false,
+      required: ['symptoms', 'none'],
+      properties: { symptoms: { type: 'array', items: { enum: SYMPTOM_IDS } }, none: { type: 'boolean' } },
+    }
+  }
+  const type = step.kind === 'number' ? 'number' : 'integer'
+  return { type: 'object', additionalProperties: false, required: ['value'], properties: { value: { type: [type, 'null'] } } }
+}
+
+function answerPrompt(step: CheckInStep): string {
+  const head = `You read an astronaut's spoken answer to one question of a health check-in. Return only JSON.\nQuestion: ${step.prompt}\n`
+  if (step.kind === 'choices') {
+    const ids = SYMPTOMS.map((s) => `- ${s.id}: ${s.label}`).join('\n')
+    return `${head}symptoms: the ids the astronaut says they have, only from:\n${ids}\nnone: true only when they say they have none.`
+  }
+  return `${head}value: the number they said, as digits ("seventy two" -> 72, "six and a half" -> 6.5), or null when they said no number. Copy it as said; never correct or limit it.`
+}
 
 /** Qwen3.5-4B on the ship-local llama-server (F25): turns spoken words into one command; it never decides a status. */
 export class LlamaVoiceInterpreter implements VoiceInterpreter {
@@ -84,6 +87,18 @@ export class LlamaVoiceInterpreter implements VoiceInterpreter {
     }
   }
 
+  async answer(step: CheckInStep, transcript: string): Promise<StepAnswer> {
+    const content = await this.chat(answerPrompt(step), transcript, {
+      temperature: 0,
+      response_format: { type: 'json_schema', json_schema: { name: 'answer', schema: answerSchema(step) } },
+    })
+    try {
+      return toAnswer(JSON.parse(content))
+    } catch {
+      return { kind: 'none' }
+    }
+  }
+
   private async chat(system: string, user: string, options: object): Promise<string> {
     const response = await this.fetchFn(`${this.baseUrl}/v1/chat/completions`, {
       method: 'POST',
@@ -95,16 +110,17 @@ export class LlamaVoiceInterpreter implements VoiceInterpreter {
   }
 }
 
-function toCommand(reply: Reply): VoiceCommand {
+function toCommand(reply: { action: string; system: string | null }): VoiceCommand {
   if (Object.hasOwn(SCREENS, reply.action)) return { kind: 'open', target: SCREENS[reply.action] }
   if (reply.action === 'open_system' && reply.system) return { kind: 'open', target: { screen: 'system', system: reply.system } }
   if (reply.action === 'briefing') return { kind: 'briefing' }
-  if (reply.action !== 'checkin') return { kind: 'none' }
-  const heard = (Object.keys(VALUES) as (keyof SpokenValues)[]).filter((key) => typeof reply[key] === 'number')
-  const pick = (keys: (keyof SpokenValues)[]) => Object.fromEntries(keys.map((key) => [key, reply[key]]))
-  return {
-    kind: 'checkin',
-    values: pick(heard.filter((key) => withinLimits(key, reply[key] as number))),
-    outOfRange: pick(heard.filter((key) => !withinLimits(key, reply[key] as number))),
-  }
+  return { kind: 'none' }
+}
+
+/** Symptoms win over "none": a model that says both has heard a symptom. */
+function toAnswer(reply: { value?: number | null; symptoms?: string[]; none?: boolean }): StepAnswer {
+  if (typeof reply.value === 'number') return { kind: 'value', value: reply.value }
+  if (reply.symptoms?.length) return { kind: 'symptoms', symptoms: reply.symptoms }
+  if (reply.none) return { kind: 'symptoms', symptoms: 'none' }
+  return { kind: 'none' }
 }
