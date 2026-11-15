@@ -170,9 +170,16 @@
   margin: 0;
 }
 
-/* The board's LCD is always dark, whatever the page theme. */
+/* The board's LCD is always dark, whatever the page theme. The build compiles light-dark() into variables resolved on
+   :root, so color-scheme alone doesn't flip the tokens here: the panel's tokens are set to their dark values (tokens.css). */
 .sim-display__panel {
   color-scheme: dark;
+  --color-bg: var(--palette-ink);
+  --color-surface: var(--palette-olive);
+  --color-text: var(--palette-bone);
+  --color-text-muted: var(--palette-khaki);
+  --color-alert: var(--palette-bright-red);
+  --color-todo: var(--palette-blue-tint);
   max-width: 420px;
   overflow: hidden;
   border-radius: var(--radius-item);
