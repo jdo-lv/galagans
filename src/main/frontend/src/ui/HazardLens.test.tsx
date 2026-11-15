@@ -27,7 +27,7 @@ const systemsWith = (className: string) =>
     .map((li) => li.querySelector('.status-system')?.textContent)
 const badges = () => rows().map((li) => li.querySelector('.badge')?.textContent)
 // Rule-driven systems first (Respiratory, Cognition, Cabin air, Radiation), then the placeholders they don't cover.
-const ALL_ROWS = ['Respiratory', 'Cognition', 'Cabin air', 'Radiation', ...mockStatuses.map((p) => p.system).filter((s) => s !== 'Cognition')]
+const ALL_ROWS = ['Respiratory', 'Cognition', 'Cabin air', 'Radiation', 'Cardiovascular', 'Immune', ...mockStatuses.map((p) => p.system).filter((s) => s !== 'Cognition')]
 
 const figure = () => lens().querySelector<HTMLElement>('div.body-figure')!
 const items = () => within(screen.getByRole('list', { name: 'Body figure' })).getAllByRole('listitem')
@@ -162,15 +162,15 @@ describe('Hazard lens', () => {
     expect(lens().ownerDocument.querySelector('.lens-dimmed')).toBeNull()
     rows().forEach((li) => expect(within(li).getByText('Affected by Distance from Earth')).toBeInTheDocument())
     items().forEach((li) => expect(within(li).getByText('Affected by Distance from Earth')).toBeInTheDocument())
-    expect(rowOf('Respiratory')).toHaveTextContent('▲ CAUTION')
-    expect(itemOf('Respiratory')).toHaveTextContent('▲ CAUTION')
+    expect(rowOf('Respiratory')).toHaveTextContent('▲ CHECK')
+    expect(itemOf('Respiratory')).toHaveTextContent('▲ CHECK')
     expect(captionLines()[1]).toBe('Affects: all systems, indirectly')
     expect(list().lastElementChild).toHaveTextContent('Lens on: all systems marked. Status is unchanged by the lens.')
   })
 
   it.each([
-    [92, '▲ CAUTION'],
-    [88, 'WARNING'],
+    [92, '▲ CHECK'],
+    [88, '⬣ EMERGENCY'],
   ])('AC9: SpO₂ %i % and Gravity fields → Respiratory row and Lungs item keep "%s", unmarked and undimmed', async (spo2, badge) => {
     home({ spo2 }).renderApp()
     await within(list()).findByText('Respiratory')
@@ -252,8 +252,8 @@ describe('Hazard lens', () => {
 
   it.each([
     ['SpO₂ 97 %', 'none', [reading('r1', NOW, 97)]],
-    ['SpO₂ 92 %', '▲ CAUTION', [reading('r1', NOW, 92)]],
-    ['SpO₂ 88 %', 'WARNING', [reading('r1', NOW, 88)]],
+    ['SpO₂ 92 %', '▲ CHECK', [reading('r1', NOW, 92)]],
+    ['SpO₂ 88 %', '⬣ EMERGENCY', [reading('r1', NOW, 88)]],
     ['no SpO₂ reading', 'none', []],
     ['SpO₂ 92 % recorded 24 h 1 min ago', 'none', [reading('r1', '2026-11-13T09:29:00Z', 92)]],
   ])('AC17: %s → Lungs item badge: %s', async (_, badge, seed) => {
@@ -261,6 +261,25 @@ describe('Hazard lens', () => {
     await within(list()).findByText('Respiratory')
 
     expect(itemOf('Respiratory').querySelector('.badge')?.textContent ?? 'none').toBe(badge)
+  })
+
+  it.each([
+    [119, 'none'],
+    [125, '↗ WATCH'],
+    [150, '✚ TREAT'],
+  ])('#43 AC10: systolic %s → Heart item badge: %s, flagged at levels 2–5', async (systolic, badge) => {
+    const observationSeed = [
+      {
+        resourceType: 'Observation' as const, id: 'bp-cuff:m1:systolicMmHg', status: 'final' as const, code: { text: 'systolicMmHg' as const },
+        valueQuantity: { value: systolic, unit: 'mmHg' }, effectiveDateTime: NOW, device: { display: 'BP cuff · synthetic' as const },
+      },
+    ]
+    setup({ now: NOW, placeholders: mockStatuses, observationSeed }).renderApp()
+    await within(list()).findByText('Respiratory')
+    await within(list()).findByText(`Systolic`, { exact: false })
+
+    expect(itemOf('Cardiovascular').querySelector('.badge')?.textContent ?? 'none').toBe(badge)
+    expect(itemOf('Cardiovascular').classList.contains('hotspot--flagged')).toBe(badge !== 'none')
   })
 
   it.each(['loading', 'failed'])('AC18: statuses %s → figure shows names, still marked by Radiation, no lens note', async (kind) => {
@@ -324,7 +343,7 @@ describe('Hazard lens', () => {
 
 describe('Body figure with COG-01 (#17)', () => {
   it.each([
-    [312, '▲ CAUTION'],
+    [312, '▲ CHECK'],
     [268, undefined],
   ])('AC17: a PVT of %s gives the Cognition label badge %s', async (ms, badge) => {
     setup({ now: NOW, placeholders: mockStatuses, seed: [pvt('p', NOW, ms)] }).renderApp()

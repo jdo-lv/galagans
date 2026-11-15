@@ -41,7 +41,7 @@ describe('Device readings on Home', () => {
   it('AC10: a newer oximeter reading shows over an older manual one, with its source', async () => {
     setup({ now: NOW, seed: [reading('a', '2026-11-14T09:00:00Z', 97)], observationSeed: [observation('m1', '2026-11-14T09:59:30Z', 91)] }).renderApp()
 
-    await vi.waitFor(() => expect(respiratory()).toHaveTextContent('CAUTION'))
+    await vi.waitFor(() => expect(respiratory()).toHaveTextContent('CHECK'))
     expect(respiratory().querySelector('.num')).toHaveTextContent('91')
     expect(respiratory()).toHaveTextContent(DEVICE)
     expect(tile('SpO₂')).toHaveTextContent('91')
@@ -64,7 +64,7 @@ describe('Device readings on Home', () => {
 
     act(() => readings.emit(message('m1', 91)))
 
-    await vi.waitFor(() => expect(respiratory()).toHaveTextContent('CAUTION'))
+    await vi.waitFor(() => expect(respiratory()).toHaveTextContent('CHECK'))
     expect(tile('SpO₂')).toHaveTextContent('91')
     expect(within(tile('SpO₂')).getByText(DEVICE)).toBeInTheDocument()
   })
@@ -94,7 +94,7 @@ describe('Device readings on the Respiratory detail', () => {
 
     act(() => readings.emit(message('m1', 91)))
 
-    await vi.waitFor(() => expect(detail()).toHaveTextContent('CAUTION'))
+    await vi.waitFor(() => expect(detail()).toHaveTextContent('CHECK'))
     expect(detail().querySelector('.detail-head .num')).toHaveTextContent('91')
     expect(detail()).toHaveTextContent(DEVICE)
   })

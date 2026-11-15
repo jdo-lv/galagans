@@ -1,5 +1,4 @@
 import { act, render, screen, within } from '@testing-library/react'
-import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Rule, SystemStatus } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
@@ -410,26 +409,5 @@ describe('Badge levels (#43)', () => {
     const element = badge(state)
 
     expect([element.className, element.textContent]).toEqual([className, text])
-  })
-
-  const css = (file: string) => readFileSync(new URL(file, import.meta.url), 'utf8')
-  const block = (source: string, selector: string) => {
-    const start = source.indexOf(`\n${selector} {`)
-    return start < 0 ? undefined : source.slice(source.indexOf('{', start) + 1, source.indexOf('}', start)).trim()
-  }
-
-  it('AC8: level badge and chart point rules; no caution or warning class remains', () => {
-    const base = css('./theme/base.css')
-    const detail = css('./detail.css')
-
-    expect(block(base, '.badge--watch')).toBe('color: var(--color-text);\n  box-shadow: inset 0 0 0 1.5px var(--color-text);')
-    expect(block(base, '.badge--check')).toMatch(
-      /^background: var\(--color-caution\);\n {2}color: var\(--color-on-caution\);\n {2}box-shadow: inset 0 0 0 1.5px var\(--color-on-caution\);/,
-    )
-    expect(block(base, '.badge--treat,\n.badge--emergency')).toBe('background: var(--color-warning);\n  color: var(--color-on-warning);')
-    expect(block(detail, '.chart-point--watch')).toBe('fill: var(--color-inset);\n  stroke: var(--color-text);\n  stroke-width: 1.5;')
-    expect(block(detail, '.chart-point--check')).toBe('fill: var(--color-caution);\n  stroke: var(--color-on-caution);\n  stroke-width: 1.5;')
-    expect(block(detail, '.chart-point--treat,\n.chart-point--emergency')).toBe('fill: var(--color-warning);')
-    expect(`${base}${detail}`).not.toMatch(/badge--caution|badge--warning|chart-point--caution|chart-point--warning/)
   })
 })

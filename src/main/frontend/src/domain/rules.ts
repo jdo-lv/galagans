@@ -18,6 +18,11 @@ export type Indicator =
 
 export type Status = 'nominal' | 'watch' | 'check' | 'treat' | 'emergency'
 
+/** Levels 2–5 (watch to emergency): a rule row flagged it. */
+export function isFlagged(state: string | undefined): state is Rule['status'] {
+  return state === 'watch' || state === 'check' || state === 'treat' || state === 'emergency'
+}
+
 /** A value older than this shows as stale. Team heuristic from #1, not from a source. */
 export const STALE_AFTER_MS = 24 * 60 * 60 * 1000
 

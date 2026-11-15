@@ -35,6 +35,16 @@ describe('toPacketItem', () => {
     expect(item).toMatchObject({ state: 'emergency', ruleId: 'SPO-02', tier: 'Urgent ground' })
   })
 
+  it.each([
+    ['watch', 'BP-01', 'Self-care'],
+    ['treat', 'BP-04', 'CMO'],
+  ] as const)('#43 AC10: a %s reading carries %s and "%s"', (state, id, tier) => {
+    const rule = RULES.find((r) => r.id === id)!
+    const item = toPacketItem({ spec: spec('bloodPressure'), state, value: 150, text: '150/70', recordedAt: AT, source: 'BP cuff · synthetic', rule })
+
+    expect(item).toMatchObject({ state, ruleId: id, tier })
+  })
+
   it('AC10: a nominal reading has no rule id or tier', () => {
     const item = toPacketItem({ spec: spec('spo2'), state: 'nominal', value: 96, recordedAt: AT, source: 'manual' })
 

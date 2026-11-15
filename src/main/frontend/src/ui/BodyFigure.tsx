@@ -1,6 +1,6 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react'
 import { lensMark, type Hazard } from '../domain/hazards'
-import type { SystemStatus } from '../domain/rules'
+import { isFlagged, type SystemStatus } from '../domain/rules'
 import { Badge } from './SystemStatusList'
 import type { StatusListState } from './useSystemStatuses'
 
@@ -91,14 +91,13 @@ const HOTSPOTS: Hotspot[] = [
 const SILHOUETTE =
   'M255,72 L255,88 C240,90 214,92 204,104 C196,112 194,128 192,146 L182,232 C180,246 184,256 192,256 C199,256 202,248 201,236 L208,150 C209,140 212,132 216,128 C218,160 220,182 220,200 C220,214 216,226 216,240 L226,336 C226,346 234,350 246,348 C252,347 252,340 250,334 L256,252 C258,246 262,244 266,244 C270,244 274,246 276,252 L282,334 C280,340 280,347 286,348 C298,350 306,346 306,336 L316,240 C316,226 312,214 312,200 C312,182 314,160 316,128 C320,132 323,140 324,150 L331,236 C330,248 333,256 340,256 C348,256 352,246 350,232 L340,146 C338,128 336,112 328,104 C318,92 292,90 277,88 L277,72 Z'
 
-const isFlagged = (state?: SystemStatus['state']) => state === 'caution' || state === 'warning'
-
 /** Display-only body figure (F6) under the hazard lens: quiet labels, a badge only when a system is flagged. */
 export function BodyFigure({ statuses, lens }: { statuses: StatusListState; lens: Hazard | null }) {
-  const states = new Map(statuses.kind === 'ready' ? statuses.data.map((s) => [s.system, s.state]) : [])
+  const bySystem = new Map<string, SystemStatus>(statuses.kind === 'ready' ? statuses.data.map((s) => [s.system, s]) : [])
   const spots = HOTSPOTS.map((spot) => {
-    const state = states.get(spot.system)
-    return { ...spot, state, mark: lensMark(lens, spot.system, state) }
+    const status = bySystem.get(spot.system)
+    const state = status?.state
+    return { ...spot, state, rule: status?.rule, mark: lensMark(lens, spot.system, state) }
   })
 
   return (
@@ -124,7 +123,7 @@ export function BodyFigure({ statuses, lens }: { statuses: StatusListState; lens
         ))}
       </svg>
       <ul className="hotspots" aria-label="Body figure">
-        {spots.map(({ label, system, side, x, y, state, mark }) => (
+        {spots.map(({ label, system, side, x, y, state, rule, mark }) => (
           <li
             key={system}
             data-system={system}
@@ -134,7 +133,7 @@ export function BodyFigure({ statuses, lens }: { statuses: StatusListState; lens
             style={{ '--x': `${x}%`, '--y': `${y}%` } as CSSProperties}
           >
             <span className="hotspot__label">{label}</span>
-            {state && isFlagged(state) && <Badge state={state} />}
+            {isFlagged(state) && <Badge state={state} rule={rule} />}
             {mark === 'affected' && <span className="visually-hidden">Affected by {lens?.name}</span>}
           </li>
         ))}

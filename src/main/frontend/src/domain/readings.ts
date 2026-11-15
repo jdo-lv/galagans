@@ -24,7 +24,7 @@ export interface LatestReading {
   recordedAt?: string
   /** Only when a value is shown. */
   source?: ObservationSource
-  /** Only for caution and warning: the row that decided it. */
+  /** Only for levels 2–5: the row that decided it. */
   rule?: Rule
   /** The indicator has no rule rows, so its state is not a judgement. */
   unrated?: true

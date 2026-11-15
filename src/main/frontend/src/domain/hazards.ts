@@ -1,4 +1,4 @@
-import type { SystemStatus } from './rules'
+import { isFlagged, type SystemStatus } from './rules'
 
 export type HazardId = 'radiation' | 'isolation' | 'distance' | 'gravity' | 'hostile'
 
@@ -65,7 +65,7 @@ export function isAffected(hazard: Hazard, system: string): boolean {
   return hazard.systems === 'all' || hazard.systems.includes(system)
 }
 
-/** How the lens shows one system. A caution or warning outside the hazard keeps no mark: a filter never mutes a flag. */
+/** How the lens shows one system. A flag (levels 2–5) outside the hazard keeps no mark: a filter never mutes a flag. */
 export function lensMark(
   hazard: Hazard | null,
   system: string,
@@ -73,6 +73,6 @@ export function lensMark(
 ): 'affected' | 'dimmed' | null {
   if (!hazard) return null
   if (isAffected(hazard, system)) return 'affected'
-  if (state === 'caution' || state === 'warning') return null
+  if (isFlagged(state)) return null
   return 'dimmed'
 }

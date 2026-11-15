@@ -1,5 +1,6 @@
 import type { PacketItem } from '../domain/packet'
 import type { LatestReading } from '../domain/readings'
+import { isFlagged } from '../domain/rules'
 
 /** A "Latest readings" row as a packet item; only the fields that have a value. */
 export function toPacketItem(reading: LatestReading): PacketItem {
@@ -14,6 +15,6 @@ export function toPacketItem(reading: LatestReading): PacketItem {
     ...(text !== undefined && { text }),
     ...(recordedAt !== undefined && { recordedAt }),
     ...(source !== undefined && { source }),
-    ...(rule && (state === 'caution' || state === 'warning') && { ruleId: rule.id, tier: rule.tier }),
+    ...(rule && isFlagged(state) && { ruleId: rule.id, tier: rule.tier }),
   }
 }
