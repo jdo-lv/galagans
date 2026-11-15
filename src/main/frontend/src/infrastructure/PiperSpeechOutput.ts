@@ -30,6 +30,7 @@ const SPOKEN: [RegExp, string | ((match: string) => string)][] = [
   [/\s\+\s/g, ' plus '],
   [/(\d) ?bpm\b/g, '$1 beats per minute'],
   [/(\d) ?mmHg\b/g, '$1 millimetres of mercury'],
+  [/(\d) ?mSv\/day\b/g, '$1 millisieverts per day'],
   [/(\d) ?ms\b/g, '$1 milliseconds'],
   [/(\d) ?h\b/g, '$1 hours'],
 ]

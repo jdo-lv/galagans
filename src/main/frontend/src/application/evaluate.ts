@@ -2,7 +2,7 @@ import type { Observation, ObservationSource } from '../domain/observation'
 import { readingSpec } from '../domain/readings'
 import { CHART_WINDOW_MS, type ChartPoint, type Indicator, type Rule, type Status, type SystemStatus } from '../domain/rules'
 
-const SEVERITY: Record<Status, number> = { nominal: 0, caution: 1, warning: 2 }
+const SEVERITY: Record<Status, number> = { nominal: 0, watch: 2, check: 3, treat: 4, emergency: 5 }
 
 export interface IndicatorReading {
   id: string
@@ -93,7 +93,7 @@ function evaluateIndicator(system: string, rows: Rule[], observations: Observati
   return latest.rule ? { ...shown, state: latest.status, rule: latest.rule } : { ...shown, state: latest.status }
 }
 
-const RANK: Record<SystemStatus['state'], number> = { 'no-data': 0, stale: 1, nominal: 2, caution: 3, warning: 4 }
+const RANK: Record<SystemStatus['state'], number> = { 'no-data': 0, stale: 1, nominal: 2, watch: 3, check: 4, treat: 5, emergency: 6 }
 
 /** A system's rows grouped by indicator, in table order. */
 export function byIndicator(rows: Rule[]): Rule[][] {

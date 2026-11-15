@@ -33,7 +33,7 @@ describe('PacketSender', () => {
 
     expect(sent).toEqual({ id: 'id-1', builtAt: '2026-11-14T07:31:00.000Z', oneWayDelayMs: 845_000, note: 'Slept badly.', items: expectedItems })
     expect([...repository.items.values()]).toEqual([{ ...sent, state: 'queued' }])
-    expect(sent.items.find((i) => i.key === 'spo2')).toMatchObject({ state: 'caution', ruleId: 'SPO-01', tier: 'CMO' })
+    expect(sent.items.find((i) => i.key === 'spo2')).toMatchObject({ state: 'check', ruleId: 'SPO-01', tier: 'CMO' })
   })
 
   it('AC21: a blank note is stored as ""', async () => {

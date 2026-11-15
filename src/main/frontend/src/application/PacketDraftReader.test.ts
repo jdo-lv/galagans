@@ -16,7 +16,7 @@ describe('PacketDraftReader', () => {
     const items = await draft.read()
 
     expect(items.map((i) => i.key)).toEqual(READINGS.map((s) => s.key))
-    expect(items[0]).toMatchObject({ key: 'spo2', state: 'warning', ruleId: 'SPO-02', tier: 'Urgent ground' })
+    expect(items[0]).toMatchObject({ key: 'spo2', state: 'emergency', ruleId: 'SPO-02', tier: 'Urgent ground' })
     expect(draft.now()).toBe(NOW)
   })
 })

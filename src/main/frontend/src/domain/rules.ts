@@ -16,7 +16,7 @@ export type Indicator =
   | 'doseRateMsvDay'
   | 'bfoDose30dMgyEq'
 
-export type Status = 'nominal' | 'caution' | 'warning'
+export type Status = 'nominal' | 'watch' | 'check' | 'treat' | 'emergency'
 
 /** A value older than this shows as stale. Team heuristic from #1, not from a source. */
 export const STALE_AFTER_MS = 24 * 60 * 60 * 1000
@@ -57,7 +57,7 @@ export interface SystemStatus {
   detail?: string
   /** Not set for no-data. */
   source?: ObservationSource | 'synthetic'
-  /** Only for caution and warning. */
+  /** Only for levels 2–5. */
   rule?: Rule
 }
 

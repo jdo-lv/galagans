@@ -86,7 +86,7 @@ export const READINGS: ReadingSpec[] = [
 ]
 
 export function readingSpec(indicator: Indicator): ReadingSpec {
-  for (const spec of READINGS) if (spec.indicator === indicator) return spec
+  for (const spec of READINGS) if (spec.indicator === indicator || spec.pairIndicator === indicator) return spec
   // Unreachable: domain/readings.test.ts checks every rule's indicator has a spec.
   throw new Error(`No READINGS spec for ${indicator}`)
 }

@@ -2,14 +2,15 @@ import { describe, expect, it } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
 import type { Rule } from '../domain/rules'
 import { fromCheckIn, type Observation } from '../domain/observation'
+import { RULES } from '../test/rules'
 import { evaluate as evaluateObservations } from './evaluate'
 
 const now = new Date('2026-11-14T12:00:00Z')
 
 const base = { label: 'SpO₂', unit: '%', tier: 'CMO', what: 'w', why: 'y', howDecided: 'h', next: 'n', source: 's' }
-const spo01: Rule = { ...base, id: 'SPO-01', system: 'Respiratory', indicator: 'spo2Percent', validMin: 50, validMax: 100, below: 94, status: 'caution' }
-const spo02: Rule = { ...base, id: 'SPO-02', system: 'Respiratory', indicator: 'spo2Percent', validMin: 50, validMax: 100, below: 90, status: 'warning', tier: 'Urgent ground' }
-const hr = (id: string, above: number, status: Rule['status'] = 'caution'): Rule => ({
+const spo01: Rule = { ...base, id: 'SPO-01', system: 'Respiratory', indicator: 'spo2Percent', validMin: 50, validMax: 100, below: 94, status: 'check' }
+const spo02: Rule = { ...base, id: 'SPO-02', system: 'Respiratory', indicator: 'spo2Percent', validMin: 50, validMax: 100, below: 90, status: 'emergency', tier: 'Urgent ground' }
+const hr = (id: string, above: number, status: Rule['status'] = 'check'): Rule => ({
   ...base, id, system: 'Test', indicator: 'heartRateBpm', label: 'HR', unit: 'bpm', validMin: 20, validMax: 250, above, status,
 })
 
@@ -23,7 +24,7 @@ describe('evaluate', () => {
 
     expect(statuses.map((s) => [s.system, s.state, s.rule?.id])).toEqual([
       ['Respiratory', 'nominal', undefined],
-      ['Test', 'caution', 'HR-01'],
+      ['Test', 'check', 'HR-01'],
     ])
   })
 
@@ -31,7 +32,7 @@ describe('evaluate', () => {
     const at = (value: number) => evaluate([hr('HR-01', 100)], [reading('a', '2026-11-14T11:00:00Z', { heartRateBpm: value })], now)[0].state
 
     expect(at(100)).toBe('nominal')
-    expect(at(101)).toBe('caution')
+    expect(at(101)).toBe('check')
   })
 
   it('returns the first row in table order when rows of equal status match', () => {
@@ -50,7 +51,7 @@ describe('evaluate', () => {
     }
     const [status] = evaluate([spo01, spo02], order.map((id) => byId[id as 'a' | 'b']), now)
 
-    expect(status).toMatchObject({ state: 'warning', value: 88 })
+    expect(status).toMatchObject({ state: 'emergency', value: 88 })
   })
 
   it('picks the lower id on equal timestamps and equal status', () => {
@@ -76,7 +77,7 @@ describe('evaluate', () => {
       now,
     )
 
-    expect(status).toMatchObject({ state: 'caution', value: 92 })
+    expect(status).toMatchObject({ state: 'check', value: 92 })
   })
 
   it('reports no data when no reading is valid', () => {
@@ -88,7 +89,7 @@ describe('evaluate', () => {
   it('reports stale only when the value is older than 24 h', () => {
     const at = (recordedAt: string) => evaluate([spo01, spo02], [reading('a', recordedAt, { spo2Percent: 88 })], now)[0]
 
-    expect(at('2026-11-13T12:00:00Z').state).toBe('warning')
+    expect(at('2026-11-13T12:00:00Z').state).toBe('emergency')
     expect(at('2026-11-13T11:59:00Z')).toEqual({
       system: 'Respiratory', state: 'stale', label: 'SpO₂', unit: '%', value: 88, recordedAt: '2026-11-13T11:59:00Z', source: 'manual',
     })
@@ -98,7 +99,7 @@ describe('evaluate', () => {
 describe('evaluate with the PVT (#17)', () => {
   const cog01: Rule = {
     ...base, id: 'COG-01', system: 'Cognition', indicator: 'pvtMedianMs', label: 'PVT median', unit: 'ms',
-    validMin: 130, validMax: 10000, above: 305, status: 'caution',
+    validMin: 130, validMax: 10000, above: 305, status: 'check',
   }
   const DAY = 24 * 60 * 60_000
   const at = (msBefore: number) => new Date(now.getTime() - msBefore).toISOString()
@@ -111,7 +112,7 @@ describe('evaluate with the PVT (#17)', () => {
     const fresh = evaluate([cog01], [reading('a', at(4 * DAY), { pvtMedianMs: 312 })], now)[0]
     const old = evaluate([cog01], [reading('a', at(4 * DAY + 60_000), { pvtMedianMs: 312 })], now)[0]
 
-    expect(fresh).toMatchObject({ state: 'caution', source: 'in-app test' })
+    expect(fresh).toMatchObject({ state: 'check', source: 'in-app test' })
     expect(old).toMatchObject({ state: 'stale', source: 'in-app test' })
   })
 
@@ -124,7 +125,7 @@ describe('evaluate with the PVT (#17)', () => {
 
 describe('evaluate, a system with several indicators (Cabin air)', () => {
   const air = (id: string, indicator: Rule['indicator'], label: string, unit: string, threshold: { above?: number; below?: number }): Rule => ({
-    ...base, id, system: 'Cabin air', indicator, label, unit, validMin: 0, validMax: 100, status: 'caution', ...threshold,
+    ...base, id, system: 'Cabin air', indicator, label, unit, validMin: 0, validMax: 100, status: 'check', ...threshold,
   })
   const rows = [
     air('CAB-01', 'cabinCo2MmHg', 'CO₂ (1-h avg)', 'mmHg', { above: 3 }),
@@ -144,10 +145,10 @@ describe('evaluate, a system with several indicators (Cabin air)', () => {
     expect([s.state, s.label, s.value, s.rule]).toEqual(['nominal', 'CO₂ (1-h avg)', 2.3, undefined])
   })
 
-  it('shows the worst indicator: temperature 28 °C is a caution while CO₂ is nominal', () => {
+  it('shows the worst indicator: temperature 28 °C is a check while CO₂ is nominal', () => {
     const [s] = status([obs('cabinCo2MmHg', 2.3), obs('cabinTempC', 28), obs('cabinHumidityPct', 45)])
 
-    expect([s.state, s.label, s.value, s.unit, s.rule?.id]).toEqual(['caution', 'Cabin temp', 28, '°C', 'CAB-03'])
+    expect([s.state, s.label, s.value, s.unit, s.rule?.id]).toEqual(['check', 'Cabin temp', 28, '°C', 'CAB-03'])
   })
 
   it('equal severity keeps table order', () => {
@@ -161,5 +162,58 @@ describe('evaluate, a system with several indicators (Cabin air)', () => {
 
     expect([s.state, s.label]).toEqual(['nominal', 'Cabin temp'])
     expect(status([])[0].state).toBe('no-data')
+  })
+})
+
+describe('evaluate with the shipped rules (#43)', () => {
+  const NOW = new Date('2026-11-14T09:31:07Z')
+  const obs = (indicator: Rule['indicator'], value: number): Observation => ({
+    resourceType: 'Observation', id: `dev:m:${indicator}`, status: 'final', code: { text: indicator },
+    valueQuantity: { value, unit: '' }, effectiveDateTime: NOW.toISOString(), device: { display: 'BP cuff · synthetic' },
+  })
+  const system = (name: string, observations: Observation[]) => {
+    const s = evaluateObservations(RULES, observations, NOW).find((status) => status.system === name)!
+    return [s.state, s.rule?.id]
+  }
+
+  it('AC1: a more severe level wins inside an indicator and across indicators', () => {
+    expect(system('Cardiovascular', [obs('systolicMmHg', 150), obs('diastolicMmHg', 70)])).toEqual(['treat', 'BP-04'])
+    expect(system('Cardiovascular', [obs('systolicMmHg', 125), obs('diastolicMmHg', 85)])).toEqual(['check', 'BP-03'])
+    expect(system('Cardiovascular', [obs('systolicMmHg', 125), obs('diastolicMmHg', 95)])).toEqual(['treat', 'BP-05'])
+    expect(system('Cardiovascular', [obs('systolicMmHg', 185), obs('diastolicMmHg', 95)])).toEqual(['emergency', 'BP-06'])
+    expect(system('Cabin air', [obs('cabinCo2MmHg', 2.8), obs('cabinTempC', 22)])).toEqual(['watch', 'CAB-06'])
+  })
+
+  it.each([
+    [100, 'nominal', undefined],
+    [101, 'check', 'CV-01'],
+    [39, 'check', 'CV-02'],
+  ])('AC5: heart rate %s → Cardiovascular %s %s', (value, state, rule) => {
+    expect(system('Cardiovascular', [obs('heartRateBpm', value)])).toEqual([state, rule])
+  })
+
+  it.each([
+    [119, 79, 'nominal', undefined],
+    [120, 79, 'watch', 'BP-01'],
+    [130, 70, 'check', 'BP-02'],
+    [118, 80, 'check', 'BP-03'],
+    [140, 70, 'treat', 'BP-04'],
+    [118, 90, 'treat', 'BP-05'],
+    [180, 70, 'emergency', 'BP-06'],
+    [118, 120, 'emergency', 'BP-07'],
+  ])('AC5: BP %s/%s → Cardiovascular %s %s', (systolic, diastolic, state, rule) => {
+    expect(system('Cardiovascular', [obs('systolicMmHg', systolic), obs('diastolicMmHg', diastolic)])).toEqual([state, rule])
+  })
+
+  it.each([
+    ['Immune', 'bodyTempC', 37.9, 'nominal', undefined],
+    ['Immune', 'bodyTempC', 38.0, 'check', 'TMP-01'],
+    ['Cabin air', 'cabinCo2MmHg', 2.5, 'nominal', undefined],
+    ['Cabin air', 'cabinCo2MmHg', 2.6, 'watch', 'CAB-06'],
+    ['Cabin air', 'cabinCo2MmHg', 3.1, 'check', 'CAB-01'],
+    ['Radiation', 'doseRateMsvDay', 0.9, 'nominal', undefined],
+    ['Radiation', 'doseRateMsvDay', 0.91, 'check', 'RAD-03'],
+  ] as const)('AC6: %s %s %s → %s %s', (name, indicator, value, state, rule) => {
+    expect(system(name, [obs(indicator, value)])).toEqual([state, rule])
   })
 })

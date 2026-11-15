@@ -105,7 +105,7 @@ describe('LatestReadingsReader', () => {
   it('#19 AC8: a caution reading carries the rule row that decided it', async () => {
     const reading = await byKey('spo2', [checkIn({ spo2Percent: 92 }, '2026-11-14T11:50:00Z')])
 
-    expect(reading?.state).toBe('caution')
+    expect(reading?.state).toBe('check')
     expect(reading?.rule?.id).toBe('SPO-01')
     expect(reading?.unrated).toBeUndefined()
   })
@@ -135,11 +135,11 @@ describe('LatestReadingsReader', () => {
   it('AC25: a heart-rate rule row sets the Heart rate state', async () => {
     const [spo01, spo02] = RULES
     const heartRateRow: Rule = {
-      ...spo01, id: 'TEST-HR', system: 'Test', indicator: 'heartRateBpm', above: 100, below: undefined, status: 'caution', validMin: 20, validMax: 250,
+      ...spo01, id: 'TEST-HR', system: 'Test', indicator: 'heartRateBpm', above: 100, below: undefined, status: 'check', validMin: 20, validMax: 250,
     }
 
     const reading = await byKey('heartRate', [checkIn({ heartRateBpm: 110 }, '2026-11-14T11:00:00Z')], { ruleRows: [spo01, spo02, heartRateRow] })
 
-    expect(reading?.state).toBe('caution')
+    expect(reading?.state).toBe('check')
   })
 })

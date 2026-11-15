@@ -12,7 +12,7 @@ const spo01: Rule = {
   validMin: 50,
   validMax: 100,
   below: 94,
-  status: 'caution',
+  status: 'check',
   tier: 'CMO',
   what: 'SpO₂ is below 94 %.',
   why: 'Low oxygen saturation can mean hypoxia.',
@@ -21,10 +21,10 @@ const spo01: Rule = {
   source: 'research/health-indicators.md §4',
 }
 
-const hr: Rule = { ...spo01, id: 'HR-02', system: 'Cardiovascular', label: 'HR', unit: 'bpm', status: 'warning', tier: 'Urgent ground', what: 'HR is above 120 bpm.', why: 'Why HR.', next: 'Next HR.' }
+const hr: Rule = { ...spo01, id: 'HR-02', system: 'Cardiovascular', label: 'HR', unit: 'bpm', status: 'emergency', tier: 'Urgent ground', what: 'HR is above 120 bpm.', why: 'Why HR.', next: 'Next HR.' }
 
 const sleep: SystemStatus = { system: 'Sleep', state: 'nominal', detail: '7.1 h last night', source: 'synthetic' }
-const lowSpo2: SystemStatus = { system: 'Respiratory', state: 'caution', label: 'SpO₂', unit: '%', value: 92, source: 'manual', rule: spo01 }
+const lowSpo2: SystemStatus = { system: 'Respiratory', state: 'check', label: 'SpO₂', unit: '%', value: 92, source: 'manual', rule: spo01 }
 const routine: RoutineItem[] = [
   { kind: 'check-in', label: 'Morning check-in', window: { start: '07:00', end: '09:00' }, estimate: '~1.5 min', state: 'due' },
   { kind: 'pvt', label: 'PVT (3 min)', due: true },
@@ -75,7 +75,7 @@ describe('HealthBriefing', () => {
   })
 
   it('says warnings before cautions', async () => {
-    statuses = [lowSpo2, { system: 'Cardiovascular', state: 'warning', label: 'HR', unit: 'bpm', value: 131, source: 'manual', rule: hr }]
+    statuses = [lowSpo2, { system: 'Cardiovascular', state: 'emergency', label: 'HR', unit: 'bpm', value: 131, source: 'manual', rule: hr }]
 
     expect(await briefing.brief()).toMatch(/^Warning, Cardiovascular\. .* Caution, Respiratory\. /)
   })
