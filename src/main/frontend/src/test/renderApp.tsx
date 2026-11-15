@@ -20,7 +20,7 @@ import type { Observation } from '../domain/observation'
 import type { CheckInHistory, ConnectivityMonitor } from '../domain/ports'
 import type { RoutinePlaceholder } from '../domain/routine'
 import type { ProcessCounter, SeedDay } from '../domain/streak'
-import type { Placeholder } from '../domain/rules'
+import { CHART_WINDOW_MS, type Placeholder } from '../domain/rules'
 import { App } from '../ui/App'
 import { ServicesProvider } from '../ui/ServicesContext'
 import {
@@ -100,6 +100,7 @@ export function setup({
   streakSeed = [] as SeedDay[],
   counters = [] as ProcessCounter[],
   random = () => 0,
+  chartWindowMs = CHART_WINDOW_MS,
 } = {}) {
   const clock = { now: new Date(now) }
   const repository = new FakeRepository()
@@ -113,7 +114,7 @@ export function setup({
   const readingsReader = new LatestReadingsReader(ruleSource, device.history, () => clock.now)
   const packet = packetFakes(readingsReader, connectivity, () => clock.now)
   const recorder = new CheckInRecorder(repository, synchronizer, undefined, () => clock.now)
-  const statusReader = new SystemStatusReader(ruleSource, device.history, () => clock.now, placeholders)
+  const statusReader = new SystemStatusReader(ruleSource, device.history, () => clock.now, placeholders, chartWindowMs)
   const routineReader = new RoutineReader(repository, () => clock.now, routinePlaceholders)
   const { voice, voiceSession } = voiceFakes({ recorder, statusReader, routineReader })
   const streakReader = new StreakReader(repository, () => clock.now, streakSeed, counters)

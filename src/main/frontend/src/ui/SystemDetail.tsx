@@ -3,7 +3,7 @@ import { formatAge, formatStaleAge } from '../application/formatAge'
 import type { SystemDetail as Detail } from '../domain/rules'
 import './detail.css'
 import { Badge } from './SystemStatusList'
-import { TrendChart } from './TrendChart'
+import { TrendChart, windowLabel } from './TrendChart'
 import { useSystemDetail } from './useSystemDetail'
 
 // Escalation tiers (ideas/ui-guidelines.md §5 "Status badge"); a rule's tier selects one by exact match.
@@ -35,18 +35,18 @@ function ChartScroll({ children }: { children: ReactNode }) {
 }
 
 function DetailBody({ detail, now, headingRef }: { detail: Detail; now: Date; headingRef: React.Ref<HTMLHeadingElement> }) {
-  const { status, rules, points } = detail
+  const { status, rules, points, windowMs } = detail
   const { rule, recordedAt } = status
   const age = recordedAt && (status.state === 'stale' ? formatStaleAge(recordedAt, now) : formatAge(recordedAt, now))
 
   const chart = (
-    <Card title={`${rules[0].label} · last 7 days`}>
+    <Card title={`${rules[0].label} · ${windowLabel(windowMs)}`}>
       {points.length > 0 ? (
         <ChartScroll>
-          <TrendChart rules={rules} points={points} now={now} />
+          <TrendChart rules={rules} points={points} now={now} windowMs={windowMs} />
         </ChartScroll>
       ) : (
-        <p className="muted">No readings in the last 7 days</p>
+        <p className="muted">{`No readings in the ${windowLabel(windowMs)}`}</p>
       )}
     </Card>
   )
@@ -55,7 +55,7 @@ function DetailBody({ detail, now, headingRef }: { detail: Detail; now: Date; he
     <>
       <div className="detail-head">
         <div className="detail-title">
-          <Badge state={status.state} />
+          <Badge state={status.state} rule={rule} />
           <h2 ref={headingRef} tabIndex={-1} className="section-heading">
             {status.system}
           </h2>
@@ -65,7 +65,7 @@ function DetailBody({ detail, now, headingRef }: { detail: Detail; now: Date; he
             {status.label} <span className="num">{status.value}</span> {`${status.unit} · ${age} · ${status.source}`}
           </div>
         )}
-        {!rule && <p>No caution or warning now.</p>}
+        {!rule && <p>Nothing to act on now.</p>}
       </div>
       <div className="layout">
         <div className="stack">

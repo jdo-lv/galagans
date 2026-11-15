@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { JsonRuleSource } from '../infrastructure/JsonRuleSource'
 import type { Observation } from '../domain/observation'
 import { combinedHistory, FakeObservationRepository, FakeRepository, FakeRuleSource } from '../test/fakes'
-import type { Placeholder, Rule } from '../domain/rules'
+import { CHART_WINDOW_MS, type Placeholder, type Rule } from '../domain/rules'
 import { mockStatuses } from '../infrastructure/mockStatuses'
 import { SystemStatusReader } from './SystemStatusReader'
 
@@ -88,11 +88,41 @@ describe('SystemStatusReader', () => {
 
       expect(detail?.status).toEqual((await r.read()).find((s) => s.system === 'Respiratory'))
       expect(detail?.rules).toEqual(rules.filter((r) => r.system === 'Respiratory'))
+      const spo01 = rules.find((rule) => rule.id === 'SPO-01')
       expect(detail?.points).toEqual([
         { recordedAt: '2026-11-08T08:00:00Z', value: 97, source: 'manual', status: 'nominal' },
-        { recordedAt: '2026-11-13T08:15:00Z', value: 93, source: 'manual', status: 'check' },
-        { recordedAt: '2026-11-14T09:20:00Z', value: 92, source: 'manual', status: 'check' },
+        { recordedAt: '2026-11-13T08:15:00Z', value: 93, source: 'manual', status: 'check', rule: spo01 },
+        { recordedAt: '2026-11-14T09:20:00Z', value: 92, source: 'manual', status: 'check', rule: spo01 },
       ])
+      expect(detail?.windowMs).toBe(CHART_WINDOW_MS)
+    })
+
+    it('#43 AC9: points at levels 2–5 carry their rule; nominal and stale points carry none', async () => {
+      const detail = await (await reader(store(['a', '2026-11-12T09:00:00Z', 97], ['b', '2026-11-12T10:00:00Z', 88], ['c', '2026-11-13T09:29:00Z', 92]))).readDetail(
+        'Respiratory',
+      )
+
+      expect(detail?.points.map((p) => [p.status, p.rule?.id])).toEqual([
+        ['nominal', undefined],
+        ['emergency', 'SPO-02'],
+        ['stale', undefined],
+      ])
+      expect(detail?.points.filter((p) => Object.hasOwn(p, 'rule'))).toHaveLength(1)
+    })
+
+    it('#43 AC22: a 60 s chart window keeps readings in [now − 60 s, now] and is returned as windowMs', async () => {
+      const r = new SystemStatusReader(
+        new FakeRuleSource(await new JsonRuleSource().load()),
+        combinedHistory(store(['a', '2026-11-14T09:28:59Z', 96], ['b', '2026-11-14T09:29:00Z', 95], ['c', '2026-11-14T09:30:00Z', 97])),
+        () => NOW,
+        [],
+        60_000,
+      )
+
+      const detail = await r.readDetail('Respiratory')
+
+      expect(detail?.windowMs).toBe(60_000)
+      expect(detail?.points.map((p) => p.value)).toEqual([95, 97])
     })
 
     it('Cabin air charts the indicator its status shows: a 28 °C cabin → the temperature rows and points', async () => {

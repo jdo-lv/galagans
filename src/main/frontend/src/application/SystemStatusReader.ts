@@ -1,5 +1,5 @@
 import type { ObservationHistory, RuleSource } from '../domain/ports'
-import type { Placeholder, SystemDetail, SystemStatus } from '../domain/rules'
+import { CHART_WINDOW_MS, type Placeholder, type SystemDetail, type SystemStatus } from '../domain/rules'
 import { byIndicator, chartPoints, evaluate } from './evaluate'
 
 export class SystemStatusReader {
@@ -10,6 +10,7 @@ export class SystemStatusReader {
     readonly now: () => Date = () => new Date(),
     /** Listed after the evaluated systems; a system with rules drops its placeholder. */
     private readonly placeholders: Placeholder[] = [],
+    private readonly chartWindowMs = CHART_WINDOW_MS,
   ) {}
 
   async read(): Promise<SystemStatus[]> {
@@ -29,6 +30,7 @@ export class SystemStatusReader {
     // A system with several indicators charts the one its status shows (Cabin air: CO₂, temperature or humidity).
     const groups = byIndicator(rows)
     const shown = groups.find((group) => group[0].label === status.label) ?? groups[0]
-    return { status, rules: shown, points: chartPoints(shown, observations, now, status.state === 'stale') }
+    const points = chartPoints(shown, observations, now, status.state === 'stale', this.chartWindowMs)
+    return { status, rules: shown, points, windowMs: this.chartWindowMs }
   }
 }

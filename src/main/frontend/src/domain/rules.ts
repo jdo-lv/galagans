@@ -74,10 +74,14 @@ export interface ChartPoint {
   value: number
   source: ObservationSource
   status: Status | 'stale'
+  /** Only for levels 2–5: the row that decided it. */
+  rule?: Rule
 }
 
 export interface SystemDetail {
   status: SystemStatus
   rules: Rule[]
   points: ChartPoint[]
+  /** The chart spans [now − windowMs, now]. */
+  windowMs: number
 }
