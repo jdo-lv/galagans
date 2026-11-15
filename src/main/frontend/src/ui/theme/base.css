@@ -135,6 +135,13 @@ a:hover {
   gap: var(--space-4);
 }
 
+/* A screen's heading and note in the side panel (Stats) */
+.side-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
 /* Phones: one column in DOM order (side, primary, secondary) and the page scrolls. Pills share a row; anything else takes the width. */
 .screen,
 .shell-main,
@@ -178,6 +185,13 @@ a:hover {
     height: 100%;
   }
 
+  /* position: relative keeps absolutely placed text (.visually-hidden) inside the scrolling panel, not on the page */
+  .shell-side,
+  .shell-main,
+  .shell-pane {
+    position: relative;
+  }
+
   .shell-side,
   .shell-main {
     min-height: 0;
@@ -198,6 +212,12 @@ a:hover {
     flex-basis: auto;
   }
 
+  /* A panel scrolls instead of squeezing what it holds */
+  .shell-side > *,
+  .shell-pane > * {
+    flex-shrink: 0;
+  }
+
   .shell-main {
     display: block;
   }
@@ -215,6 +235,11 @@ a:hover {
 
   .shell-side > .pill--quiet {
     padding-inline: var(--space-4);
+  }
+
+  /* A screen's own heading block in the side panel, inset like the quiet pill above it */
+  .shell-side > :is(.side-section, .detail-side, .packet-side) {
+    padding-inline: var(--space-3);
   }
 
   .shell-side .card {
