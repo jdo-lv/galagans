@@ -119,16 +119,16 @@ describe('Detail header and panels', () => {
   it('AC11: caution header with value, age and source', async () => {
     await openWith([reading('a', new Date(Date.parse(NOW) - 10 * MIN).toISOString(), 92)])
 
-    expect(detail()).toHaveTextContent('▲ CHECK')
+    expect(detail()).toHaveTextContent('Check')
     expect(detail()).toHaveTextContent('SpO₂ 92 % · 10 min ago · manual')
   })
 
-  it('AC12: emergency header with the ⬣ glyph and the word', async () => {
+  it('AC12: emergency header with the icon and the word', async () => {
     await openWith([reading('a', NOW, 88)])
 
     const badge = detail().querySelector('.badge') as HTMLElement
     expect(badge.className).toBe('badge badge--emergency')
-    expect(badge).toHaveTextContent('⬣ EMERGENCY')
+    expect(badge).toHaveTextContent('Emergency')
     expect(detail()).toHaveTextContent('SpO₂ 88 % · just now · manual')
   })
 
@@ -268,7 +268,7 @@ describe('Detail chart', () => {
     await within(await findDetail('Cardiovascular')).findByRole('heading', { level: 2, name: 'Cardiovascular' })
     const bpChart = detail('Cardiovascular').querySelector('svg[role="img"]') as SVGSVGElement
 
-    expect(detail('Cardiovascular').querySelector('.detail-title .badge')).toHaveTextContent('✚ TREAT')
+    expect(detail('Cardiovascular').querySelector('.detail-title .badge')).toHaveTextContent('Treat')
     expect([...bpChart.querySelectorAll('circle.chart-point')].map((p) => p.getAttribute('class'))).toEqual([
       'chart-point',
       'chart-point chart-point--watch',
@@ -410,7 +410,7 @@ describe('Detail errors and offline', () => {
     setFail(s, false)
     act(() => vi.advanceTimersByTime(60_000))
 
-    expect(await within(detail()).findByText('▲ CHECK')).toBeInTheDocument()
+    expect(await within(detail()).findByText('Check')).toBeInTheDocument()
   })
 
   it('AC37: while loading, the back link shows and no heading', async () => {
@@ -430,7 +430,7 @@ describe('Detail errors and offline', () => {
     await submitSpo2(92)
     fireEvent.click(await screen.findByRole('link', { name: /Respiratory/ }))
 
-    expect(await within(await findDetail()).findByText('▲ CHECK')).toBeInTheDocument()
+    expect(await within(await findDetail()).findByText('Check')).toBeInTheDocument()
     expect(s.gateway.sent).toHaveLength(0)
   })
 })
@@ -452,7 +452,7 @@ describe('Cognition detail (#17)', () => {
   it('AC12: caution header, explanation, what next and the CMO tier', async () => {
     await openCognition(week())
 
-    expect(detail('Cognition')).toHaveTextContent('▲ CHECK')
+    expect(detail('Cognition')).toHaveTextContent('Check')
     expect(detail('Cognition')).toHaveTextContent('PVT median 312 ms · 10 min ago · in-app test')
     const values = [...cog('Explanation').querySelectorAll('dd')]
     expect(values.slice(0, 3).map((d) => d.textContent)).toEqual([COG01.what, COG01.why, COG01.howDecided])

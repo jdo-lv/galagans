@@ -156,7 +156,7 @@ describe('LatestReadings', () => {
     await tiles()
     await submit({ spo2: 92 })
 
-    await waitFor(() => expect(tile('SpO₂')).toHaveTextContent('▲ CHECK'))
+    await waitFor(() => expect(tile('SpO₂')).toHaveTextContent('Check'))
     expect(tile('SpO₂').querySelector('.metric-tile__icon')).toBeNull()
   })
 
@@ -165,13 +165,13 @@ describe('LatestReadings', () => {
     await tiles()
     await submit({ spo2: 88 })
 
-    await waitFor(() => expect(tile('SpO₂').querySelector('.badge')).toHaveTextContent('⬣ EMERGENCY'))
+    await waitFor(() => expect(tile('SpO₂').querySelector('.badge')).toHaveTextContent('Emergency'))
     expect(tile('SpO₂').querySelector('.metric-tile__icon')).toBeNull()
   })
 
   it.each([
-    [125, 70, 'badge badge--watch', '↗ WATCH'],
-    [150, 70, 'badge badge--treat', '✚ TREAT'],
+    [125, 70, 'badge badge--watch', 'Watch'],
+    [150, 70, 'badge badge--treat', 'Treat'],
   ])('#43 AC10: Blood pressure %s/%s shows "%s" with its rule direction in place of the icon', async (systolic, diastolic, className, text) => {
     const bp = (indicator: 'systolicMmHg' | 'diastolicMmHg', value: number): Observation => ({
       resourceType: 'Observation', id: `bp-cuff:m1:${indicator}`, status: 'final', code: { text: indicator },
@@ -197,7 +197,7 @@ describe('LatestReadings', () => {
 
     expect(tile('SpO₂')).toHaveTextContent('88 %')
     expect(tile('SpO₂')).toHaveTextContent('SpO₂ / 2 h ago')
-    expect(tile('SpO₂')).toHaveTextContent('⬣ EMERGENCY')
+    expect(tile('SpO₂')).toHaveTextContent('Emergency')
     expect(tile('Heart rate')).toHaveTextContent('64 bpm')
     expect(tile('Heart rate')).toHaveTextContent('Heart rate / just now')
   })
@@ -219,7 +219,7 @@ describe('LatestReadings', () => {
     setup({ now: '2026-11-14T08:00:00Z', seed: [stored('a', '2026-11-13T08:00:00Z', { spo2Percent: 88 })] }).renderApp()
     await tiles()
 
-    expect(tile('SpO₂')).toHaveTextContent('⬣ EMERGENCY')
+    expect(tile('SpO₂')).toHaveTextContent('Emergency')
     expect(tile('SpO₂')).toHaveTextContent('SpO₂ / 1 d ago')
   })
 
@@ -235,7 +235,7 @@ describe('LatestReadings', () => {
     await tiles()
 
     expect(tile('SpO₂')).toHaveTextContent('88 %')
-    expect(tile('SpO₂')).toHaveTextContent('⬣ EMERGENCY')
+    expect(tile('SpO₂')).toHaveTextContent('Emergency')
   })
 
   const failures = [
@@ -304,7 +304,7 @@ describe('LatestReadings', () => {
     await tiles()
     await submit({ spo2: 88 })
 
-    await waitFor(() => expect(tile('SpO₂')).toHaveTextContent('⬣ EMERGENCY'))
+    await waitFor(() => expect(tile('SpO₂')).toHaveTextContent('Emergency'))
     expect(s.gateway.sent).toHaveLength(0)
   })
 
@@ -380,7 +380,7 @@ describe('Reaction time tile with COG-01 (#17)', () => {
 
   it('AC16: 312 ms shows the caution badge in place of the icon; 268 ms shows the icon', async () => {
     setupApp({ placeholders: mockStatuses, seed: [pvt('p', NOW, 312)] }).renderApp()
-    await waitFor(() => expect(tileOf()).toHaveTextContent('▲ CHECK'))
+    await waitFor(() => expect(tileOf()).toHaveTextContent('Check'))
     expect(tileOf().querySelector('.metric-tile__icon')).toBeNull()
   })
 
