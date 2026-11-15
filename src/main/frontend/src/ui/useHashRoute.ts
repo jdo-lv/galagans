@@ -11,6 +11,8 @@ export const PACKET_HREF = '#/packet'
 
 export const CHECK_IN_HASH = '#/check-in'
 
+export const STATISTICS_HASH = '#/statistics'
+
 /** The hash of a screen a voice command opens. */
 export function voiceHref(target: VoiceTarget): string {
   switch (target.screen) {
@@ -25,7 +27,14 @@ export function voiceHref(target: VoiceTarget): string {
   }
 }
 
-export type Route = { kind: 'home' } | { kind: 'system'; system: string } | { kind: 'pvt' } | { kind: 'packet' } | { kind: 'check-in' } | { kind: 'unknown' }
+export type Route =
+  | { kind: 'home' }
+  | { kind: 'system'; system: string }
+  | { kind: 'pvt' }
+  | { kind: 'packet' }
+  | { kind: 'check-in' }
+  | { kind: 'statistics' }
+  | { kind: 'unknown' }
 
 const LEAVES_TO_HOME: Route['kind'][] = ['system', 'pvt', 'packet', 'check-in']
 

@@ -4,6 +4,7 @@ import { CheckInScreen } from "./CheckInScreen";
 import { GroundLinkPill } from "./GroundLinkPill";
 import { HazardLens } from "./HazardLens";
 import { LatestReadings } from "./LatestReadings";
+import { NavBar } from "./NavBar";
 import { PvtCard } from "./PvtCard";
 import { PvtTest } from "./PvtTest";
 import { StatusBar } from "./StatusBar";
@@ -121,6 +122,7 @@ export function App() {
           </div>
         </main>
       )}
+      <NavBar />
     </div>
   );
 }
