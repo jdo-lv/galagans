@@ -48,10 +48,11 @@
   color: var(--color-text);
 }
 
-/* Level 1 on the body is the organ filled in --color-todo (ui-guidelines §5 "Body figure"): the one place blue fills a shape */
+/* Level 1 on the body is the system's icon stroked in --color-todo (ui-guidelines §5 "Body figure"), never filled:
+   a filled line icon turns into a blob (#61) */
 .body-figure .organ--todo {
-  fill: var(--color-todo);
   stroke: var(--color-todo);
+  stroke-width: 2.5;
 }
 
 @media (min-width: 600px) {
@@ -94,16 +95,21 @@
   }
 }
 
-/* Alert levels legend under the figure: one badge per level, as the app shows it */
+/* Alert-level legend: one column of the smallest AAA chips (#61). 19 px bold is WCAG large text, so every chip passes AAA
+   (4.5:1) in both themes: white on red 5.8:1 light / 4.9:1 dark, muted words 5.3:1 / 4.8:1. At 16 px they would need 7:1. */
 .level-legend {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  align-items: flex-start;
+  gap: var(--space-1);
   margin-top: var(--space-4);
+  font-size: var(--text-large);
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .level-legend__heading {
-  font-size: var(--text-body);
+  font-size: inherit;
   font-weight: 700;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
@@ -118,6 +124,36 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.level-legend .badge {
+  gap: var(--space-1);
+  padding: 1px var(--space-2);
+}
+
+/* Nominal sits on the badge baseline like the others, bold so it also counts as large text */
+.level-legend .badge--nominal {
+  padding-inline: var(--space-2);
+  font-weight: 700;
+}
+
+/* Landscape iPad: the Body card fills its pane and the legend sits at the bottom left (home wireframe) */
+@media (min-width: 1000px) {
+  .body-card {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Pinned to the card's bottom-left corner beside the figure, so it takes no height from the drawing.
+     The figure's left labels stop at a third of its height, so the corner is free. */
+  .body-card > .level-legend {
+    position: absolute;
+    left: var(--space-5);
+    bottom: var(--space-4);
+    margin: 0;
+  }
 }
 
 /* To do card: one row per owed input, the open one showing why, how long, where from, and its action */

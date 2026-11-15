@@ -68,7 +68,7 @@ Components use these names, not the hex values.
 | `--color-inverse-bg` / `--color-inverse-text` | `#1B1B1B` / `#DADADA` | `#DADADA` / `#1B1B1B` | Primary button, selected nav item, selected tier on the detail screen |
 | `--color-feature-1` / `--color-on-feature-1` | `#868375` / `#1B1B1B` | same | Featured tile 1 (exercise) |
 | `--color-feature-2` / `--color-on-feature-2` | `#52574E` / `#DADADA` | same | Featured tile 2 (sleep) |
-| `--color-todo` | `#1651B6` | `#7FA6F0` | Level 1 "to do": outline, icon and border only (badge, to-do counter, due routine row, metric tile), never a card fill. One exception: the organ fill on the body figure (#52) |
+| `--color-todo` | `#1651B6` | `#7FA6F0` | Level 1 "to do": outline, icon and border only (badge, to-do counter, due routine row, metric tile), never a fill. On the body figure, the open to-do item's icons get this colour as a 2.5 px stroke, no fill (#61) |
 | `--color-check` / `--color-on-check` | `#FFC72C` / `#1B1B1B` | same | Level 3 "check" badge, segment and chart marker |
 | `--color-alert` / `--color-on-alert` | `#C61E37` / `#FFFFFF` | `#E4002B` / `#FFFFFF` | Level 4 "treat" and level 5 "emergency" (NASA warning and emergency share red) |
 
@@ -114,6 +114,7 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 |---|---|---|---|---|
 | `--text-hero` | DM Mono 400, tracking −0.04em | 64 px | One number per screen: the ring centre | 64 px |
 | `--text-value` | DM Mono 300 | 28 px | Reading values | 28 px |
+| `--text-large` | Inter 700 | 19 px | The alert-level legend only: 14 pt bold is WCAG large text, so its chips need 4.5:1 for AAA, not 7:1 (#61) | — |
 | `--text-heading` | Inter 700 | 20 px | Section headings on tablet layouts | — |
 | `--text-body` | Inter 400 / 500 / 700 | 16 px | Body, labels (700, uppercase, tracking 0.08em), units (700), wordmark (500, tracking 0.08em; splash 0.32em) | 11–15 px |
 
@@ -214,12 +215,12 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" centred on the p
 - **Caption:** an inset (`--color-inset`) with "<hazard>: <what it does>", "Affects: …", "Watched by: …" and a muted source line; `aria-live="polite"`. With nothing selected: "Pick a hazard to see which body systems it affects."
 - **Lens marks are neutral** (`--color-text`), never a colour: colour stays on alert levels.
 
-### Body figure (built: issue #14, Home's Body card since #52)
-- **Card:** Home's primary pane holds only the "Body" card: its heading, the figure, then the alert-level legend.
-- **Drawing:** a decorative SVG (`aria-hidden`): silhouette in `--color-inset` with a `--color-edge` outline, organs outlined in `--color-text-muted`, dashed `--color-edge` leader lines. No status colour on shapes, except the level 1 fill below.
+### Body figure (built: issue #14, Home's Body card since #52, redrawn in #61)
+- **Card:** Home's primary pane holds only the "Body" card: its heading, the figure (filling the pane's width, about 460 px tall on the iPad), then the alert-level legend.
+- **Drawing:** a decorative SVG (`aria-hidden`): an outline traced from `ideas/mockups/figure/` (female shown; male drawn, not wired) in `--color-inset` with a `--color-edge` outline, dashed `--color-edge` leader lines. Each system is marked by the icon it uses elsewhere (brain, eye, lungs, heart with pulse, kidneys, bone) in `--color-text-muted`. No status colour on shapes, except the level 1 stroke below.
 - **Labels:** an HTML list named "Body figure" with Cognition, Eyes, Lungs, Heart, Kidneys and Bone & muscle. A label is quiet muted text; levels 2–5 add the level badge under it. Labels sit beside the figure from 600 px and form a two-column grid under it below 600 px.
-- **To do (#52):** the systems the open to-do item feeds get their organ filled in `--color-todo` (4.67:1 light, 7.07:1 dark on the inset silhouette) and a To do badge under the label, unless a level 2–5 badge is there. The figure is display-only and has no hazard lens.
-- **Legend:** "Alert levels" in the card-heading style, then one badge per level in a column, as the app shows it: ✓ Nominal, To do, Watch (up arrow), Check, Treat, Emergency.
+- **To do (#52):** the systems the open to-do item feeds get their icon stroked in `--color-todo` at 2.5 px, no fill (4.67:1 light, 7.07:1 dark on the inset silhouette) and a To do badge under the label, unless a level 2–5 badge is there. The figure is display-only and has no hazard lens.
+- **Legend:** "Alert levels" in the card-heading style, then one badge per level in a column, as the app shows it: ✓ Nominal, To do, Watch (up arrow), Check, Treat, Emergency. Text is `--text-large` bold with 1 px × 8 px chip padding, the smallest size at which every chip passes AAA (#61). From 1000 px it is pinned to the Body card's bottom-left corner beside the figure's shins; below that it follows the figure.
 
 ### Detail screen (built: issue #9)
 - **Route:** `#/systems/<system>`; "← Body systems" (underlined link) goes back and focuses the "Body systems" heading. Opening a detail focuses its heading once.

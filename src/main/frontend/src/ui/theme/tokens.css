@@ -54,6 +54,7 @@
   --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-data: 'DM Mono', ui-monospace, monospace;
   --text-body: 1rem;
+  --text-large: 1.1875rem; /* 19 px: bold at this size is WCAG large text (14 pt), so AAA needs 4.5:1, not 7:1 */
   --text-heading: 1.25rem;
   --text-value: 1.75rem;
   --text-hero: 4rem;

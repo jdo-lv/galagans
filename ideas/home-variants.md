@@ -38,12 +38,12 @@ One row is open at a time: the one the astronaut chose while it is still owed, o
 
 ## Body pane
 
-The primary pane holds only the "Body" card: its heading, the body figure (the #14 drawing, display-only), then the legend. The open item's systems get their organ filled in level 1 blue and a To do badge under their label; a level 2–5 badge on a label outranks it.
+The primary pane holds only the "Body" card: its heading, the body figure (display-only; traced outline with each system's icon as its marker, #61), then the legend. The open item's systems get their icon stroked in level 1 blue, no fill, and a To do badge under their label; a level 2–5 badge on a label outranks it.
 
 ## Legend
 
-"Alert levels", then one badge per level in a column under the figure, as the app shows it: ✓ Nominal, To do, Watch (up arrow), Check, Treat, Emergency.
+"Alert levels", then one badge per level in a column, as the app shows it: ✓ Nominal, To do, Watch (up arrow), Check, Treat, Emergency. As built (#61): pinned to the Body card's bottom-left corner on tablet, under the figure below 1000 px, in 19 px bold text with 18 px icons, the smallest size at which every chip passes WCAG AAA (large text, 4.5:1).
 
 ## Sizes
 
-At 1080 × 810 (measured by `docs/features/52-app-shell-home-variants.shots.mjs`): side panel 200 × 632 px, main panel 832 px with two 407 px panes, 24 px panel radius, 8 px between panels and between cards. The figure keeps the #14 drawing at the pane's width.
+At 1080 × 810 (measured by `docs/features/52-app-shell-home-variants.shots.mjs`): side panel 200 × 632 px, main panel 832 px with two 407 px panes, 24 px panel radius, 8 px between panels and between cards. The figure fills the pane's width: 457 px tall (measured by `docs/features/61-body-figure.mock.mjs`, #61).
