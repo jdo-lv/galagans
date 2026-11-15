@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { CheckIn } from '../domain/checkIn'
@@ -869,6 +869,7 @@ describe('Device prefill (#55)', () => {
   const HR_63 = device('oximeter:m1:heartRateBpm', 'heartRateBpm', 63, ago(2 * MIN))
   const withDevices = (...observationSeed: Observation[]) => setup({ now: opened.toISOString(), routinePlaceholders: mockRoutine, observationSeed })
   const PREFILL_HINT = 'From your device. Next keeps it; type to correct it, or skip.'
+  const DEVICE_HINT = 'Type the value from your device, or skip.'
   const hint = () => checkIn().querySelector('.step-hint')
   const sourceRow = () => checkIn().querySelector('.field-tile__source')
   const sourceRowText = () => [...(sourceRow()?.children ?? [])].map((c) => c.textContent)
@@ -881,8 +882,70 @@ describe('Device prefill (#55)', () => {
     expect(hint()).toHaveTextContent(PREFILL_HINT)
   }
 
+  function expectEmpty() {
+    expect(input()).toHaveValue(null)
+    expect(sourceRow()).toBeNull()
+    expect(checkIn().querySelector('.tag')).toBeNull()
+    expect(hint()).toHaveTextContent(DEVICE_HINT)
+  }
+
+  /** Opens the check-in and waits until the prefill read has settled. */
+  async function openSettled(s: ReturnType<typeof setup>) {
+    const read = vi.spyOn(s.checkInPrefill, 'read')
+    await open(s)
+    await waitFor(() => expect(read).toHaveBeenCalled())
+    await act(() => Promise.allSettled(read.mock.results.map((r) => r.value)))
+  }
+
   it('AC1: a heart rate 2 min old fills step 1 with its tag, age and the prefill hint', async () => {
     await open(withDevices(HR_63))
     await expectPrefilled(63, 'oximeter · synthetic', '2 min ago')
+  })
+
+  it('AC2: an SpO₂ 1 min old fills step 2', async () => {
+    await open(withDevices(device('oximeter:m2:spo2Percent', 'spo2Percent', 97, ago(MIN))))
+    await next()
+    await expectStep(2, 'What is your SpO₂?')
+    await expectPrefilled(97, 'oximeter · synthetic', '1 min ago')
+  })
+
+  it('AC3: the newest reading of any device wins', async () => {
+    await open(
+      withDevices(
+        device('oximeter:m1:heartRateBpm', 'heartRateBpm', 63, ago(3 * MIN)),
+        device('bracelet:b1:heartRateBpm', 'heartRateBpm', 70, ago(MIN), 'bracelet · synthetic'),
+      ),
+    )
+    await expectPrefilled(70, 'bracelet · synthetic', '1 min ago')
+  })
+
+  it('AC4: a reading exactly 15 min old fills step 1', async () => {
+    await open(withDevices(device('oximeter:m1:heartRateBpm', 'heartRateBpm', 63, ago(15 * MIN))))
+    await expectPrefilled(63, 'oximeter · synthetic', '15 min ago')
+  })
+
+  it('AC5: a reading 15 min 1 s old leaves step 1 empty with the device hint and no tag', async () => {
+    await openSettled(withDevices(device('oximeter:m1:heartRateBpm', 'heartRateBpm', 63, ago(15 * MIN + 1000))))
+    expectEmpty()
+  })
+
+  it('AC6: a reading 30 s after the check-in opens fills step 1 and reads just now', async () => {
+    await open(withDevices(device('oximeter:m1:heartRateBpm', 'heartRateBpm', 63, ago(-30_000))))
+    await expectPrefilled(63, 'oximeter · synthetic', 'just now')
+  })
+
+  it("AC7: 63.5 is rounded to the step's increment", async () => {
+    await open(withDevices(device('oximeter:m1:heartRateBpm', 'heartRateBpm', 63.5, ago(MIN))))
+    await expectPrefilled(64, 'oximeter · synthetic', '1 min ago')
+  })
+
+  it('AC8: a saved check-in never prefills', async () => {
+    const s = setup({
+      now: opened.toISOString(),
+      routinePlaceholders: mockRoutine,
+      seed: [{ id: 'c1', recordedAt: ago(5 * MIN), heartRateBpm: 72, symptoms: [] }],
+    })
+    await openSettled(s)
+    expectEmpty()
   })
 })
