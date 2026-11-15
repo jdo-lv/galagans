@@ -8,6 +8,7 @@ Team workspace for the challenge **"Create Health Monitoring Software for Astron
 
 | File | What's in it |
 |---|---|
+| [docs/PROJECT.md](docs/PROJECT.md) | Final project documentation: solution, architecture, implemented features, NASA resources used |
 | [challenge.md](challenge.md) | Full challenge text, dates, rules, partner agencies |
 | [research/nasa-hrp.md](research/nasa-hrp.md) | NASA Human Research Program: 5 hazards, 21 risks scored per mission type, NASA-STD-3001 limits, Standard Measures, IMM, comms delay |
 | [research/health-indicators.md](research/health-indicators.md) | 25 indicators: in-flight device, frequency, normal range, in-flight shift, attention threshold, consumer proxy; ranked list for a prototype |
