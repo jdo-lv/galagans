@@ -1,6 +1,7 @@
 import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import type { Prefill } from '../application/CheckInPrefill'
 import type { CheckIn } from '../domain/checkIn'
 import type { Observation, ObservationSource } from '../domain/observation'
 import { mockRoutine } from '../infrastructure/mockRoutine'
@@ -1014,5 +1015,81 @@ describe('Device prefill (#55)', () => {
     await expectPrefilled(63, 'oximeter · synthetic', '2 min ago')
     await skip()
     expect(await saveFromStep2(s)).not.toHaveProperty('heartRateBpm')
+  })
+
+  const READ_HR: Prefill = { heartRateBpm: { value: 63, source: 'oximeter · synthetic', recordedAt: ago(2 * MIN) } }
+  const READ_HR_SPO2: Prefill = { ...READ_HR, spo2Percent: { value: 97, source: 'oximeter · synthetic', recordedAt: ago(MIN) } }
+
+  /** Holds `read` pending; the returned function resolves it. */
+  function pendingRead(s: ReturnType<typeof setup>) {
+    let resolve: (prefill: Prefill) => void = () => {}
+    vi.spyOn(s.checkInPrefill, 'read').mockReturnValue(new Promise((r) => (resolve = r)))
+    return (prefill: Prefill) => act(async () => resolve(prefill))
+  }
+
+  /** AC16's state: step 1 passed empty while `read` was pending, then `read` resolved with HR 63 and SpO₂ 97. */
+  async function passedWhilePending() {
+    const s = withDevices()
+    const resolve = pendingRead(s)
+    await open(s)
+    await next()
+    await expectStep(2, 'What is your SpO₂?')
+    await resolve(READ_HR_SPO2)
+  }
+
+  it('AC15: a late prefill never overwrites typed text', async () => {
+    const s = withDevices()
+    const resolve = pendingRead(s)
+    await open(s)
+    await type('80')
+    await resolve(READ_HR)
+    expect(input()).toHaveValue(80)
+    expect(sourceRow()).toBeNull()
+  })
+
+  it('AC16: a late prefill fills the step on screen', async () => {
+    await passedWhilePending()
+    await expectPrefilled(97, 'oximeter · synthetic', '1 min ago')
+  })
+
+  it('AC17: a late prefill leaves a step already passed empty', async () => {
+    await passedWhilePending()
+    await back()
+    await expectStep(1, 'What is your heart rate?')
+    expect(input()).toHaveValue(null)
+    expect(sourceRow()).toBeNull()
+  })
+
+  it("AC18: typing the device's value into a passed step shows no tag", async () => {
+    await passedWhilePending()
+    await back()
+    await expectStep(1, 'What is your heart rate?')
+    await type('63')
+    expect(sourceRow()).toBeNull()
+    expect(hint()).toHaveTextContent(DEVICE_HINT)
+  })
+
+  it('AC19: a failed read is silent', async () => {
+    const s = withDevices(HR_63)
+    vi.spyOn(s.checkInPrefill, 'read').mockRejectedValue(new Error('IndexedDB unavailable'))
+    await openSettled(s)
+    expectEmpty()
+    await next()
+    await expectStep(2, 'What is your SpO₂?')
+    expectEmpty()
+    expect(within(checkIn()).queryByRole('alert')).toBeNull()
+    expect(checkIn().querySelector('.field-error')).toBeNull()
+  })
+
+  it('AC20: readings stored after the check-in opens change nothing, and read runs once', async () => {
+    const s = withDevices()
+    const read = vi.spyOn(s.checkInPrefill, 'read')
+    await open(s)
+    await act(() => Promise.allSettled(read.mock.results.map((r) => r.value)))
+    s.readings.emit({ id: 'm1', t: opened.toISOString(), spo2_pct: 97, pulse_bpm: 63, src: 'synthetic' })
+    await waitFor(() => expect(s.observations.items.size).toBe(2))
+    await expectStep(1, 'What is your heart rate?')
+    expect(input()).toHaveValue(null)
+    expect(read).toHaveBeenCalledTimes(1)
   })
 })
