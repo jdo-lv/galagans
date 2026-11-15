@@ -948,4 +948,71 @@ describe('Device prefill (#55)', () => {
     await openSettled(s)
     expectEmpty()
   })
+
+  /** "Next →" on steps 2–5, then "Save check-in", and waits for the stored check-in. */
+  async function saveFromStep2(s: ReturnType<typeof setup>) {
+    await expectStep(2, 'What is your SpO₂?')
+    for (let i = 2; i < 6; i++) await next()
+    await userEvent.click(button('Save check-in'))
+    await waitFor(() => expect(s.repository.items.size).toBe(1))
+    return saved(s)[0]
+  }
+
+  async function correctTo(value: string) {
+    await userEvent.clear(input())
+    await type(value)
+  }
+
+  it('AC9: Next keeps the prefilled value, saved as a plain check-in value', async () => {
+    const s = withDevices(HR_63)
+    await open(s)
+    await expectPrefilled(63, 'oximeter · synthetic', '2 min ago')
+    await next()
+    expect(await saveFromStep2(s)).toEqual({ id: expect.any(String), recordedAt: opened.toISOString(), heartRateBpm: 63, symptoms: [] })
+  })
+
+  it('AC10: a corrected value drops the tag, the age and the prefill hint', async () => {
+    await open(withDevices(HR_63))
+    await expectPrefilled(63, 'oximeter · synthetic', '2 min ago')
+    await correctTo('70')
+    expect(input()).toHaveValue(70)
+    expect(sourceRow()).toBeNull()
+    expect(checkIn()).not.toHaveTextContent('2 min ago')
+    expect(hint()).toHaveTextContent(DEVICE_HINT)
+  })
+
+  it('AC11: typing the prefilled value back shows the tag, age and prefill hint again', async () => {
+    await open(withDevices(HR_63))
+    await expectPrefilled(63, 'oximeter · synthetic', '2 min ago')
+    await correctTo('70')
+    await correctTo('63')
+    await expectPrefilled(63, 'oximeter · synthetic', '2 min ago')
+  })
+
+  it('AC12: the corrected value is saved', async () => {
+    const s = withDevices(HR_63)
+    await open(s)
+    await expectPrefilled(63, 'oximeter · synthetic', '2 min ago')
+    await correctTo('70')
+    await next()
+    expect((await saveFromStep2(s)).heartRateBpm).toBe(70)
+  })
+
+  it('AC13: Skip clears the prefilled value and Back shows no tag', async () => {
+    await open(withDevices(HR_63))
+    await expectPrefilled(63, 'oximeter · synthetic', '2 min ago')
+    await skip()
+    await back()
+    await expectStep(1, 'What is your heart rate?')
+    expect(input()).toHaveValue(null)
+    expect(sourceRow()).toBeNull()
+  })
+
+  it('AC14: a skipped prefilled step saves no heart rate', async () => {
+    const s = withDevices(HR_63)
+    await open(s)
+    await expectPrefilled(63, 'oximeter · synthetic', '2 min ago')
+    await skip()
+    expect(await saveFromStep2(s)).not.toHaveProperty('heartRateBpm')
+  })
 })
