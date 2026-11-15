@@ -50,13 +50,45 @@ body { margin: 0; }
       <div class="sim-metrics">
         <div class="field-tile"><span class="tile-label">Systolic <span class="tile-label__suffix">mmHg</span></span><span class="sim-value">110</span></div>
         <div class="field-tile"><span class="tile-label">Diastolic <span class="tile-label__suffix">mmHg</span></span><span class="sim-value">69</span></div>
-        <div class="field-tile"><span class="tile-label">Pulse <span class="tile-label__suffix">bpm</span></span><span class="sim-value">64</span></div>
+        <div class="field-tile"><span class="tile-label">Pulse <span class="tile-label__suffix">bpm</span></span><span class="sim-value">103</span></div>
       </div>
       <div class="sim-send">
         <label class="sim-every">Every <input value="1" disabled> s</label>
         <button class="button-secondary">Stop</button>
         <button class="button-secondary sim-send__now">Send now</button>
       </div>
+      <p class="muted">Last sent <span class="num">09:31:07</span></p>
+    </section>
+    <section class="card sim-device">
+      <div class="sim-device__top"><h2>Wrist bracelet</h2><span class="tag">sending every 1 s · Nominal</span></div>
+      <p class="muted"><span class="num">crew/a1/wrist/hr</span> · source: synthetic</p>
+      <fieldset class="sim-levels"><legend>Level</legend><button aria-pressed="true">Nominal</button><button disabled>Watch</button><button aria-pressed="false">Check</button><button disabled>Treat</button><button disabled>Emergency</button></fieldset>
+      <div class="sim-metrics"><div class="field-tile"><span class="tile-label">Heart rate <span class="tile-label__suffix">bpm</span></span><span class="sim-value">106</span></div></div>
+      <div class="sim-send"><label class="sim-every">Every <input value="1" disabled> s</label><button class="button-secondary">Stop</button><button class="button-secondary sim-send__now">Send now</button></div>
+      <p class="muted">Last sent <span class="num">09:31:07</span></p>
+    </section>
+    <section class="card sim-device">
+      <div class="sim-device__top"><h2>Thermometer</h2><span class="tag">sending every 1 s · Nominal</span></div>
+      <p class="muted"><span class="num">crew/a1/thermometer</span> · source: synthetic</p>
+      <fieldset class="sim-levels"><legend>Level</legend><button aria-pressed="true">Nominal</button><button disabled>Watch</button><button aria-pressed="false">Check</button><button disabled>Treat</button><button disabled>Emergency</button></fieldset>
+      <div class="sim-metrics"><div class="field-tile"><span class="tile-label">Temperature <span class="tile-label__suffix">°C</span></span><span class="sim-value">36.9</span></div></div>
+      <div class="sim-send"><label class="sim-every">Every <input value="1" disabled> s</label><button class="button-secondary">Stop</button><button class="button-secondary sim-send__now">Send now</button></div>
+      <p class="muted">Last sent <span class="num">09:31:07</span></p>
+    </section>
+    <section class="card sim-device">
+      <div class="sim-device__top"><h2>Environment node</h2><span class="tag">sending every 1 s · Watch</span></div>
+      <p class="muted"><span class="num">module/hab/env</span> · source: synthetic</p>
+      <fieldset class="sim-levels"><legend>Level</legend><button aria-pressed="false">Nominal</button><button aria-pressed="true">Watch</button><button aria-pressed="false">Check</button><button disabled>Treat</button><button disabled>Emergency</button></fieldset>
+      <div class="sim-metrics"><div class="field-tile"><span class="tile-label">CO₂ (1-h avg) <span class="tile-label__suffix">mmHg</span></span><span class="sim-value">2.8</span></div><div class="field-tile"><span class="tile-label">Cabin temp <span class="tile-label__suffix">°C</span></span><span class="sim-value">22.3</span></div><div class="field-tile"><span class="tile-label">Humidity <span class="tile-label__suffix">% RH</span></span><span class="sim-value">46</span></div></div>
+      <div class="sim-send"><label class="sim-every">Every <input value="1" disabled> s</label><button class="button-secondary">Stop</button><button class="button-secondary sim-send__now">Send now</button></div>
+      <p class="muted">Last sent <span class="num">09:31:07</span></p>
+    </section>
+    <section class="card sim-device">
+      <div class="sim-device__top"><h2>Dosimeter</h2><span class="tag">sending every 1 s · Nominal</span></div>
+      <p class="muted"><span class="num">module/hab/dose</span> · source: synthetic</p>
+      <fieldset class="sim-levels"><legend>Level</legend><button aria-pressed="true">Nominal</button><button disabled>Watch</button><button aria-pressed="false">Check</button><button disabled>Treat</button><button aria-pressed="false">Emergency</button></fieldset>
+      <div class="sim-metrics"><div class="field-tile"><span class="tile-label">Dose rate <span class="tile-label__suffix">mSv/day</span></span><span class="sim-value">0.51</span></div><div class="field-tile"><span class="tile-label">30-day BFO dose <span class="tile-label__suffix">mGy-Eq</span></span><span class="sim-value">96.2</span></div></div>
+      <div class="sim-send"><label class="sim-every">Every <input value="1" disabled> s</label><button class="button-secondary">Stop</button><button class="button-secondary sim-send__now">Send now</button></div>
       <p class="muted">Last sent <span class="num">09:31:07</span></p>
     </section>
   </div>
