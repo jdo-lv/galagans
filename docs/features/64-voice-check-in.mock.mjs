@@ -1,6 +1,6 @@
-// Issue #63 mock: the check-in's step 1 prefilled from the oximeter (#55) while voice runs it ("Voice: listening").
+// Issue #64 mock: the check-in's step 1 prefilled from the oximeter (#55) while voice runs it ("Voice: listening").
 // The voice states are set in the DOM, so no voice host is needed. Run from the repo root with Node 22, dev server up:
-//   APP_URL=http://localhost:5173/ target/node/node docs/features/63-voice-check-in.mock.mjs
+//   APP_URL=http://localhost:5173/ target/node/node docs/features/64-voice-check-in.mock.mjs
 import { openPage } from '../../tools/cdp.mjs'
 
 const APP = process.env.APP_URL ?? 'http://localhost:5173/'
@@ -40,5 +40,5 @@ await page.evaluate(`(() => {
   document.querySelector('.pill-row').append(pill)
 })()`)
 await page.sleep(300)
-await page.shot('docs/features/img/63-mock.png')
+await page.shot('docs/features/img/64-mock.png')
 await page.close()
