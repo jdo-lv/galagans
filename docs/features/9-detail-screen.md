@@ -41,6 +41,8 @@ The columns stack. The chart keeps 16 px labels by scrolling sideways, and it op
 
 Layout follows [02-detail.png](../../ideas/mockups/02-detail.png) and the issue mock [9-mock.png](img/9-mock.png) ([source](9-detail-screen.mock.html)). The header spans both columns. The chart and Explanation cards are on the left; What next and Who to involve are on the right, aligned with the chart card. Styles follow [ui-guidelines.md](../../ideas/ui-guidelines.md) "Detail screen" and "Charts". The screenshots are dark because the machine that took them is in dark mode.
 
+Chart look superseded by #48: see [48-smooth-trend-chart.md](48-smooth-trend-chart.md); the screenshots here stay.
+
 The mock HTML predates the level tokens of [#33](33-alert-levels.md), so it no longer renders as its committed PNG.
 
 | Deviation | Reason |

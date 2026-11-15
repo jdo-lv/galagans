@@ -259,7 +259,7 @@ describe('Detail chart', () => {
     ])
     expect(markers()).toEqual(['alert-triangle'])
     expect(markerCx(chart())).toEqual([Number(points()[2].getAttribute('cx'))])
-    expect(chart().querySelectorAll('polyline')).toHaveLength(1)
+    expect(chart().querySelectorAll('path.chart-line')).toHaveLength(1)
   })
 
   it('AC24, #43 AC9: an emergency point carries the class and an emergency marker', async () => {
@@ -397,7 +397,7 @@ describe('Detail chart', () => {
 
     expect(titles()).toEqual(['95 % · stale · 7 Nov 09:30 UTC · manual'])
     expect(chart()).toHaveAttribute('aria-label', 'SpO₂, last 7 days, 1 reading')
-    expect(chart().querySelector('polyline')).toBeNull()
+    expect(chart().querySelector('path.chart-line')).toBeNull()
   })
 
   it('AC28: a value below 80 sits on the 80 % line', async () => {
