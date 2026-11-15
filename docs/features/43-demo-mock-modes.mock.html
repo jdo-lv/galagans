@@ -1,0 +1,94 @@
+<!doctype html>
+<!-- Static mock for issue #43 (level-driven Device Simulator, DEMO_MODE 1-minute chart), built on the app's tokens and classes. Screenshot: node docs/features/43-demo-mock-modes.mock.mjs -->
+<html lang="en" data-theme="light"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/tokens.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/theme/base.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/simulator/simulator.css">
+<link rel="stylesheet" href="../../src/main/frontend/src/ui/detail.css">
+<style>
+body { margin: 0; }
+.sim-levels { display: flex; flex-wrap: wrap; gap: var(--space-2); border: 0; margin: 0; padding: 0; }
+.sim-levels legend { width: 100%; margin-bottom: var(--space-2); color: var(--color-text-muted); }
+.sim-levels button { min-height: var(--target-min); padding: 0 var(--space-4); border: 1px solid var(--color-edge); border-radius: 999px; background: var(--color-inset); color: inherit; font: inherit; font-weight: 500; }
+.sim-levels button[aria-pressed='true'] { background: var(--color-inverse-bg); color: var(--color-inverse-text); border-color: transparent; }
+.sim-levels button:disabled { opacity: 0.4; }
+.sim-value { font-family: var(--font-data); font-size: var(--text-value); }
+.chart-wrap { max-width: var(--content-max); margin: 0 auto; padding: 0 var(--gutter) var(--space-5); }
+.mock-caption { margin: 0 0 var(--space-3); color: var(--color-text-muted); }
+</style></head>
+<body>
+<div class="sim">
+  <header class="sim-top">
+    <h1>Device Simulator</h1>
+    <span class="pill"><span>Device link <b class="num">ws://localhost:8080/ws/devices</b> · connected</span></span>
+    <span class="pill">All data simulated</span>
+  </header>
+  <div class="sim-devices">
+    <section class="card sim-device">
+      <div class="sim-device__top"><h2>Pulse oximeter</h2><span class="tag">sending every 1 s · Check</span></div>
+      <p class="muted"><span class="num">crew/a1/oximeter</span> · source: synthetic</p>
+      <fieldset class="sim-levels"><legend>Level</legend>
+        <button aria-pressed="false">Nominal</button><button disabled>Watch</button><button aria-pressed="true">Check</button><button disabled>Treat</button><button aria-pressed="false">Emergency</button>
+      </fieldset>
+      <div class="sim-metrics">
+        <div class="field-tile"><span class="tile-label">SpO₂ <span class="tile-label__suffix">%</span></span><span class="sim-value">92</span></div>
+        <div class="field-tile"><span class="tile-label">Pulse <span class="tile-label__suffix">bpm</span></span><span class="sim-value">104</span></div>
+      </div>
+      <div class="sim-send">
+        <label class="sim-every">Every <input value="1" disabled> s</label>
+        <button class="button-secondary">Stop</button>
+        <button class="button-secondary sim-send__now">Send now</button>
+      </div>
+      <p class="muted">Last sent <span class="num">09:31:07</span></p>
+    </section>
+    <section class="card sim-device">
+      <div class="sim-device__top"><h2>BP cuff</h2><span class="tag">sending every 1 s · Nominal</span></div>
+      <p class="muted"><span class="num">crew/a1/bp</span> · source: synthetic</p>
+      <fieldset class="sim-levels"><legend>Level</legend>
+        <button aria-pressed="true">Nominal</button><button aria-pressed="false">Watch</button><button aria-pressed="false">Check</button><button aria-pressed="false">Treat</button><button aria-pressed="false">Emergency</button>
+      </fieldset>
+      <div class="sim-metrics">
+        <div class="field-tile"><span class="tile-label">Systolic <span class="tile-label__suffix">mmHg</span></span><span class="sim-value">110</span></div>
+        <div class="field-tile"><span class="tile-label">Diastolic <span class="tile-label__suffix">mmHg</span></span><span class="sim-value">69</span></div>
+        <div class="field-tile"><span class="tile-label">Pulse <span class="tile-label__suffix">bpm</span></span><span class="sim-value">64</span></div>
+      </div>
+      <div class="sim-send">
+        <label class="sim-every">Every <input value="1" disabled> s</label>
+        <button class="button-secondary">Stop</button>
+        <button class="button-secondary sim-send__now">Send now</button>
+      </div>
+      <p class="muted">Last sent <span class="num">09:31:07</span></p>
+    </section>
+  </div>
+</div>
+<div class="chart-wrap">
+  <p class="mock-caption">Crew app, Respiratory detail with DEMO_MODE on:</p>
+  <section class="card" style="max-width:820px">
+    <h3 class="card-heading">SpO₂ · last minute</h3>
+    <svg class="trend-chart" viewBox="0 0 640 236" role="img" aria-label="SpO₂, last minute, 60 readings">
+      <g><line class="chart-grid" x1="72" x2="620" y1="200" y2="200"/><text class="chart-label" x="66" y="205" text-anchor="end">80 %</text></g>
+      <g><line class="chart-grid" x1="72" x2="620" y1="154" y2="154"/><text class="chart-label" x="66" y="159" text-anchor="end">85 %</text></g>
+      <g><line class="chart-grid" x1="72" x2="620" y1="108" y2="108"/><text class="chart-label" x="66" y="113" text-anchor="end">90 %</text></g>
+      <g><line class="chart-grid" x1="72" x2="620" y1="62" y2="62"/><text class="chart-label" x="66" y="67" text-anchor="end">95 %</text></g>
+      <g><line class="chart-grid" x1="72" x2="620" y1="16" y2="16"/><text class="chart-label" x="66" y="21" text-anchor="end">100 %</text></g>
+      <text class="chart-label" x="72" y="228" text-anchor="middle">09:30:07</text>
+      <text class="chart-label" x="209" y="228" text-anchor="middle">09:30:22</text>
+      <text class="chart-label" x="346" y="228" text-anchor="middle">09:30:37</text>
+      <text class="chart-label" x="483" y="228" text-anchor="middle">09:30:52</text>
+      <text class="chart-label" x="620" y="228" text-anchor="middle">09:31:07</text>
+      <g><line class="chart-threshold" x1="72" x2="620" y1="71" y2="71"/><text class="chart-label" x="78" y="66">SPO-01 · &lt; 94 % check</text></g>
+      <g><line class="chart-threshold" x1="72" x2="620" y1="108" y2="108"/><text class="chart-label" x="78" y="103">SPO-02 · &lt; 90 % emergency</text></g>
+      <polyline id="line" class="chart-line" points=""/>
+      <g id="dots"></g>
+    </svg>
+  </section>
+</div>
+<script>
+const v = [97,96,98,97,95,96,97,98,97,96,95,97,96,98,97,96,97,95,96,97,98,96,97,95,96,97,96,98,97,96,97,95,96,97,96,98,97,95,96,97,96,97,98,96,97,95,96,97,93,92,91,93,92,93,91,92,93,92,91,92]
+const x = (i) => 72 + (i / 59) * 548, y = (s) => 200 - ((s - 80) / 20) * 184
+document.getElementById('line').setAttribute('points', v.map((s, i) => `${x(i)},${y(s)}`).join(' '))
+document.getElementById('dots').innerHTML = v.map((s, i) => s < 94
+  ? `<circle class="chart-point chart-point--caution" cx="${x(i)}" cy="${y(s)}" r="6"/>`
+  : `<circle class="chart-point" cx="${x(i)}" cy="${y(s)}" r="4"/>`).join('')
+</script>
+</body></html>
