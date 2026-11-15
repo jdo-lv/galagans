@@ -111,6 +111,9 @@ export class FakePacketRepository implements PacketRepository {
     if (this.failLatest) throw new Error('storage failed')
     return [...this.items.values()].sort(byBuiltAt).at(-1)
   }
+  async listAll() {
+    return [...this.items.values()].sort(byBuiltAt).reverse()
+  }
 }
 
 export class FakePacketGateway implements PacketGateway {

@@ -37,6 +37,8 @@ export interface PacketRepository {
   markSent(id: string, sentAt: string): Promise<void>
   /** The packet with the newest `builtAt`. */
   latest(): Promise<StoredPacket | undefined>
+  /** Every stored packet, queued or sent, newest `builtAt` first. */
+  listAll(): Promise<StoredPacket[]>
 }
 
 export interface PacketGateway {
