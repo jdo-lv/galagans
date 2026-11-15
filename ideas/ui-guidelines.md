@@ -115,7 +115,7 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 | `--text-hero` | DM Mono 400, tracking −0.04em | 64 px | One number per screen: the ring centre | 64 px |
 | `--text-value` | DM Mono 300 | 28 px | Reading values | 28 px |
 | `--text-heading` | Inter 700 | 20 px | Section headings on tablet layouts | — |
-| `--text-body` | Inter 400 / 500 / 700 | 16 px | Body, labels (700, uppercase, tracking 0.08em), units (700), nav labels (500), wordmark (500, tracking 0.08em; splash 0.32em) | 11–15 px |
+| `--text-body` | Inter 400 / 500 / 700 | 16 px | Body, labels (700, uppercase, tracking 0.08em), units (700), wordmark (500, tracking 0.08em; splash 0.32em) | 11–15 px |
 
 - **Why 16 px minimum.** On an iPad-class screen one CSS pixel is about 0.19 mm (our assumption: 132 CSS px per inch). Inter's capital letters are 0.727 em tall, so 16 px gives 2.2 mm, about 0.25° at 50 cm, which is NASA's minimum character height [S1 Table 21]. The canvas labels at 11–13 px are below it.
 - **Why 28 px values.** DM Mono at 28 px gives capitals of about 3.7 mm, over 0.4° at 50 cm: the preferred size, which NASA asks for labels and critical values [S1 V2 10049, V2 10050, V2 10066].
@@ -127,7 +127,7 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 - **Spacing scale:** 4, 8, 12, 16, 20, 24, 32 px (`--space-1` … `--space-7`). Page gutter 20 px (canvas). Card padding 16–20 px.
 - **Gaps:** 16 px between static cards (canvas 14 px, moved onto the 4 px grid); **18 px between touch targets**.
 - **Touch targets:** at least 52 × 52 px. On an iPad-class screen that is 10 mm, and 18 px is 3.4 mm, meeting NASA's 9.5 mm targets with 3.2 mm gaps [S2 §10.4.2.21]. The canvas's 44 px icon buttons keep their look but get a 52 px hit area.
-- **Radii:** 16 px cards and tiles, 12 px items inside a card (nav items), fully round pills and badges.
+- **Radii:** 16 px cards and tiles, 12 px items inside a card, fully round pills, badges and navigation bar items.
 - **Grid:** phone, one or two columns (canvas). Tablet and laptop, content at most 1200 px wide; the home screen shows three columns from 1200 px: the body-systems card (300 px), the Hazard lens card, and a 380 px column that holds Today's routine, Latest readings and the Reaction test card, in that order (mockup 01). From 861 to 1199 px the Hazard lens card moves under the body-systems card, and at 860 px and below everything stacks, body systems first. Tile grids use tiles at least 150 px wide (two columns on a phone, like the canvas).
 - **Critical information is visible without scrolling** [S1 V2 10037]; navigation is at most 2–3 levels deep.
 - **Motion:** 0.25 s colour transitions on theme change (canvas), none with `prefers-reduced-motion`. Nothing blinks or pulses.
@@ -135,7 +135,7 @@ Inter for words, DM Mono for numbers (the canvas pairing). Both are bundled with
 ## 5. Components
 
 ### App header
-Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre (below 600 px, centred in the space between the brand mark and the buttons, which don't fit beside a page-centred wordmark), icon buttons on the right, 18 px apart: voice control (microphone, inverse fill while on, disabled on the PVT screen, #37), "Add entry" (+, Home only, opens the check-in; built: issue #29) and the theme toggle (moon in light, sun in dark). Context pills sit in one wrapping row under it on every layout and screen: the connection pill, then the ground-link pill (#19), then the voice pill while voice is on ("Voice: listening", "Voice: thinking", "Voice: speaking") or after it failed, until the mic is tapped again ("Voice host unreachable", "Voice: audio not available") (#37). Crew and flight-day pills are not built.
+Brand mark (28 px, not a button) on the left, wordmark "HEALTH" centred on the page at every width, icon buttons on the right, 18 px apart: voice control (microphone, inverse fill while on, disabled on the PVT screen, #37) and the theme toggle (moon in light, sun in dark). The check-in opens from the navigation bar; the header "+" (Add entry, #29) went with it (#46). Context pills sit in one wrapping row under it on every layout and screen: the connection pill, then the ground-link pill (#19), then the voice pill while voice is on ("Voice: listening", "Voice: thinking", "Voice: speaking") or after it failed, until the mic is tapped again ("Voice host unreachable", "Voice: audio not available") (#37). Crew and flight-day pills are not built.
 
 ### Brand mark and splash
 - **Ring:** a 270° arc in `--color-ring` and a 60° arc in `--color-text`, round caps (canvas geometry). The arc was red on the canvas, then blue; blue now means level 1 only.
@@ -177,10 +177,12 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre (b
 - **Use:** a tall tile on `--color-feature-1` or `--color-feature-2` with title, day and up to three value + unit lines, for process summaries such as exercise minutes and sleep hours.
 - **Limit:** at most two per screen, never a status.
 
-### Navigation bar
-- **Layout:** a bar on `--color-surface` at the bottom on phones (or the side on tablets) with at most four items, each with an icon and a word.
-- **Selected item:** inverse pill plus `aria-current="page"`.
-- **Labels:** Home · Check-in · Body (the canvas's "Manual input" renamed to the glossary word in [features.md](features.md)).
+### Navigation bar (built: #46)
+- **Layout:** fixed at the bottom centre of every screen, at every width ([mockup 14](mockups/14-nav-bar.png), states in [mockup 15](mockups/15-nav-bar-states.png)): a pill on `--color-surface` with a 1 px `--color-edge` border and 8 px padding, centred on a full-width strip in `--color-bg` with 12 px above and below, so scrolled cards never show around it. The page's bottom padding keeps the last card clear of the strip.
+- **Items:** Home (`#/`), Check-in (`#/check-in`), Messages (the surgeon packet, `#/packet`) and Statistics (`#/statistics`, empty for now), in that order. Icons only, 24 px, in 64 × 52 px links 18 px apart; the word is each link's `aria-label`. The landmark is named "Main".
+- **Selected item:** inverse pill plus `aria-current="page"`, on hover too. Only those four screens select an item: a system detail selects none.
+- **Hidden** on the PVT screen, like voice control: a stray tap would end the timed test.
+- **Labels:** the canvas's "Manual input" is "Check-in", the glossary word in [features.md](features.md).
 
 ### Buttons
 - **Primary:** inverse pill, at least 52 px high, verb + object ("Save check-in"). One per screen.
@@ -215,7 +217,7 @@ Brand mark (28 px, not a button) on the left, wordmark "HEALTH" in the centre (b
 - **Who to involve:** the four tiers (Self-care, CMO, Medical conference, Urgent ground) as outline tiles in a 2 × 2 grid; the rule's tier is the inverse fill, weight 700, with `aria-current`. Never a level colour.
 
 ### Surgeon packet (built: #19)
-- **Route:** `#/packet`, opened from the ground-link pill. "← Home" (underlined link) goes back and focuses the "Body systems" heading; opening the screen focuses its heading once. Under the heading a muted line with `PrivateIcon`: "Shared with flight medicine only · Mars transit, one-way delay 14 min 05 s (demo value)".
+- **Route:** `#/packet`, opened from the ground-link pill or Messages in the navigation bar. "← Home" (underlined link) goes back and focuses the "Body systems" heading; opening the screen focuses its heading once. Under the heading a muted line with `PrivateIcon`: "Shared with flight medicine only · Mars transit, one-way delay 14 min 05 s (demo value)".
 - **Columns** (`.layout`): left the "Last packet · store-and-forward" card above the "Next packet · contents" card; right the "Crew note (optional)" card and the send buttons. On phones everything stacks in that order.
 - **Timeline:** four steps (Packet built, Queued for uplink, In transit or Arrived, Earliest reply), each a 36 px dot with the step icon, the name (700; 500 when pending) and a detail with times in `.num`. Done is a solid `--color-text` ring with a filled dot, current a dashed ring with an arrow and `aria-current="step"`, pending an `--color-edge` ring with dots and muted text; each step also has its state word, visually hidden. The steps sit on one line joined by a 2 px `--color-edge` rule, and stack vertically below 600 px. The timeline is not a health status: neutral tokens only, never a level colour. A muted line under it gives the round trip and "Don't wait for the ground on anything in "What next": your on-board actions already apply."
 - **Contents table:** columns Item, Status, Value, Source with uppercase muted column labels and rows divided by `--color-divider`. Status is the level badge; a flagged row (caution or warning today) stacks the badge, the dashed rule tag ("rule · SPO-01") and the tier as a neutral text-height pill ("CMO"). Value is `.num` plus unit and a muted " · 10 min ago" (" · data 1 d old" when stale). Source is the source tag. Below 600 px each row stacks: item and status, then value and source, the column labels visually hidden.
@@ -257,10 +259,10 @@ Routing is a separate, neutral outline pill (each level has a default, a rule ro
 
 ### Icons
 
-**Library: [Tabler Icons](https://tabler.io/icons), outline set** (`@tabler/icons-react` 3.50.0, MIT, 5,000+ icons) [I1]. It is the same rounded 24 px line style as the canvas icons, and of the line libraries it covers the most health and body concepts. The full vocabulary, rendered: [mockups/icons.png](mockups/icons.png). The sheet has no source in the repo, so icons added after it (`ChevronIcon`: chevron = "opens detail", #9; `StepDoneIcon`, `StepCurrentIcon`, `StepPendingIcon`: a timeline step done, current or pending, #19; `VoiceIcon`: Tabler's `microphone` = "voice control", #37; `PausedIcon`: Tabler's `player-pause` = "streak day paused for sickness or rest", #40) are not in it. `StepDoneIcon` is Tabler's `circle-filled`, the one filled icon in the app: a check would read as the ✓ of Nominal on the same screen. One exception, approved by the team for #40: the check-in completion draws a text ✓ in a circle beside "Check-in complete", because that screen shows no status badge.
+**Library: [Tabler Icons](https://tabler.io/icons), outline set** (`@tabler/icons-react` 3.50.0, MIT, 5,000+ icons) [I1]. It is the same rounded 24 px line style as the canvas icons, and of the line libraries it covers the most health and body concepts. The full vocabulary, rendered: [mockups/icons.png](mockups/icons.png). The sheet has no source in the repo, so icons added after it (`ChevronIcon`: chevron = "opens detail", #9; `StepDoneIcon`, `StepCurrentIcon`, `StepPendingIcon`: a timeline step done, current or pending, #19; `VoiceIcon`: Tabler's `microphone` = "voice control", #37; `PausedIcon`: Tabler's `player-pause` = "streak day paused for sickness or rest", #40; `HomeIcon`: Tabler's `home` and `StatisticsIcon`: Tabler's `chart-bar`, navigation bar, #46) are not in it. The bar's Check-in and Messages reuse `QuestionnaireIcon` and `GroundLinkIcon`, the ground-link pill's icon for the same screen. `StepDoneIcon` is Tabler's `circle-filled`, the one filled icon in the app: a check would read as the ✓ of Nominal on the same screen. One exception, approved by the team for #40: the check-in completion draws a text ✓ in a circle beside "Check-in complete", because that screen shows no status badge.
 
 - **Import by concept from [`src/ui/icons.tsx`](../src/main/frontend/src/ui/icons.tsx)**, never from `@tabler/icons-react` directly: `RespiratoryIcon`, `CautionIcon`, `Spo2Icon`, `GroundLinkIcon`. One concept has one icon everywhere, and one icon has one meaning [S1 V2 10010/10011]. A new concept is one export line there, plus a row in the sheet.
-- **Defaults:** every icon is `aria-hidden` and 22 px. The word next to it, or the button's `aria-label`, carries the meaning. Sizes are 18 px in badges and pills, 20 px in navigation, 22 px in tiles and 30 px for the header "add".
+- **Defaults:** every icon is `aria-hidden` and 22 px. The word next to it, or the button's `aria-label`, carries the meaning. Sizes are 18 px in badges and pills, 22 px in tiles and header buttons, and 24 px in the navigation bar, where the icon stands alone.
 - **Line weight:** 1.75 px for all icons, set once in CSS (`--icon-stroke` on `.tabler-icon`, canvas range 1.6–1.8). Colour is `currentColor`; status colour comes from the badge around the icon, never from the icon alone.
 - **Gaps:** Tabler has no kidneys, stomach or SpO₂ icon. Those three are the canvas's own drawings, built with Tabler's `createReactComponent` so they behave identically. Blood pressure uses `gauge` for now. When a concept is missing, search Tabler first, then draw one on the 24 px grid with round caps and add it the same way. Don't mix in another library: [Healthicons](https://healthicons.org) has the organs, devices and symptoms but is drawn as thinner filled shapes on a 48 px grid, and looks out of place next to the rest [I2].
 - **Metaphors:** standard ones crews know from home devices, no custom icons for common things [S3]. Sleep is `zzz`, not a moon, because the moon means "dark theme" in the header.
@@ -328,7 +330,7 @@ Why Tabler (checked 2026-11-14 against 64 concepts the app needs, from the packa
 | "Manual input" tab | "Check-in" | Glossary in [features.md](features.md) |
 | Moon for both the Sleep tile and the dark-mode toggle | Sleep uses `zzz`; the moon stays on the toggle | One meaning per icon [S1 V2 10010/10011] |
 
-The mockups in [mockups/](mockups/) are dark-only tablet comps with 11–14 px text and a few derived greys (`#3D403B`, `#2A3550`). Use them for layout and content; colours, sizes and status styles come from this document. Their colour use follows the rules: colour only on the alert levels, everything else grey (2026-11-14).
+The mockups in [mockups/](mockups/) are dark-only tablet comps (mockup 15 also shows the light theme) with 11–14 px text and a few derived greys (`#3D403B`, `#2A3550`). Use them for layout and content; colours, sizes and status styles come from this document. Their colour use follows the rules: colour only on the alert levels, everything else grey (2026-11-14).
 
 ## Sources
 
