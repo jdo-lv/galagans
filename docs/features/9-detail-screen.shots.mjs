@@ -31,10 +31,10 @@ async function shoot(name, readings, hash = '#/systems/Respiratory', { height = 
 }
 
 await shoot('home', [...week, [10 * 60_000, 92]], '#/', { height: 1100 })
-await shoot('caution', [...week, [10 * 60_000, 92]])
-await shoot('warning', [...week, [5 * 60_000, 88]])
+await shoot('check', [...week, [10 * 60_000, 92]])
+await shoot('emergency', [...week, [5 * 60_000, 88]])
 await shoot('nominal', [...week, [5 * 60_000, 96]])
 await shoot('no-data', [])
 await shoot('stale', week.map(([ago, spo2]) => [ago + DAY, spo2]))
-await shoot('caution-light', [...week, [10 * 60_000, 92]], undefined, { scheme: 'light' })
-await shoot('caution-phone', [...week, [10 * 60_000, 92]], undefined, { width: 390, height: 1600 })
+await shoot('check-light', [...week, [10 * 60_000, 92]], undefined, { scheme: 'light' })
+await shoot('check-phone', [...week, [10 * 60_000, 92]], undefined, { width: 390, height: 1600 })

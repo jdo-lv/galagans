@@ -36,7 +36,7 @@ const nominal = { heartRateBpm: 63, spo2Percent: 97, sleepHours: 7, mood: 4 }
 await page.shot(img('empty'))
 await save({ heartRate: 63, spo2: 97, sleep: 7, mood: 4 })
 await page.shot(img('nominal'))
-for (const [spo2, state] of [[92, 'caution'], [88, 'warning']]) {
+for (const [spo2, state] of [[92, 'check'], [88, 'emergency']]) {
   await save({ spo2 })
   await page.shot(img(state))
 }

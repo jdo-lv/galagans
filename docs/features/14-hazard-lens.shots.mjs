@@ -30,8 +30,8 @@ async function shoot(name, { spo2 = 97, hazard, theme = 'light', width = 1280, h
 }
 
 await shoot('off')
-await shoot('hostile-caution', { spo2: 92, hazard: 'hostile', theme: 'dark' })
-await shoot('gravity-warning', { spo2: 88, hazard: 'gravity' })
+await shoot('hostile-check', { spo2: 92, hazard: 'hostile', theme: 'dark' })
+await shoot('gravity-emergency', { spo2: 88, hazard: 'gravity' })
 await shoot('distance-1200', { spo2: 92, hazard: 'distance', width: 1200 })
 await shoot('radiation-900', { hazard: 'radiation', width: 900, height: 1900 })
 await shoot('hostile-390-light', { spo2: 92, hazard: 'hostile', width: 390, height: 1300, scrollTo: '.lens' })

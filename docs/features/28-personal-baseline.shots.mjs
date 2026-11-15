@@ -31,6 +31,6 @@ async function shoot(name, pvts, hash, height = 900) {
 }
 
 const slow = [[4 * DAY - 2 * 60 * MIN, 268], [10 * MIN, 312]]
-await shoot('detail-caution', slow, '#/systems/Cognition')
+await shoot('detail-check', slow, '#/systems/Cognition')
 await shoot('detail-stale', [[4 * DAY + 2 * 60 * MIN, 312]], '#/systems/Cognition')
-await shoot('home-caution-305', [[10 * MIN, 305]], '#/', 1500)
+await shoot('home-check-305', [[10 * MIN, 305]], '#/', 1500)
