@@ -57,6 +57,7 @@ function PacketHistory({ state }: { state: PeriodicState<StoredPacket[]> }) {
       <h3 id={headingId} className="card-heading">
         Packet history
       </h3>
+      {state.kind === 'unavailable' && <p className="muted">Packet history unavailable</p>}
       {state.kind === 'ready' &&
         (state.data.length === 0 ? <p className="muted">No packets sent yet.</p> : <PacketTable packets={state.data} now={state.now} />)}
     </section>

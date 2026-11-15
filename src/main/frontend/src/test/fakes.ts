@@ -95,6 +95,7 @@ export class FakePacketRepository implements PacketRepository {
   items = new Map<string, StoredPacket>()
   failAdd = false
   failLatest = false
+  failListAll = false
 
   async add(packet: Packet) {
     if (this.failAdd) throw new Error('storage failed')
@@ -112,6 +113,7 @@ export class FakePacketRepository implements PacketRepository {
     return [...this.items.values()].sort(byBuiltAt).at(-1)
   }
   async listAll() {
+    if (this.failListAll) throw new Error('storage failed')
     return [...this.items.values()].sort(byBuiltAt).reverse()
   }
 }
