@@ -1,10 +1,12 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { setup } from '../test/renderApp'
 
+const at = (hash: string) => window.history.replaceState(null, '', hash)
 const findBar = () => screen.findByRole('navigation', { name: 'Main' })
 const bar = () => screen.getByRole('navigation', { name: 'Main' })
 const links = () => within(bar()).getAllByRole('link')
+const barLink = (name: string) => within(bar()).getByRole('link', { name })
 
 describe('Navigation bar (#46)', () => {
   it('AC1: the bar holds one list with four links in order', async () => {
@@ -35,5 +37,22 @@ describe('Navigation bar (#46)', () => {
       return [...svg.classList].find((c) => c.startsWith('tabler-icon-'))
     })
     expect(icons).toEqual(['tabler-icon-home', 'tabler-icon-clipboard-list', 'tabler-icon-satellite', 'tabler-icon-chart-bar'])
+  })
+
+  it.each([
+    ['#/', 'Home'],
+    ['#/check-in', 'Check-in'],
+    ['#/packet', 'Messages'],
+    ['#/statistics', 'Statistics'],
+  ])('AC3: at %s only %s is current', async (hash, name) => {
+    at(hash)
+    setup().renderApp()
+    await findBar()
+
+    await waitFor(() => expect(barLink(name)).toHaveAttribute('aria-current', 'page'))
+    for (const other of links().filter((a) => a.getAttribute('aria-label') !== name)) {
+      expect(other).not.toHaveAttribute('aria-current')
+    }
+    expect(window.location.hash).toBe(hash)
   })
 })

@@ -11,13 +11,14 @@ const ITEMS: Item[] = [
   { kind: 'statistics', href: STATISTICS_HASH, label: 'Statistics', Icon: StatisticsIcon },
 ]
 
-export function NavBar() {
+/** `current` is the route on screen; only a bar screen marks its link, so a system detail marks none. */
+export function NavBar({ current }: { current: Route['kind'] }) {
   return (
     <nav className="nav-bar" aria-label="Main">
       <ul className="nav-bar__items">
         {ITEMS.map(({ kind, href, label, Icon }) => (
           <li key={kind}>
-            <a href={href} aria-label={label}>
+            <a href={href} aria-label={label} aria-current={kind === current ? 'page' : undefined}>
               <Icon size={24} />
             </a>
           </li>

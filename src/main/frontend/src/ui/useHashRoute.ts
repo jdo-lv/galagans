@@ -43,6 +43,7 @@ export function parseHash(hash: string): Route {
   if (hash === PVT_HASH) return { kind: 'pvt' }
   if (hash === PACKET_HREF) return { kind: 'packet' }
   if (hash === CHECK_IN_HASH) return { kind: 'check-in' }
+  if (hash === STATISTICS_HASH) return { kind: 'statistics' }
   const rest = hash.startsWith(PREFIX) ? hash.slice(PREFIX.length) : ''
   if (rest === '' || rest.includes('/')) return { kind: 'unknown' }
   try {

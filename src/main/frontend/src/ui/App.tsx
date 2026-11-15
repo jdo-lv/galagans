@@ -7,6 +7,7 @@ import { LatestReadings } from "./LatestReadings";
 import { NavBar } from "./NavBar";
 import { PvtCard } from "./PvtCard";
 import { PvtTest } from "./PvtTest";
+import { StatisticsScreen } from "./StatisticsScreen";
 import { StatusBar } from "./StatusBar";
 import { SurgeonPacket } from "./SurgeonPacket";
 import { SystemDetail } from "./SystemDetail";
@@ -86,6 +87,10 @@ export function App() {
         <main>
           <SurgeonPacket />
         </main>
+      ) : route.kind === "statistics" ? (
+        <main>
+          <StatisticsScreen />
+        </main>
       ) : route.kind === "pvt" ? (
         <main>
           <PvtTest onSaved={refreshAll} />
@@ -122,7 +127,7 @@ export function App() {
           </div>
         </main>
       )}
-      <NavBar />
+      <NavBar current={route.kind} />
     </div>
   );
 }
